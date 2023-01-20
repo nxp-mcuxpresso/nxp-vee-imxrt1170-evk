@@ -1,0 +1,31 @@
+set pagination off
+set mi-async
+set remotetimeout 60000
+set confirm off
+
+target extended-remote | crt_emu_cm_redlink -g \
+-mi -2 \
+-p MIMXRT1176xxxxx \
+-vendor NXP \
+--connectscript=RT1170_connect_M7_wake_M4.scp \
+--ResetScript=RT1170_reset.scp \
+--reset= \
+-cache=disable \
+--flash-hashing \
+--flash-driver= \
+-x ../../common/sdk_makefile/cmsisdap_support \
+--no-packed  \
+--err=redlink.err \
+--log=redlink.log
+
+set mem inaccessible-by-default off
+mon ondisconnect cont
+set arm force-mode thumb
+mon capabilities
+set remote hardware-breakpoint-limit 4
+file FILE_VALUE
+
+load
+
+b main
+run

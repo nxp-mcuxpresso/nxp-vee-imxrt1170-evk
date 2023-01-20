@@ -1,0 +1,355 @@
+Release Name: NXPVEE-MIMXRT1170-EVK
+Release Version: 1.0.0
+Package License: LICENSE
+Outgoing License: LA_OPT_EVAL_DEMO_ONLY v21 December 2022
+
+SDK_Peripheral_Driver      Name: SDK Peripheral Driver
+                           Version: 2.x.x
+                           Outgoing License: BSD-3-Clause
+                           License File: Licenses/COPYING-BSD-3
+                           Format: source code
+                           Description: Peripheral drivers are designed for
+                           the most common use cases identified for the
+                           underlying hardware block.
+                           Location: ../mcux-sdk/core/devices/<device>/drivers
+                           Origin: NXP (BSD-3-Clause)
+
+SDK_Device                 Name: SDK SoC files
+                           Version: NA
+                           Outgoing License: BSD-3-Clause
+                           License File: Licenses/COPYING-BSD-3
+                           Format: source code, linker files
+                           Description: Device system files, template files,
+                           IDE related startup and linker files.
+                           Location: ../mcux-sdk/core/devices/<device>/
+                           Origin: NXP (BSD-3-Clause)
+
+SDK_Components             Name: SDK components and board peripheral drivers
+                           Version: NA
+                           Outgoing License: BSD-3-Clause
+                           License File: Licenses/COPYING-BSD-3
+                           Format: source code
+                           Description: SDK components and board peripheral
+                           drivers, for example, flash and codec drivers.
+                           Location: ../mcux-sdk/core/components/
+                           Origin: NXP (BSD-3-Clause), ITE (BSD-3-Clause)
+
+SDK_Components_overlay     Name: SDK components and board peripheral drivers overlay
+                           Version: NA
+                           Outgoing License: BSD-3-Clause
+                           License File: Licenses/COPYING-BSD-3
+                           Format: source code
+                           Description: SDK components and board peripheral
+                           drivers, for example, flash and codec drivers.
+                           Location: nxpvee-mimxrt1170-evk-bsp/sdk_overlay/components/
+                           Origin: NXP (BSD-3-Clause), ITE (BSD-3-Clause)
+
+CMSIS                      Name: CMSIS
+                           Version: 5.8.0
+                           Outgoing License: Apache License 2.0
+                           License File: ../mcux-sdk/core/CMSIS/LICENSE.txt
+                           Format: source code
+                           Description: Vendor-independent hardware
+                           abstraction layer for microcontrollers that are
+                           based on Arm Cortex processors, distributed by
+                           ARM. cores
+                           Location: ../mcux-sdk/core/CMSIS/
+                           Origin: ARM (Apache-2.0) -
+                           https://github.com/ARM-software/CMSIS_5/releases/t
+                           ag/5.8.0
+
+cmsis_drivers              Name: SDK CMSIS Peripheral Drivers
+                           Version: 2.x.x
+                           Outgoing License: Apache License 2.0
+                           License File: ../mcux-sdk/core/CMSIS/LICENSE.txt
+                           Format: source code
+                           Description: CMSIS Peripheral drivers are designed
+                           to provide hardware independent APIs which make
+                           application reusable across a wide range of
+                           supported microcontroller devices.
+                           Location: ../mcux-sdk/core/devices/<device>/cmsis_drivers
+                           Origin: NXP (Apache License 2.0)
+
+fatfs                      Name: FatFs
+                           Version: 0.14b
+                           Outgoing License: FatFs License
+                           License File: ../mcux-sdk/middleware/fatfs/LICENSE.txt
+                           Format: source code
+                           Description: Generic FAT file system for small
+                           embedded devices.
+                           Location: ../mcux-sdk/middleware/fatfs
+                           Origin: Electronic Lives Mfg. by ChaN of Ageo
+                           city, Japan (FatFs License)
+                           Approved open source license: Yes
+                           Url: http://elm-chan.org/fsw/ff/00index_e.html
+
+freertos_kernel            Name: FreeRTOS
+                           Version: 10.4.3_rev1
+                           Outgoing License: MIT
+                           License File: nxpvee-mimxrt1170-evk-bsp/sdk_overlay/rtos/freertos/freertos-kernel/LICENSE.md
+                           Format: source code
+                           Description: Open source RTOS kernel for small
+                           devices
+                           Location: nxpvee-mimxrt1170-evk-bsp/sdk_overlay/rtos/freertos/freertos-kernel
+                           Origin: Amazon (MIT)
+                           Url: https://aws.amazon.com/freertos/
+
+FreeType                   Name: FreeType
+                           Version: 2.11
+                           Outgoing License: FTL
+                           License File: nxpvee-mimxrt1170-evk-bsp/projects/microej/thirdparty/freetype/FTL.TXT
+                           Format: source code
+                           Description: Software library to render fonts
+                           Location: nxpvee-mimxrt1170-evk-bsp/projects/microej/thirdparty/freetype
+                           Origin: The FreeType Project (http://freetype.org/license.html)
+                           Url: https://gitlab.freedesktop.org/freetype/freetype.git
+
+HarfBuzz                   Name: HarfBuzz
+                           Version: 4.2.1
+                           Outgoing License: Old MIT
+                           License File: nxpvee-mimxrt1170-evk-bsp/projects/microej/thirdparty/harfbuzz/COPYING
+                           Format: source code
+                           Description: Text shaping library
+                           Location: nxpvee-mimxrt1170-evk-bsp/projects/microej/thirdparty/harfbuzz
+                           Origin: HarfBuzz Project (https://harfbuzz.github.io/)
+                           Url: https://github.com/harfbuzz/harfbuzz
+
+lwip                       Name: lwIP TCP/IP Stack
+                           Version: lwIP git repository (2023-01-03, branch:
+                           master, SHA-1:
+                           3fe8d2fc43a9b69f7ed28c63d44a7744f9c0def9)
+                           Outgoing License: BSD-3-Clause
+                           License File: ../mcux-sdk/middleware/lwip/COPYING
+                           Format: source code
+                           Description: A light-weight TCP/IP stack
+                           Location: ../mcux-sdk/middleware/lwip
+                           Origin: NXP (BSD-3-Clause) Swedish Institute of
+                           Computer Science (BSD-3-Clause) -
+                           http://savannah.nongnu.org/projects/lwip
+
+mbedtls                    Name: Mbed TLS
+                           Version: 2.28.3
+                           Outgoing License: Apache-2.0
+                           License File: ../mcux-sdk/middleware/mbedtls/LICENSE
+                           Format: source code
+                           Description: Cryptographic and SSL/TLS Library
+                           Location: ../mcux-sdk/middleware/mbedtls
+                           Origin: ARM(Apache-2.0) -
+                           https://github.com/Mbed-TLS/mbedtls/releases/tag/v
+                           2.28.3
+
+mcufont                    Name: mcufont
+                           Version: 1.0
+                           Outgoing License: MIT
+                           License File: nxpvee-mimxrt1170-evk-bsp/sdk_overlay/middleware/vglite/font/mcufont/LICENSE
+                           Format: source code
+                           Description: Font rendering library for
+                           microcontrollers
+                           Location: nxpvee-mimxrt1170-evk-bsp/sdk_overlay/middleware/vglite/font/mcufont
+                           Origin: Petteri Aimonen
+                           (https://github.com/PetteriAimonen)
+                           Url: https://github.com/mcufont/mcufont
+
+sdmmc                      Name: SD MMC SDIO Card middleware
+                           Version: 2.2.7
+                           Outgoing License: BSD-3-Clause
+                           License File: ../mcux-sdk/middleware/sdmmc/COPYING-BSD-3
+                           Format: source code
+                           Description: A software component support SD card,
+                           eMMC card, SDIO card.
+                           Location: ../mcux-sdk/middleware/sdmmc
+                           Origin: NXP (BSD-3-Clause)
+
+SystemView Target Sources  Name: SystemView Target Sources
+                           Version: 3.32
+                           Outgoing License: SEGGER BSD
+                           License File: nxpvee-mimxrt1170-evk-bsp/projects/common/segger/LICENSE
+                           Format: source code
+                           Description: Target code for real-time recording and visualization tool
+                           Location: nxpvee-mimxrt1170-evk-bsp/projects/common/segger
+                           Origin: SEGGER (https://www.segger.com)
+                           Url: https://www.segger.com/downloads/systemview/
+
+vglite                     Name: vglite
+                           Version: 3.0.15_rev4
+                           Outgoing License: MIT
+                           License File: nxpvee-mimxrt1170-evk-bsp/sdk_overlay/middleware/vglite/LICENSE.txt
+                           Format: source code
+                           Description: VeriSilicon's platform independent
+                           VGLite Graphics library
+                           Location: nxpvee-mimxrt1170-evk-bsp/sdk_overlay/middleware/vglite
+                           Origin: VeriSilicon (http://www.verisilicon.com/)
+                           Url: http://www.verisilicon.com/
+
+SimpleGFX                  Name: SimpleGFX
+                           Version: 0.1
+                           Outgoing License: BSD-3-Clause
+                           License File: nxpvee-mimxrt1170-evk-apps/LICENSE.txt
+                           Format: source code
+                           Description: example of a graphics VEE application
+                           Location: nxpvee-mimxrt1170-evk-apps/src/main/java/com/nxp/simpleGFX
+                           Origin: NXP (BSD-3-Clause)
+
+AnimatedMascot             Name: AnimatedMascot
+                           Version: 0.1
+                           Outgoing License: BSD-3-Clause
+                           License File: nxpvee-mimxrt1170-evk-apps/LICENSE.txt
+                           Format: source code
+                           Description: VEE application demonstrating vectorial animation
+                           Location: nxpvee-mimxrt1170-evk-apps/src/main/java/com/nxp/animatedMascot
+                           Origin: NXP (BSD-3-Clause)
+
+MicroEJ BSP                Name: MicroEJ BSP
+                           Version: 1.x.x
+                           Outgoing License: BSD-3-Clause
+                           License File: Licenses/COPYING-BSD-3
+                           Format: source code
+                           Description: Board support package for i.MX RT1170
+                           Location: nxpvee-mimxrt1170-evk-bsp/projects/microej (excluding subdirectory
+                           thirdparty)
+                           Origin: MicroEJ (https://www.microej.com/)
+
+MicroEJ EDC                Name: Embedded Device Configuration (EDC)
+                           Version: 1.3.3
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Implementation of the minimal standard runtime environment for
+                           embedded devices
+                           Location: dependency of MIMXRT1170-configuration/module.ivy
+                           Origin: MicroEJ
+                           Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/runtime.html?highlight=edc#embedded-device-configuration-edc
+
+MicroEJ BON                Name: Beyond Profile (BON)
+                           Version: 1.4.0
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Control memory usage and start-up sequences
+                           Location: dependency of MIMXRT1170-configuration/module.ivy
+                           Origin: MicroEJ
+                           Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/runtime.html?highlight=edc#beyond-profile-bon
+
+MicroEJ NET                Name: MicroEJ Pack NET
+                           Version: 11.0.1
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: This pack contains the networking modules group: NET, SSL & Security.
+                           Location: dependency of MIMXRT1170-configuration/module.ivy
+                           Origin: MicroEJ
+                           Url: https://docs.microej.com/en/latest/VEEPortingGuide/networkCoreEngine.html
+
+MicroUI                    Name: MicroUI
+                           Version: 3.1.0
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Enable the creation of user interface in Java
+                           Location: dependency of MIMXRT1170-configuration/module.ivy
+                           Origin: MicroEJ
+                           Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/UI/MicroUI/index.html?highlight=microui
+
+MicroVG                    Name: MicroVG
+                           Version: 1.2.1
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Vector drawing library
+                           Location: dependency of MIMXRT1170-configuration/module.ivy
+                           Origin: MicroEJ
+                           Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/UI/MicroVG/index.html?highlight=microvg
+
+MWT                        Name: Micro Widget Toolkit
+                           Version: 3.3.1
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Symplify the creation and use of graphical user interface widgets in Java
+                           Location: dependency of nxpvee-mimxrt1170-evk-apps/module.ivy
+                           Origin: MicroEJ
+                           Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/UI/MWT/index.html
+
+WIDGET                     Name: Widget Toolkit
+                           Version: 2.1.0
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Provides very common widgets with basic implementations.
+                           Location: dependency of MIMXRT1170-fp/module.ivy
+                           Origin: MicroEJ
+                           Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/UI/Widgets/widget.html
+
+DRAWING                    Name: Drawing
+                           Version: 1.0.3
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Contains shapes rendering and image with transformation rendering algorithms
+                           Location: transitive dependency of nxpvee-mimxrt1170-evk-apps/module.ivy
+                           Origin: MicroEJ
+                           Url: https://repository.microej.com/javadoc/microej_5.x/apis/ej/drawing/package-summary.html
+
+BASICTOOL                  Name: Basic Tool
+                           Version: 1.5.0
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Miscellaneous tools
+                           Location: transitive dependency of nxpvee-mimxrt1170-evk-apps/module.ivy
+                           Origin: MicroEJ
+                           Url: https://repository.microej.com/javadoc/microej_5.x/apis/ej/basictool/package-summary.html
+
+COLLECTIONS                Name: Collections
+                           Version: 1.3.0
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Static methods that operate on or return collections
+                           Location: transitive dependency of nxpvee-mimxrt1170-evk-apps/module.ivy
+                           Origin: MicroEJ
+                           Url: https://repository.microej.com/javadoc/microej_5.x/apis/index.html?java/util/Collections.html
+
+JUNIT                      Name: Junit
+                           Version: 1.7.1
+                           Outgoing License: Eclipse Public License - v 1.0
+                           License File: https://spdx.org/licenses/EPL-1.0.html
+                           Description: Unit test framework
+                           Location: dependency of nxpvee-mimxrt1170-evk-apps/module.ivy
+                           Origin: JUNIT
+                           Url: https://junit.org/
+
+FRONTPANEL                 Name: Frontpanel
+                           Version: 13.1.0
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Frontpanel creation library
+                           Location: dependency of MIMXRT1170-fp/module.ivy
+                           Origin: MicroEJ
+                           Url: https://docs.microej.com/en/latest/PlatformDeveloperGuide/frontpanel.html
+
+
+FRAMEWORK                  Name: Frontpanel Framework Library
+                           Version: 1.1.0
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Frontpanel framework creation library
+                           Location: dependency of MIMXRT1170-fp/module.ivy
+                           Origin: MicroEJ
+                           Url: https://docs.microej.com/en/latest/PlatformDeveloperGuide/frontpanel.html
+
+HILEngine                  Name: Hardware In the Loop interface
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Simulates Java-to-C calls.
+                           Location: dependency of nxpvee-mimxrt1170-evk-mock/module.ivy
+                           Origin: MicroEJ
+                           Url: https://docs.microej.com/en/latest/PlatformDeveloperGuide/simulation.html
+
+IMAGEGENERATOR             Name: Image Generator
+                           Version: 13.2.0
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Off-board tool in charge of generating image data
+                           Location: dependency of MIMXRT1170-fp/module.ivy
+                           Origin: MicroEJ
+                           Url: https://docs.microej.com/en/latest/PlatformDeveloperGuide/uiImageGenerator.html
+
+ARCHITECTURE               Name: Microej Architecture Image Generator
+                           Version: flopi4G26-7.20.1
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: MicroEJ Architecture for GNU Tools for ARM Embedded Processors 4.8.
+                           Location: dependency of MIMXRT1170-configuration/module.ivy
+                           Origin: MicroEJ
+                           Url: https://repository.microej.com/architectures/com/microej/architecture/CM7/CM7hardfp_GCC48/flopi7G26/7.20.1/

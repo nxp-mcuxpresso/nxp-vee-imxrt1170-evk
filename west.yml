@@ -1,0 +1,44 @@
+# The west manifest file for rt1170 NXP VEE
+
+manifest:
+  remotes:
+    - name: nxp-mcuxpresso
+      url-base: https://github.com/nxp-mcuxpresso
+    - name: freertos
+      url-base: https://github.com/FreeRTOS
+  # Please add items below in reverse alphabetical order
+  projects:
+    - name: mcux-sdk
+      remote: nxp-mcuxpresso
+      revision: MCUX_2.14.0
+      path: mcux-sdk/core
+    - name: FreeRTOS-Kernel
+      revision: MCUX_2.13.1
+      remote: nxp-mcuxpresso
+      path: mcux-sdk/rtos/freertos/freertos-kernel
+    - name: CMSIS_5
+      path: mcux-sdk/core/CMSIS
+      revision: MCUX_2.14.0
+      remote: nxp-mcuxpresso
+    - name: fatfs
+      remote: nxp-mcuxpresso
+      path: mcux-sdk/middleware/fatfs
+      revision: MCUX_2.14.0
+    - name: mcux-sdk-middleware-sdmmc
+      remote: nxp-mcuxpresso
+      revision: MCUX_2.14.0
+      path: mcux-sdk/middleware/sdmmc
+    - name: lwip
+      remote: nxp-mcuxpresso
+      revision: MCUX_2.14.0
+      path: mcux-sdk/middleware/lwip
+    - name: mbedtls
+      remote: nxp-mcuxpresso
+      revision: MCUX_2.14.0
+      path: mcux-sdk/middleware/mbedtls
+    - name: coreHTTP
+      remote: freertos
+      revision: v3.0.0
+      path: mcux-sdk/middleware/coreHTTP
+  self:
+    path: nxpvee-mimxrt1170-evk

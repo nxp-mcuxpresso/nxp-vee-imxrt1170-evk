@@ -1,0 +1,8 @@
+Release Name: FreeRTOS kernel
+Release Version: 10.5.0
+Outgoing License: MIT
+License File: LICENSE.md
+Format: source code
+Description: Open source RTOS kernel for small devices
+Origin: Amazon (MIT)
+Url: https://aws.amazon.com/freertos/
