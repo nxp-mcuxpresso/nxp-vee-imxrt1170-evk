@@ -1,5 +1,3 @@
-# Copyright 2022 MicroEJ Corp. This file has been modified by MicroEJ Corp.
-
 include_guard()
 message("microej/vglite_support component is included.")
 

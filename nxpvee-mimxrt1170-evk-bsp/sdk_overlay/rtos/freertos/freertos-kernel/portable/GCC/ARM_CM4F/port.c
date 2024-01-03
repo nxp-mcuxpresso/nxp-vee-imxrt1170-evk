@@ -24,6 +24,7 @@
  * https://www.FreeRTOS.org
  * https://github.com/FreeRTOS
  *
+ * Copyright 2023 MicroEJ Corp. This file has been modified by MicroEJ Corp.
  */
 
 /*-----------------------------------------------------------
@@ -500,20 +501,26 @@ void xPortSysTickHandler( void )
      * save and then restore the interrupt mask value as its value is already
      * known. */
     portDISABLE_INTERRUPTS();
+    #ifndef SYSTICKS_EVENTS_DISABLE
     traceISR_ENTER();
+    #endif
     {
-        traceISR_EXIT_TO_SCHEDULER();
         /* Increment the RTOS tick. */
         if( xTaskIncrementTick() != pdFALSE )
         {
+            #ifndef SYSTICKS_EVENTS_DISABLE
+            traceISR_EXIT_TO_SCHEDULER();
+            #endif
             /* A context switch is required.  Context switching is performed in
              * the PendSV interrupt.  Pend the PendSV interrupt. */
             portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;
         }
+        #ifndef SYSTICKS_EVENTS_DISABLE
         else
         {
              traceISR_EXIT();
         }
+        #endif
     }
     portENABLE_INTERRUPTS();
 }

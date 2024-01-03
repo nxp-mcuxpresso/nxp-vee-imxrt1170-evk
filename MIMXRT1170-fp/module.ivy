@@ -1,7 +1,7 @@
 <!--
 	IVY
 
-	Copyright 2022 MicroEJ Corp. All rights reserved.
+	Copyright 2022-2023 MicroEJ Corp. All rights reserved.
 	Use of this source code is governed by a BSD-style license that can be found with this software.
 -->
 <ivy-module version="2.0" xmlns:ea="http://www.easyant.org" xmlns:ej="https://developer.microej.com" ej:version="2.0.0">
@@ -15,6 +15,9 @@
 	</configurations>
 
 	<dependencies>
-		<dependency org="ej.tool.frontpanel" name="widget" rev="2.1.0"/>
+		<dependency org="ej.tool.frontpanel" name="widget" rev="3.0.0"/>
+		<dependency org="com.microej.pack.ui" name="ui-pack" rev="13.7.0">
+			<artifact name="frontpanel" type="jar"/>
+		 </dependency>
 	</dependencies>
 </ivy-module>

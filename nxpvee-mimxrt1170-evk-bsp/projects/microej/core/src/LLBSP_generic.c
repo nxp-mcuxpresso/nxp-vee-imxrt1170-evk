@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2014-2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2014-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -30,27 +30,6 @@ extern void SOAR_END(void);
 extern void _java_installed_features_text_start(void);
 extern void _java_installed_features_text_size(void);
 #endif // MICROEJ_MULTIAPP
-
-
-/**
- * @brief Checks if the given pointer is in a read only memory or not.
- *
- * @return 1 if the given pointer is in a read only memory (eg. flash), 0 otherwise.
- */
-uint8_t LLBSP_IMPL_isInReadOnlyMemory(void* ptr){
-	uint32_t addr = (uint32_t)ptr;
-	uint32_t soarStart = (uint32_t)(&SOAR_START);
-	uint32_t soarEnd = (uint32_t)(&SOAR_END);
-#if defined(MICROEJ_MULTIAPP)
-	uint32_t installedFeaturesStart = (uint32_t)(&_java_installed_features_text_start);
-	uint32_t installedFeaturesEnd = installedFeaturesStart + (uint32_t)(&_java_installed_features_text_size);
-#endif // MICROEJ_MULTIAPP
-	return (uint8_t)(((addr >= soarStart) && (addr < soarEnd))
-#if defined(MICROEJ_MULTIAPP)
-			|| ((addr >= installedFeaturesStart) && (addr < installedFeaturesEnd))
-#endif // MICROEJ_MULTIAPPl
-			);
-}
 
 /**
  * @brief Writes the character <code>c</code>, cast to an unsigned char, to stdout stream.

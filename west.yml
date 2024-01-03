@@ -11,34 +11,34 @@ manifest:
     - name: mcux-sdk
       remote: nxp-mcuxpresso
       revision: MCUX_2.14.0
-      path: mcux-sdk/core
+      path: nxpvee-mimxrt1170-evk/nxpvee-mimxrt1170-evk-bsp/mcux-sdk/core
     - name: FreeRTOS-Kernel
       revision: MCUX_2.13.1
       remote: nxp-mcuxpresso
-      path: mcux-sdk/rtos/freertos/freertos-kernel
+      path: nxpvee-mimxrt1170-evk/nxpvee-mimxrt1170-evk-bsp/mcux-sdk/rtos/freertos/freertos-kernel
     - name: CMSIS_5
-      path: mcux-sdk/core/CMSIS
+      path: nxpvee-mimxrt1170-evk/nxpvee-mimxrt1170-evk-bsp/mcux-sdk/core/CMSIS
       revision: MCUX_2.14.0
       remote: nxp-mcuxpresso
     - name: fatfs
       remote: nxp-mcuxpresso
-      path: mcux-sdk/middleware/fatfs
+      path: nxpvee-mimxrt1170-evk/nxpvee-mimxrt1170-evk-bsp/mcux-sdk/middleware/fatfs
       revision: MCUX_2.14.0
     - name: mcux-sdk-middleware-sdmmc
       remote: nxp-mcuxpresso
       revision: MCUX_2.14.0
-      path: mcux-sdk/middleware/sdmmc
+      path: nxpvee-mimxrt1170-evk/nxpvee-mimxrt1170-evk-bsp/mcux-sdk/middleware/sdmmc
     - name: lwip
       remote: nxp-mcuxpresso
       revision: MCUX_2.14.0
-      path: mcux-sdk/middleware/lwip
+      path: nxpvee-mimxrt1170-evk/nxpvee-mimxrt1170-evk-bsp/mcux-sdk/middleware/lwip
     - name: mbedtls
       remote: nxp-mcuxpresso
       revision: MCUX_2.14.0
-      path: mcux-sdk/middleware/mbedtls
+      path: nxpvee-mimxrt1170-evk/nxpvee-mimxrt1170-evk-bsp/mcux-sdk/middleware/mbedtls
     - name: coreHTTP
       remote: freertos
       revision: v3.0.0
-      path: mcux-sdk/middleware/coreHTTP
+      path: nxpvee-mimxrt1170-evk/nxpvee-mimxrt1170-evk-bsp/mcux-sdk/middleware/coreHTTP
   self:
     path: nxpvee-mimxrt1170-evk

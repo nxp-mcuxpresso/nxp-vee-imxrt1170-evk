@@ -26,10 +26,9 @@
 #include "fsl_dmamux.h"
 #include "fsl_debug_console.h"
 
-#ifdef SEGGER_DEBUG
+#ifdef ENABLE_SYSTEM_VIEW
 #include "SEGGER_SYSVIEW.h"
 #include "SEGGER_debug_def.h"
-#define MARKER_DMA 0xdead0005
 #endif
 
 // -----------------------------------------------------------------------------
@@ -96,17 +95,16 @@ void DISPLAY_DMA_initialize(const framebuffer_t * framebuffers[]) {
 // See the header file for the function documentation
 void DISPLAY_DMA_start(framebuffer_t *dst,framebuffer_t *src, uint32_t size) {
     edma_transfer_config_t transferConfig;
-	DISPLAY_IMPL_notify_dma_start();
-#ifdef SEGGER_DEBUG
-	SEGGER_SYSVIEW_MarkStart(MARKER_DMA);
-#endif // SEGGER_DEBUG
-	EDMA_PrepareTransfer(&transferConfig, 
+#ifdef ENABLE_SYSTEM_VIEW
+	SEGGER_SYSVIEW_OnUserStart(MARKER_DMA);
+#endif // ENABLE_SYSTEM_VIEW
+	EDMA_PrepareTransfer(&transferConfig,
 /* void *srcAddr,                       */   src,
 /* uint32_t srcWidth,                   */   DMA_TRANSFER_WIDTH,
 /* void *destAddr,                      */   dst,
 /* uint32_t destWidth,                  */   DMA_TRANSFER_WIDTH,
 /* uint32_t bytesEachRequest,           */   DMA_TRANSFER_BYTES_EACH_REQUEST,
-/* uint32_t transferBytes,              */   size, // (ymax - ymin + 1) * FRAME_BUFFER_STRIDE_BYTE, 
+/* uint32_t transferBytes,              */   size, // (ymax - ymin + 1) * FRAME_BUFFER_STRIDE_BYTE,
 /* edma_transfer_type_t transferType);  */   kEDMA_MemoryToMemory);
     EDMA_SubmitTransfer(&g_EDMA_Handle, &transferConfig);
     EDMA_StartTransfer(&g_EDMA_Handle);
@@ -127,10 +125,9 @@ static void dma_callback(edma_handle_t *handle, void *param, bool transfer_done,
 	{
 		uint8_t it = interrupt_enter();
 		LLUI_DISPLAY_flushDone(true);
-		DISPLAY_IMPL_notify_dma_stop();
-#ifdef SEGGER_DEBUG
-		SEGGER_SYSVIEW_MarkStop(MARKER_DMA);
-#endif // SEGGER_DEBUG
+#ifdef ENABLE_SYSTEM_VIEW
+		SEGGER_SYSVIEW_OnUserStop(MARKER_DMA);
+#endif // ENABLE_SYSTEM_VIEW
 		interrupt_leave(it);
 	}
 }

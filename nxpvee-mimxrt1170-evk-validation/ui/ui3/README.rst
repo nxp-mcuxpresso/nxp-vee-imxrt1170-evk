@@ -16,12 +16,12 @@ allows to test the correct behavior of MicroUI in a Java application.
 Requirements
 ------------
 
-- See Platform Test Suites `documentation <../../README.rst>`_.
+See Platform Test Suites `documentation <../../README.rst>`_.
 
 Usage
 -----
 
-Follow `this README.rst<java-testsuite-runner-ui3/README.rst>`_.
+Follow `this README.rst <java-testsuite-runner-ui3/README.rst>`_.
 
 Troubleshooting
 ---------------

@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 NXP
+ * Copyright 2022-2023 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -16,8 +16,8 @@ import ej.microui.display.Painter;
 public class SimpleGFX extends Thread {
 
 	final static int NXP_ORANGE = 0xF9B500;
-	final static int NXP_BLUE = 0x7BB1DB;
-	final static int NXP_GREEN = 0xC9D200;
+	final static int NXP_BLUE = 0x0EAFE0;
+	final static int NXP_GREEN = 0x69CA00;
 	final static int DISPLAY_SIZE = 720;
 
 	private static int grey = 0xFFFFFF;

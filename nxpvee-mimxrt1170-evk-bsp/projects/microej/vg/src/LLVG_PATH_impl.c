@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -12,10 +12,10 @@
  * This implementation uses a 32-bit "integer" value to store a path command and
  * a 32-bit "float" value to store each command parameter.
  *
- * The encoding can be overrided, see "[optional]: weak functions" in "microvg_path.h"
+ * The encoding can be overridden, see "[optional]: weak functions" in "microvg_path.h"
  *
  * @author MicroEJ Developer Team
- * @version 2.1.0
+ * @version 3.0.1
  */
 
 #include "microvg_configuration.h"
@@ -34,8 +34,6 @@
 #include "microvg_path.h"
 #include "microvg_helper.h"
 #include "bsp_util.h"
-
-#include "mej_math.h"
 
 // -----------------------------------------------------------------------------
 // Private functions
@@ -249,80 +247,6 @@ jint LLVG_PATH_IMPL_appendPathCommand3(jbyte* jpath, jint length, jint cmd, jflo
 void LLVG_PATH_IMPL_reopenPath(jbyte* jpath) {
 	MICROVG_PATH_HEADER_t* path = (MICROVG_PATH_HEADER_t*)jpath;
 	path->data_size -= MICROVG_PATH_get_path_command_size(LLVG_PATH_CMD_CLOSE, 0);
-}
-
-
-// See the header file for the function documentation
-jint LLVG_PATH_IMPL_mergePaths(jbyte* jpathDest, jbyte* jpathSrc1, jbyte* jpathSrc2, jfloat ratio){
-
-	jint ret = LLVG_SUCCESS;
-	float remaining = (1-ratio);
-
-	MICROVG_PATH_HEADER_t* pathDest = (MICROVG_PATH_HEADER_t*)jpathDest;
-	MICROVG_PATH_HEADER_t* pathSrc1 = (MICROVG_PATH_HEADER_t*)jpathSrc1;
-	MICROVG_PATH_HEADER_t* pathSrc2 = (MICROVG_PATH_HEADER_t*)jpathSrc2;
-
-	// Copy header from pathSrc1
-	pathDest->data_size = pathSrc1->data_size;
-	pathDest->data_offset = pathSrc1->data_offset;
-	pathDest->format = pathSrc1->format;
-
-	// Compute bounds
-	float fSrc1 = pathSrc1->bounds_xmin;
-	float fSrc2 = pathSrc2->bounds_xmin;
-	float fDest = MEJ_MIN(fSrc1, fSrc2);
-	pathDest->bounds_xmin = fDest;
-
-	fSrc1 = pathSrc1->bounds_ymin;
-	fSrc2 = pathSrc2->bounds_ymin;
-	fDest = MEJ_MIN(fSrc1, fSrc2);
-	pathDest->bounds_ymin = fDest;
-
-	fSrc1 = pathSrc1->bounds_xmax;
-	fSrc2 = pathSrc2->bounds_xmax;
-	fDest = MEJ_MAX(fSrc1, fSrc2);
-	pathDest->bounds_xmax = fDest;
-
-	fSrc1 = pathSrc1->bounds_ymax;
-	fSrc2 = pathSrc2->bounds_ymax;
-	fDest = MEJ_MAX(fSrc1, fSrc2);
-	pathDest->bounds_ymax = fDest;
-
-	// Compute commands
-	uint32_t* dataDest = (uint32_t*)(jpathDest + pathDest->data_offset);
-	uint32_t* dataSrc1 = (uint32_t*)(jpathSrc1 + pathSrc1->data_offset);
-	uint32_t* dataSrc2 = (uint32_t*)(jpathSrc2 + pathSrc2->data_offset);
-
-	for(uint16_t i=0; i < pathDest->data_size;){
-
-		uint32_t cmdSrc1 = *dataSrc1;
-
-		uint32_t nb_parameters = MICROVG_PATH_get_command_parameter_number(cmdSrc1);
-
-		*dataDest = cmdSrc1;
-		dataSrc1++;
-		dataSrc2++;
-		dataDest++;
-		i += (uint16_t) 4;
-
-		for(uint32_t j=0; j<nb_parameters;j++ ){
-
-			// cppcheck-suppress [invalidPointerCast,redundantPointerOp,misra-c2012-11.3] accepted casting macro
-			fSrc1 = UINT32_t_TO_JFLOAT(*dataSrc1);
-			// cppcheck-suppress [invalidPointerCast,redundantPointerOp,misra-c2012-11.3] accepted casting macro
-			fSrc2 = UINT32_t_TO_JFLOAT(*dataSrc2);
-			fDest = (remaining * fSrc1) + (ratio * fSrc2);
-
-			// cppcheck-suppress [invalidPointerCast,misra-c2012-11.3] accepted casting macro
-			*dataDest = JFLOAT_TO_UINT32_t(fDest);
-
-			dataSrc1++;
-			dataSrc2++;
-			dataDest++;
-			i += (uint16_t)4;
-		}
-	}
-    return ret;
 }
 
 // -----------------------------------------------------------------------------

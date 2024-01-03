@@ -1,9 +1,9 @@
 /*********************************************************************
-*                    SEGGER Microcontroller GmbH                     *
+*                SEGGER Microcontroller GmbH & Co. KG                *
 *                        The Embedded Experts                        *
 **********************************************************************
 *                                                                    *
-*            (c) 1995 - 2021 SEGGER Microcontroller GmbH             *
+*       (c) 2015 - 2017  SEGGER Microcontroller GmbH & Co. KG        *
 *                                                                    *
 *       www.segger.com     Support: support@segger.com               *
 *                                                                    *
@@ -17,14 +17,24 @@
 *                                                                    *
 * SEGGER strongly recommends to not make any changes                 *
 * to or modify the source code of this software in order to stay     *
-* compatible with the SystemView and RTT protocol, and J-Link.       *
+* compatible with the RTT protocol and J-Link.                       *
 *                                                                    *
 * Redistribution and use in source and binary forms, with or         *
 * without modification, are permitted provided that the following    *
-* condition is met:                                                  *
+* conditions are met:                                                *
 *                                                                    *
 * o Redistributions of source code must retain the above copyright   *
-*   notice, this condition and the following disclaimer.             *
+*   notice, this list of conditions and the following disclaimer.    *
+*                                                                    *
+* o Redistributions in binary form must reproduce the above          *
+*   copyright notice, this list of conditions and the following      *
+*   disclaimer in the documentation and/or other materials provided  *
+*   with the distribution.                                           *
+*                                                                    *
+* o Neither the name of SEGGER Microcontroller GmbH & Co. KG         *
+*   nor the names of its contributors may be used to endorse or      *
+*   promote products derived from this software without specific     *
+*   prior written permission.                                        *
 *                                                                    *
 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND             *
 * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,        *
@@ -42,20 +52,19 @@
 *                                                                    *
 **********************************************************************
 *                                                                    *
-*       SystemView version: 3.32                                    *
+*       SystemView version: V2.52a                                    *
 *                                                                    *
 **********************************************************************
 ----------------------------------------------------------------------
 File    : SEGGER.h
 Purpose : Global types etc & general purpose utility functions
-Revision: $Rev: 18102 $
 ---------------------------END-OF-HEADER------------------------------
 */
 
 #ifndef SEGGER_H            // Guard against multiple inclusion
 #define SEGGER_H
 
-#include <stdarg.h>         // For va_list.
+#include <stdarg.h>
 #include "Global.h"         // Type definitions: U8, U16, U32, I8, I16, I32
 
 #if defined(__cplusplus)
@@ -70,21 +79,16 @@ extern "C" {     /* Make sure we have C-declarations in C++ programs */
 */
 
 #ifndef INLINE
-  #if (defined(__ICCARM__) || defined(__RX) || defined(__ICCRX__))
+  #ifdef _WIN32
     //
-    // Other known compilers.
+    // Microsoft VC6 and newer.
+    // Force inlining without cost checking.
     //
-    #define INLINE  inline
+    #define INLINE  __forceinline
   #else
-    #if (defined(_WIN32) && !defined(__clang__))
+    #if (defined(__GNUC__))
       //
-      // Microsoft VC6 and newer.
-      // Force inlining without cost checking.
-      //
-      #define INLINE  __forceinline
-    #elif defined(__GNUC__) || defined(__clang__)
-      //
-      // Force inlining with GCC + clang
+      // Force inlining with GCC
       //
       #define INLINE inline __attribute__((always_inline))
     #elif (defined(__CC_ARM))
@@ -92,6 +96,11 @@ extern "C" {     /* Make sure we have C-declarations in C++ programs */
       // Force inlining with ARMCC (Keil)
       //
       #define INLINE  __inline
+    #elif (defined(__ICCARM__) || defined(__RX) || defined(__ICCRX__))
+      //
+      // Other known compilers.
+      //
+      #define INLINE  inline
     #else
       //
       // Unknown compilers.
@@ -115,11 +124,6 @@ extern "C" {     /* Make sure we have C-declarations in C++ programs */
 #ifndef   SEGGER_USE_PARA                   // Some compiler complain about unused parameters.
   #define SEGGER_USE_PARA(Para) (void)Para  // This works for most compilers.
 #endif
-
-#define SEGGER_ADDR2PTR(Type, Addr)  (/*lint -e(923) -e(9078)*/((Type*)((PTR_ADDR)(Addr))))    // Allow cast from address to pointer.
-#define SEGGER_PTR2ADDR(p)           (/*lint -e(923) -e(9078)*/((PTR_ADDR)(p)))                // Allow cast from pointer to address.
-#define SEGGER_PTR2PTR(Type, p)      (/*lint -e(740) -e(826) -e(9079) -e(9087)*/((Type*)(p)))  // Allow cast from one pointer type to another (ignore different size).
-#define SEGGER_PTR_DISTANCE(p0, p1)  (SEGGER_PTR2ADDR(p0) - SEGGER_PTR2ADDR(p1))
 
 /*********************************************************************
 *
@@ -149,10 +153,10 @@ typedef struct {
 } SEGGER_BUFFER_DESC;
 
 typedef struct {
-  unsigned int CacheLineSize;                             // 0: No Cache. Most Systems such as ARM9 use a 32 bytes cache line size.
-  void (*pfDMB)       (void);                             // Optional DMB function for Data Memory Barrier to make sure all memory operations are completed.
-  void (*pfClean)     (void *p, unsigned long NumBytes);  // Optional clean function for cached memory.
-  void (*pfInvalidate)(void *p, unsigned long NumBytes);  // Optional invalidate function for cached memory.
+  int  CacheLineSize;                                 // 0: No Cache. Most Systems such as ARM9 use a 32 bytes cache line size.
+  void (*pfDMB)       (void);                         // Optional DMB function for Data Memory Barrier to make sure all memory operations are completed.
+  void (*pfClean)     (void *p, unsigned NumBytes);   // Optional clean function for cached memory.
+  void (*pfInvalidate)(void *p, unsigned NumBytes);   // Optional invalidate function for cached memory.
 } SEGGER_CACHE_CONFIG;
 
 typedef struct SEGGER_SNPRINTF_CONTEXT_struct SEGGER_SNPRINTF_CONTEXT;
@@ -177,11 +181,6 @@ typedef struct SEGGER_PRINTF_FORMATTER {
   char                            Specifier;          // Format specifier.
 } SEGGER_PRINTF_FORMATTER;
 
-typedef struct {
-  U32 (*pfGetHPTimestamp)(void);          // Mandatory, pfGetHPTimestamp
-  int (*pfGetUID)        (U8 abUID[16]);  // Optional,  pfGetUID
-} SEGGER_BSP_API;
-
 /*********************************************************************
 *
 *       Utility functions
@@ -193,19 +192,18 @@ typedef struct {
 // Memory operations.
 //
 void SEGGER_ARM_memcpy(void* pDest, const void* pSrc, int NumBytes);
-void SEGGER_memcpy    (void* pDest, const void* pSrc, unsigned NumBytes);
+void SEGGER_memcpy    (void* pDest, const void* pSrc, int NumBytes);
 void SEGGER_memxor    (void* pDest, const void* pSrc, unsigned NumBytes);
 
 //
 // String functions.
 //
-int      SEGGER_atoi       (const char* s);
-int      SEGGER_isalnum    (int c);
-int      SEGGER_isalpha    (int c);
-unsigned SEGGER_strlen     (const char* s);
-int      SEGGER_tolower    (int c);
-int      SEGGER_strcasecmp (const char* sText1, const char* sText2);
-int      SEGGER_strncasecmp(const char *sText1, const char *sText2, unsigned Count);
+int      SEGGER_atoi      (const char* s);
+int      SEGGER_isalnum   (int c);
+int      SEGGER_isalpha   (int c);
+unsigned SEGGER_strlen    (const char* s);
+int      SEGGER_tolower   (int c);
+int      SEGGER_strcasecmp(const char* sText1, const char* sText2);
 
 //
 // Buffer/printf related.
@@ -217,27 +215,10 @@ int  SEGGER_snprintf     (char* pBuffer, int BufferSize, const char* sFormat, ..
 int  SEGGER_vsnprintf    (char* pBuffer, int BufferSize, const char* sFormat, va_list ParamList);
 int  SEGGER_vsnprintfEx  (SEGGER_SNPRINTF_CONTEXT* pContext, const char* sFormat, va_list ParamList);
 
-int  SEGGER_PRINTF_AddFormatter       (SEGGER_PRINTF_FORMATTER* pFormatter, SEGGER_pFormatter pfFormatter, char c);
-void SEGGER_PRINTF_AddDoubleFormatter (void);
-void SEGGER_PRINTF_AddIPFormatter     (void);
-void SEGGER_PRINTF_AddBLUEFormatter   (void);
-void SEGGER_PRINTF_AddCONNECTFormatter(void);
-void SEGGER_PRINTF_AddSSLFormatter    (void);
-void SEGGER_PRINTF_AddSSHFormatter    (void);
-void SEGGER_PRINTF_AddHTMLFormatter   (void);
-
-//
-// BSP abstraction API.
-//
-int  SEGGER_BSP_GetUID  (U8 abUID[16]);
-int  SEGGER_BSP_GetUID32(U32* pUID);
-void SEGGER_BSP_SetAPI  (const SEGGER_BSP_API* pAPI);
-void SEGGER_BSP_SeedUID (void);
-
-//
-// Other API.
-//
-void SEGGER_VERSION_GetString(char acText[8], unsigned Version);
+int  SEGGER_PRINTF_AddFormatter      (SEGGER_PRINTF_FORMATTER* pFormatter, SEGGER_pFormatter pfFormatter, char c);
+void SEGGER_PRINTF_AddDoubleFormatter(void);
+void SEGGER_PRINTF_AddIPFormatter    (void);
+void SEGGER_PRINTF_AddHTMLFormatter  (void);
 
 #if defined(__cplusplus)
 }                /* Make sure we have C-declarations in C++ programs */

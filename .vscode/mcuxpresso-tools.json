@@ -1,0 +1,26 @@
+{
+  "version": "1.1",
+  "toolchainPath": "${env:ARMGCC_DIR}",
+  "toolchainVersion": "GNU Arm Embedded Toolchain 10.3-2021.10",
+  "linkedProjects": [],
+  "trustZoneType": "none",
+  "debug": {
+    "linkserver": {
+      "device": "MIMXRT1176xxxxx:MIMXRT1170-EVK",
+      "core": "cm7"
+    },
+    "pemicro": {},
+    "segger": {
+      "device": "MIMXRT1176xxxA_M7"
+    }
+  },
+  "projectType": "sdk-freestanding",
+  "sdk": {
+    "version": "2.14.1",
+    "path": "${workspaceFolder}/nxpvee-mimxrt1170-evk-bsp/mcux-sdk/",
+    "boardId": "evkmimxrt1170",
+    "deviceId": "MIMXRT1176xxxxx",
+    "coreId": "cm7_MIMXRT1176xxxxx",
+    "manifestId": "SDK_2.x_MIMXRT1170-EVK_manifest_v3_10"
+  }
+}

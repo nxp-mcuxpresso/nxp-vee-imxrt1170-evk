@@ -11,6 +11,23 @@
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 
+// Define maximum certificate length to 4 (2 intermediate + 1 leaf + 1 root)
+#define MBEDTLS_X509_MAX_INTERMEDIATE_CA 2
+
+// Use microej allocator to allocate SSL contextes in external ram
+#include <time.h>
+
+#define MBEDTLS_PLATFORM_C
+#define MBEDTLS_PLATFORM_MEMORY
+
+extern time_t LLNET_SSL_utils_custom_mbedtls_time(time_t *time);
+#define MBEDTLS_PLATFORM_TIME_MACRO LLNET_SSL_utils_custom_mbedtls_time /**< Custom time (seconds) macro to use. */
+#define MBEDTLS_HAVE_TIME
+#define MBEDTLS_HAVE_TIME_DATE
+
+#define MBEDTLS_ENTROPY_C
+#define MBEDTLS_CTR_DRBG_C
+
 /**************************** KSDK ********************************************/
 
 #include "fsl_device_registers.h"
@@ -1107,19 +1124,19 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  * Comment macros to disable the curve and functions for it
  */
 /* Short Weierstrass curves (supporting ECP, ECDH, ECDSA) */
-//#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
-//#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
-//#define MBEDTLS_ECP_DP_SECP384R1_ENABLED
-//#ifndef MBEDTLS_FREESCALE_LTC_PKHA /* PKHA suports only <=512 */
-//#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
-//#endif
-//#define MBEDTLS_ECP_DP_SECP192K1_ENABLED
-//#define MBEDTLS_ECP_DP_SECP224K1_ENABLED
-//#define MBEDTLS_ECP_DP_SECP256K1_ENABLED
-//#define MBEDTLS_ECP_DP_BP256R1_ENABLED
-//#define MBEDTLS_ECP_DP_BP384R1_ENABLED
-//#define MBEDTLS_ECP_DP_BP512R1_ENABLED
+#define MBEDTLS_ECP_DP_SECP384R1_ENABLED
+#ifndef MBEDTLS_FREESCALE_LTC_PKHA /* PKHA suports only <=512 */
+#define MBEDTLS_ECP_DP_SECP521R1_ENABLED
+#endif
+#define MBEDTLS_ECP_DP_SECP192K1_ENABLED
+#define MBEDTLS_ECP_DP_SECP224K1_ENABLED
+#define MBEDTLS_ECP_DP_SECP256K1_ENABLED
+#define MBEDTLS_ECP_DP_BP256R1_ENABLED
+#define MBEDTLS_ECP_DP_BP384R1_ENABLED
+#define MBEDTLS_ECP_DP_BP512R1_ENABLED
 /* Montgomery curves (supporting ECP) */
 //#define MBEDTLS_ECP_DP_CURVE25519_ENABLED
 //#define MBEDTLS_ECP_DP_CURVE448_ENABLED
@@ -2798,7 +2815,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *
  * Module:  library/blowfish.c
  */
-//#define MBEDTLS_BLOWFISH_C
+#define MBEDTLS_BLOWFISH_C
 
 /**
  * \def MBEDTLS_CAMELLIA_C

@@ -8,7 +8,7 @@ S2S_PORT=${2}
 
 if [ "$(ss -a  | grep "\<${S2S_PORT}\>")" == "" ]
 then
-    cd MIMXRT1170-Platform-CM7hardfp_GCC48-1.0.0/source
+    cd MIMXRT1170-evk_platform-CM7hardfp_GCC48-2.0.0/source
     java \
         -Djava.library.path="resources/os/Linux64" \
         -cp "tools/*" \

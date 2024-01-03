@@ -25,6 +25,10 @@
 *    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 *    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
+*    Copyright 2020-2023 MicroEJ Corp. This file has been modified by MicroEJ Corp.
+*    1. Add a weak the function "vg_lite_draw_notify_render_area()"
+*    2. Add "vg_lite_get_scissor()"
+*
 *****************************************************************************/
 
 #include <stdio.h>
@@ -3314,6 +3318,16 @@ vg_lite_error_t _convert_arc(
     return VG_LITE_SUCCESS;
 }
 
+// added by MicroEJ
+void __attribute__((weak)) vg_lite_draw_notify_render_area(uint32_t x, uint32_t y, uint32_t right, uint32_t bottom)
+{
+    /*
+     * Default implementation does nothing. Application can override this handler if it requires to be notified
+     * by the vglite rendering area.
+     */
+     return;
+}
+
 vg_lite_error_t _allocate_command_buffer(uint32_t size)
 {
     vg_lite_kernel_allocate_t allocate;
@@ -6095,6 +6109,10 @@ vg_lite_error_t vg_lite_clear(vg_lite_buffer_t * target,
         }
         VG_LITE_RETURN_ERROR(push_state(ctx, 0x0A02, color32));
         VG_LITE_RETURN_ERROR(push_rectangle(ctx, x, y, width, height));
+
+        /* Notify rendering area (added by MicroEJ) */
+        vg_lite_draw_notify_render_area(x, y, x + width-1, y + height-1);
+
         VG_LITE_RETURN_ERROR(flush_target());
     }
 
@@ -6150,6 +6168,9 @@ vg_lite_error_t vg_lite_blit(vg_lite_buffer_t * target,
         clip.height = target->height;
     }
     transform_bounding_box(&src_bbx, matrix, &clip, &bounding_box, NULL);
+
+    /* Notify rendering area (added by MicroEJ) */
+    vg_lite_draw_notify_render_area(bounding_box.x, bounding_box.y, bounding_box.x + bounding_box.width-1, bounding_box.y + bounding_box.height-1);
 
 #if (VG_BLIT_WORKAROUND==1)
     /*
@@ -6300,6 +6321,7 @@ vg_lite_error_t vg_lite_blit(vg_lite_buffer_t * target,
     VG_LITE_RETURN_ERROR(push_state(ctx, 0x0A2F, source->width | (source->height << 16)));
     VG_LITE_RETURN_ERROR(push_rectangle(ctx, bounding_box.x, bounding_box.y, bounding_box.width,
                                         bounding_box.height));
+
     error = flush_target();
     vglitemDUMP_BUFFER("image", source->address, source->memory, 0, (source->stride)*(source->height));
 
@@ -6429,6 +6451,9 @@ vg_lite_error_t vg_lite_blit_rect(vg_lite_buffer_t * target,
     }
     transform_bounding_box(&src_bbx, matrix, &clip, &bounding_box, NULL);
 
+    /* Notify rendering area (added by MicroEJ) */
+    vg_lite_draw_notify_render_area(bounding_box.x, bounding_box.y, bounding_box.x + bounding_box.width-1, bounding_box.y + bounding_box.height-1);
+
 #if (VG_BLIT_WORKAROUND==1)
     /*
      * The blit output quality workaround works only for afine transformations
@@ -6546,6 +6571,7 @@ vg_lite_error_t vg_lite_blit_rect(vg_lite_buffer_t * target,
     VG_LITE_RETURN_ERROR(push_rectangle(ctx, bounding_box.x, bounding_box.y, bounding_box.width,
                                         bounding_box.height));
     error = flush_target();
+
     vglitemDUMP_BUFFER("image", source->address, source->memory, 0, (source->stride)*(source->height));
 #if DUMP_IMAGE
     dump_img(source->memory, src_align_width, source->height, source->format);
@@ -7087,6 +7113,10 @@ vg_lite_error_t vg_lite_draw(vg_lite_buffer_t * target,
 
     /* Finialize command buffer. */
     VG_LITE_RETURN_ERROR(push_state(ctx, 0x0A34, 0));
+
+    /* Notify rendering area (added by MicroEJ) */
+    vg_lite_draw_notify_render_area(point_min.x, point_min.y, point_max.x, point_max.y);
+
     VG_LITE_RETURN_ERROR(flush_target());
 #if !defined(VG_DRIVER_SINGLE_THREAD)
     ctx->ts_init = 1;
@@ -9868,6 +9898,9 @@ vg_lite_error_t vg_lite_draw_radial_gradient(vg_lite_buffer_t * target,
         }
     }
 
+    /* Notify rendering area (added by MicroEJ) */
+    vg_lite_draw_notify_render_area(point_min.x, point_min.y, point_max.x, point_max.y);
+
     /* Finialize command buffer. */
     VG_LITE_RETURN_ERROR(push_state(ctx, 0x0A34, 0));
 
@@ -10633,6 +10666,13 @@ vg_lite_error_t vg_lite_draw_gradient(vg_lite_buffer_t * target,
 {
     return vg_lite_draw_pattern(target, path, fill_rule, matrix,
         &grad->image, &grad->matrix, blend, VG_LITE_PATTERN_PAD, 0, VG_LITE_FILTER_LINEAR);
+}
+
+// added by MicroEJ
+uint32_t vg_lite_get_scissor(int32_t** scissor)
+{
+    *scissor = s_context.scissor;
+    return s_context.scissor_enabled;
 }
 
 vg_lite_error_t vg_lite_set_command_buffer_size(uint32_t size)

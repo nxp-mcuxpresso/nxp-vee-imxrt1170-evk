@@ -1,6 +1,6 @@
 # Properties
 #
-# Copyright 2021-2022 MicroEJ Corp. All rights reserved.
+# Copyright 2021-2023 MicroEJ Corp. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found with this software.
 
 ###############################################################################
@@ -38,7 +38,7 @@
 #microej.testsuite.properties.deploy.dir.microejapp=[absolute_path]
 #microej.testsuite.properties.deploy.dir.microejlib=[absolute_path]
 #microej.testsuite.properties.deploy.dir.microejinc=[absolute_path]
-#microej.testsuite.properties.deploy.bsp.microejscript=[absolute_path]
+#microej.testsuite.properties.deploy.dir.microejscript=[absolute_path]
 
 # Partial BSP Connection
 #microej.testsuite.properties.deploy.bsp.root.dir=[absolute_path]

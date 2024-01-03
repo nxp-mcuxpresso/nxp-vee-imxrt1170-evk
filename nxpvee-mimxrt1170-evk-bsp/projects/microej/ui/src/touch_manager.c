@@ -44,7 +44,7 @@
 /*
  * @brief Task stack size
  */
-#define TOUCH_STACK_SIZE  (128)
+#define TOUCH_STACK_SIZE  (256)
 
 /*
  * @brief Task priority.

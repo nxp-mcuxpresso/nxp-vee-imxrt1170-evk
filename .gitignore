@@ -3,7 +3,6 @@
 *.swp
 cscope.*
 tags
-.vscode
 
 **/CMakeCache.txt
 **/build_log.txt
@@ -24,8 +23,8 @@ tags
 *.s
 *.i
 
-MIMXRT1170-Platform-CM7hardfp_GCC48-1.0.0/build/
-MIMXRT1170-Platform-CM7hardfp_GCC48-1.0.0/source/
+MIMXRT1170-*-CM7hardfp_GCC48-*/build/
+MIMXRT1170-*-CM7hardfp_GCC48-*/source/
 
 nxpvee-mimxrt1170-evk-apps/launchers/*.properties
 
@@ -58,3 +57,5 @@ gdb.cmd
 test_results/*
 nxpvee-mimxrt1170-evk-bsp/projects/nxpvee-ui/mcuide/Release/
 nxpvee-mimxrt1170-evk-bsp/projects/nxpvee-ui/mcuide/Debug/
+nxpvee-mimxrt1170-evk-bsp/projects/nxpvee-ui/armgcc/tree_version.c
+nxpvee-mimxrt1170-evk-bsp/mcux-sdk

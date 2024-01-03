@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ MicroUI library low level API: implementation over VG-Lite
  * @author MicroEJ Developer Team
- * @version 4.0.0
+ * @version 6.0.1
  */
 
 /*
@@ -29,10 +29,11 @@
 #include <semphr.h>
 
 #include "display_dma.h"
-#include "display_utils.h"
-#include "display_vglite.h"
 #include "display_impl.h"
 #include "framerate.h"
+#include "ui_vglite.h"
+
+#include "vglite_window.h"
 
 // -----------------------------------------------------------------------------
 // Macros and Defines
@@ -90,6 +91,16 @@ const uint32_t s_frameBufferAddress[FRAME_BUFFER_COUNT] = {
 #endif
 };
 
+/*
+ * @brief VGLite display context
+ */
+static vg_lite_display_t display;
+
+/*
+ * @brief VGLite window context
+ */
+static vg_lite_window_t window;
+
 // -----------------------------------------------------------------------------
 // Private functions
 // -----------------------------------------------------------------------------
@@ -112,26 +123,19 @@ static void __display_task(void * pvParameters) {
 	do {
 		xSemaphoreTake(sync_flush, portMAX_DELAY);
 
-		vg_lite_window_t* window = DISPLAY_VGLITE_get_window();
-
 		// Two actions:
 		// 1- wait for the end of previous swap (if not already done): wait the
 		// end of sending of current frame buffer to display
 		// 2- start sending of current_buffer to display (without waiting the
 		// end)
-		__display_task_swap_buffers(window);
+		__display_task_swap_buffers(&window);
 
 		// Increment framerate
 		framerate_increment();
 
 #if defined (FRAME_BUFFER_COUNT) && (FRAME_BUFFER_COUNT > 1)
-		vg_lite_buffer_t *current_buffer = VGLITE_GetRenderTarget(window);
-
-		// Configure frame buffer powering; at that point current_buffer is back buffer
-		// cppcheck-suppress [misra-c2012-11.3] cast to (framebuffer_t *) is valid
-		DISPLAY_IMPL_update_frame_buffer_status(current_buffer->memory, (framebuffer_t *)dirty_area_addr);
-
 #if defined (DISPLAY_DMA_ENABLED) && (DISPLAY_DMA_ENABLED != 0)
+		vg_lite_buffer_t *current_buffer = VGLITE_GetRenderTarget(&window);
 		DISPLAY_DMA_start(
 			&((uint8_t *)current_buffer->memory)[dirty_area_ymin * current_buffer->stride],
 			&((uint8_t *)dirty_area_addr)[dirty_area_ymin * current_buffer->stride],
@@ -157,7 +161,18 @@ void LLUI_DISPLAY_IMPL_initialize(LLUI_DISPLAY_SInitData* init_data) {
 	 ***************/
 
 	if (kStatus_Success != BOARD_PrepareVGLiteController()) {
-		DISPLAY_IMPL_error(true, "Prepare VGlite controlor error");
+		UI_VGLITE_IMPL_error(true, "Prepare VGlite controlor error");
+	}
+
+	vg_lite_error_t ret = VG_LITE_SUCCESS;
+
+	if (VG_LITE_SUCCESS != VGLITE_CreateDisplay(&display)) {
+		UI_VGLITE_IMPL_error(true, "VGLITE_CreateDisplay failed: VGLITE_CreateDisplay() returned error %d", ret);
+	}
+
+	// Initialize the window.
+	if (VG_LITE_SUCCESS != VGLITE_CreateWindow(&display, &window)) {
+		UI_VGLITE_IMPL_error(true, "VGLITE_CreateWindow failed: VGLITE_CreateWindow() returned error %d", ret);
 	}
 
 	memset(*(uint32_t*)(&s_frameBufferAddress[0]), 0,
@@ -166,7 +181,8 @@ void LLUI_DISPLAY_IMPL_initialize(LLUI_DISPLAY_SInitData* init_data) {
 	memset(*(uint32_t*)(&s_frameBufferAddress[1]), 0,
             DEMO_BUFFER_WIDTH*DEMO_BUFFER_HEIGHT*FRAME_BUFFER_BYTE_PER_PIXEL);
 #endif
-	DISPLAY_VGLITE_init();
+
+	UI_VGLITE_init((void*)xSemaphoreCreateBinary());
 
 	/************
 	 * Init DMA *
@@ -188,23 +204,19 @@ void LLUI_DISPLAY_IMPL_initialize(LLUI_DISPLAY_SInitData* init_data) {
 			NULL,
 			DISPLAY_TASK_PRIORITY,
 			NULL)){
-		DISPLAY_IMPL_error(true, "failed to create task __display\n");
+		UI_VGLITE_IMPL_error(true, "failed to create task __display\n");
 	}
 
 	/****************
 	 * Init MicroUI *
 	 ****************/
 
-	vg_lite_window_t* window = DISPLAY_VGLITE_get_window();
-	vg_lite_buffer_t *buffer = VGLITE_GetRenderTarget(window);
+	vg_lite_buffer_t *buffer = VGLITE_GetRenderTarget(&window);
 	init_data->binary_semaphore_0 = (void*)xSemaphoreCreateBinary();
 	init_data->binary_semaphore_1 = (void*)xSemaphoreCreateBinary();
-	init_data->lcd_width = window->width;
-	init_data->lcd_height = window->height;
+	init_data->lcd_width = window.width;
+	init_data->lcd_height = window.height;
 	init_data->back_buffer_address = (uint8_t*)buffer->memory;
-
-	// notify that the display is initialized
-	DISPLAY_IMPL_initialized();
 }
 
 // See the header file for the function documentation
@@ -215,7 +227,7 @@ uint8_t* LLUI_DISPLAY_IMPL_flush(MICROUI_GraphicsContext* gc, uint8_t* addr, uin
 	(void)xmin;
 	(void)xmax;
 
-	uint8_t* ret = (uint8_t*) DISPLAY_VGLITE_get_next_graphics_buffer()->memory;
+	uint8_t* ret = (uint8_t*) VGLITE_GetNextBuffer(&window)->memory;
 
 	// store dirty area to restore after the flush
 	dirty_area_addr = addr;
@@ -247,20 +259,6 @@ void LLUI_DISPLAY_IMPL_binarySemaphoreGive(void* sem, bool under_isr) {
 	else  {
 		xSemaphoreGive((SemaphoreHandle_t)sem);
 	}
-}
-
-// See the header file for the function documentation
-uint32_t LLUI_DISPLAY_IMPL_getNewImageStrideInBytes(jbyte image_format, uint32_t image_width, uint32_t image_height, uint32_t default_stride) {
-
-	(void)image_height;
-	(void)default_stride;
-
-	/*
-	 * VGLite library requires a stride on 16 pixels: 64 bytes for 32bpp, 32 bytes
-	 * for 16bpp and 16 bytes for 8bpp. Exception 8 bytes for <= 4bpp.
-	 */
-	uint32_t bpp = DISPLAY_UTILS_get_bpp((MICROUI_ImageFormat)image_format);
-	return (bpp >= (uint32_t)8) ? ALIGN(image_width, (uint32_t)16) * (bpp / (uint32_t)8) : ALIGN(image_width, (uint32_t)8);
 }
 
 // -----------------------------------------------------------------------------

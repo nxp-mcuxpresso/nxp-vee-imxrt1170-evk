@@ -7,9 +7,10 @@
 
 /**
  * @file
- * @brief MicroEJ MicroVG library low level API: RAW image management.
+ * @brief MicroEJ MicroVG library low level API: image management.This file draws an
+ * image and can fill a BufferedVectorImage.
  * @author MicroEJ Developer Team
- * @version 4.0.0
+ * @version 6.1.0
  */
 
 // -----------------------------------------------------------------------------
@@ -31,11 +32,15 @@
 #include "color.h"
 #include "vg_lite.h"
 #include "vg_lite_kernel.h"
-#include "display_vglite.h"
-#include "vglite_path.h"
+#include "microvg_configuration.h"
 #include "microvg_path.h"
 #include "microvg_vglite_helper.h"
 #include "microvg_helper.h"
+#include "microvg_trace.h"
+#include "mej_math.h"
+#include "vg_drawing_vglite.h"
+#include "ui_drawing_bvi.h"
+#include "bvi_vglite.h"
 
 #include "fsl_debug_console.h"
 
@@ -51,9 +56,11 @@
  *
  * This feature will be enabled if the Platform embeds the module "External Resource" and the BSP implements the functions declared in "LLEXT_RES_impl.h".
  */
+#ifndef VG_FEATURE_RAW_EXTERNAL
 #define VG_FEATURE_RAW_EXTERNAL __has_include("LLEXT_RES_impl.h")
 #if VG_FEATURE_RAW_EXTERNAL
 #include "LLEXT_RES_impl.h"
+#endif
 #endif
 
 /*
@@ -64,11 +71,9 @@
 /*
  * @brief Allocator management
  */
-#define HEAP_SIZE (2 * 1024)
-#define HEAP_START allocator_heap
-#define HEAP_END (HEAP_START + HEAP_SIZE) // end address excluded (best fit allocator spec)
-#define MALLOC(s) (BESTFIT_ALLOCATOR_allocate(&allocator_instance, VG_LITE_ALIGN((s), 4)))
-#define FREE(s) (BESTFIT_ALLOCATOR_free(&allocator_instance, (s)))
+#define MALLOC(s) (LLUI_DISPLAY_IMPL_image_heap_allocate(VG_LITE_ALIGN((s), 4)))
+#define FREE(s) (LLUI_DISPLAY_IMPL_image_heap_free(s))
+//#define DEBUG_ALLOCATOR
 
 #define TIMERATIO_RANGE 65535
 #define TIMERATIO_OFFSET ((TIMERATIO_RANGE / 2) + 1)
@@ -79,6 +84,7 @@
 #define GAMMA_VALUE 2.2f
 
 #define COLOR_MATRIX_WIDTH (5)
+#define COLOR_MATRIX_HEIGHT (4)
 #define RED_OFFSET (0)
 #define GREEN_OFFSET (1)
 #define BLUE_OFFSET (2)
@@ -89,14 +95,28 @@
 #define BLUE_LINE (COLOR_MATRIX_WIDTH * BLUE_OFFSET)
 #define ALPHA_LINE (COLOR_MATRIX_WIDTH * ALPHA_OFFSET)
 
-// -----------------------------------------------------------------------------
-// Java library static final
-// -----------------------------------------------------------------------------
+/*
+ * @brief Copy the gradient content but not the image that renders the gradient
+ *
+ *  /!\ the VG-Lite gradient is constitued of the gradient header (colors and positions) and a VG-Lite image.
+ *  A VG-Lite image is a header + a pixel buffer. This image is made at runtime by VG-Lite library according
+ *  to the gradient data. The RAW format only embbeds the gradient header, not the "image" part to win some
+ *  footprint. By consequence the gradient data to copy from ROM to RAM is:
+ *  sizeof(gradient) == sizeof(vg_lite_linear_gradient_t) - sizeof(vg_lite_buffer_t)
+ */
+#define GRADIENT_COPY_SIZE (sizeof(vg_lite_linear_gradient_t) - sizeof(vg_lite_buffer_t))
+#define GRADIENT_CMP_SIZE (GRADIENT_COPY_SIZE - sizeof(vg_lite_matrix_t))
 
-#define IMAGE_SUCCESS (0)
-#define IMAGE_INVALID_PATH (-1)
-#define IMAGE_INVALID (-2)
-#define IMAGE_OOM (-9)
+/*
+ * @brief Macro to add an IMAGE event and its type.
+ */
+#define LOG_MICROVG_IMAGE_START(fn) LOG_MICROVG_START(LOG_MICROVG_IMAGE_ID, CONCAT_DEFINES(LOG_MICROVG_IMAGE_, fn))
+#define LOG_MICROVG_IMAGE_END(fn) LOG_MICROVG_END(LOG_MICROVG_IMAGE_ID, CONCAT_DEFINES(LOG_MICROVG_IMAGE_, fn))
+
+
+// -----------------------------------------------------------------------------
+// Java library constants (static final)
+// -----------------------------------------------------------------------------
 
 #define RAW_OFFSET_F32_WIDTH (0)
 #define RAW_OFFSET_F32_HEIGHT (1)
@@ -107,43 +127,149 @@
 #define RAW_FLAG_FREE_MEMORY_ON_CLOSE (0x02)
 
 // -----------------------------------------------------------------------------
-// Types
+// Typedef
+// -----------------------------------------------------------------------------
+
+/*
+ * @brief RAW and BVI
+ */
+typedef struct vector_image vector_image_t;
+typedef struct vector_buffered_image vector_buffered_image_t;
+
+/*
+ * @brief Image blocks
+ */
+typedef enum vg_block_kind vg_block_kind_t;
+typedef struct vg_flags vg_flags_t;
+typedef struct vg_block vg_block_t;
+typedef struct vg_path_desc vg_path_desc_t;
+typedef struct vg_block_path vg_block_path_t;
+typedef struct vg_block_group_transform vg_block_group_transform_t;
+typedef struct vg_block_group_animation vg_block_group_animation_t;
+typedef struct vg_block_group_end vg_block_group_end_t;
+typedef struct vg_block_color vg_block_color_t;
+typedef struct vg_block_gradient vg_block_gradient_t;
+typedef struct vg_block_bvi_color vg_block_bvi_color_t;
+typedef struct vg_block_bvi_gradient vg_block_bvi_gradient_t;
+typedef struct vg_block_bvi_image vg_block_bvi_image_t;
+typedef struct vg_block_animate_color vg_block_animate_color_t;
+typedef struct vg_block_animate_gradient vg_block_animate_gradient_t;
+
+/*
+ * @brief Image animations
+ */
+typedef struct vg_path_interpolator vg_path_interpolator_t;
+typedef struct vg_animation_header vg_animation_header_t;
+typedef struct vg_animation_translate vg_animation_translate_t;
+typedef struct vg_animation_translate_xy vg_animation_translate_xy_t;
+typedef struct vg_animation_rotate vg_animation_rotate_t;
+typedef struct vg_animation_scale vg_animation_scale_t;
+typedef struct vg_animation_color vg_animation_color_t;
+typedef struct vg_animation_alpha vg_animation_alpha_t;
+typedef struct vg_animation_path_data vg_animation_path_data_t;
+
+/*
+ * @brief Image drawing data
+ */
+typedef struct vg_transformation vg_transformation_t;
+typedef struct vg_drawing vg_drawing_t;
+
+/*
+ * @brief Internal MicroJVM element to retrieve a resource in the microejapp.o.
+ */
+typedef struct {
+	void* data;
+	uint32_t size;
+} SNIX_resource;
+
+/*
+ * @brief Function to update a matrix according to an animation
+ *
+ * @param[in/out]: inout: the data to update
+ * @param[in]: elapsed_time:  the time elapsed within this animation.
+ * @param[in]: last: true when the final frame is reached
+ *
+ * @return: nothing
+ */
+typedef void (* VG_RAW_apply_animation_t) (
+		vg_animation_header_t* animation,
+		void* inout,
+		jlong elapsed_time,
+		size_t memory_offset,
+		bool last
+);
+
+// -----------------------------------------------------------------------------
+// Enum
+// -----------------------------------------------------------------------------
+
+/*
+ * @brief Types of image's blocks.
+ */
+enum vg_block_kind {
+
+	// respect the order (hardcoded in VectorImage converter)
+
+	// RAW & BVI
+	VG_BLOCK_LAST,
+
+	// RAW only
+	VG_BLOCK_PATH_COLOR,
+	VG_BLOCK_RAW_GRADIENT,
+	VG_BLOCK_GROUP_TRANSFORM,
+	VG_BLOCK_GROUP_ANIMATE,
+	VG_BLOCK_GROUP_END,
+	VG_BLOCK_PATH_COLOR_ANIMATE,
+	VG_BLOCK_PATH_GRADIENT_ANIMATE,
+
+#if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+	// BVI only
+	VG_BLOCK_BVI_COLOR,
+	VG_BLOCK_BVI_GRADIENT,
+	VG_BLOCK_BVI_IMAGE,
+#endif // #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+
+};
+
+// -----------------------------------------------------------------------------
+// Struct
 // -----------------------------------------------------------------------------
 
 /*
  * @brief Flags of RAW image
  *
  * (u1) overlapping
- * (u7) padding
+ * (u1) rom | ram (resp. 0 | 1)
+ * (u1) relative | absolute (resp. 0 | 1)
+ * (u5) padding
  * (u24) duration
  */
-typedef struct vg_flags {
+struct vg_flags {
 	uint32_t duration : 24;
 	// cppcheck-suppress [unusedStructMember] padding is not used
-	uint32_t : 7; // padding
+	uint32_t : 5; // padding
+	uint32_t absolute : 1; // 0: addresses are relative (blocks, paths, etc.); 1: absolute
+	uint32_t ram : 1; // 0: image in RAM; 1: image in ROM
 	uint32_t overlapping : 1;
-} vg_flags_t;
+};
 
 /*
- * @brief Defines a RAW image
+ * @brief Defines an image block. A block is identified by its kind.
  */
-typedef struct vector_image {
+struct vg_block {
 
-	uint32_t signature_msb;
-	uint32_t signature_lsb;
+	// block's kind (see vg_block_xxx)
+	vg_block_kind_t kind;
 
-	float width;
-	float height;
+	// warning: aligned on 1 byte is known by "sub" struct
 
-	vg_flags_t flags;
-	uint32_t offset_first_block;
-
-} vector_image_t;
+} __attribute__((packed));
 
 /*
- * @brief Defines a path.
+ * @brief Defines the description of a path. In a RAW image, the same path can
+ * be shared between several operation "draw path".
  */
-typedef struct vg_path {
+struct vg_path_desc {
 	float bounding_box[4];    // left, top, right, bottom
 	uint32_t length;
 	vg_lite_format_t format;
@@ -151,86 +277,46 @@ typedef struct vg_path {
 	uint8_t padding1;
 	uint8_t padding2;
 
-	// array of data of path
+	// + array of data of path
 
-} vg_path_t;
-
-/*
- * @brief Types of image's blocks.
- */
-typedef enum vg_block_kind {
-
-	VG_BLOCK_LAST,
-	VG_BLOCK_PATH_COLOR,
-	VG_BLOCK_PATH_GRADIENT,
-	VG_BLOCK_GROUP_TRANSFORM,
-	VG_BLOCK_GROUP_ANIMATE,
-	VG_BLOCK_GROUP_END,
-	VG_BLOCK_PATH_COLOR_ANIMATE,
-	VG_BLOCK_PATH_GRADIENT_ANIMATE,
-
-} vg_block_kind_t;
+};
 
 /*
- * @brief Defines a RAW image's block.
+ * @brief Defines a block "path"; useful for all operations that draw a path.
  */
-typedef struct vg_block {
+struct vg_block_path {
 
-	// block's kind (see vg_block_xxx)
-	vg_block_kind_t kind;
-
-} vg_block_t;
-
-/*
- * @brief Defines a RAW image's path.
- */
-typedef struct vg_block_path {
-
-	// [ *** copy of vg_block_t **
-
-	// block's kind and pointer to specific block's data
-	vg_block_kind_t kind;
-
-	// ] *** copy of vg_block_t **
+	vg_block_t block;
 
 	// common block's data for all VG drawings
 	vg_lite_fill_t fill_rule;
-	uint16_t padding0;
+	vg_lite_blend_t blend; // useless for static RAW images
+	uint8_t padding0;
 
-	vg_path_t* path;
+	vg_path_desc_t* desc;
 
-} vg_block_path_t;
+};
 
 /*
- * @brief Element group with transformation
+ * @brief Defines a block "group with transformation"
  */
-typedef struct vg_block_group_transform {
+struct vg_block_group_transform {
 
-	// [ *** copy of vg_block_t **
-
-	// block's kind and pointer to specific block's data
-	vg_block_kind_t kind;
-
-	// ] *** copy of vg_block_t **
+	vg_block_t block;
 
 	uint8_t padding0;
 	uint8_t padding1;
 	uint8_t padding2;
 	vg_lite_matrix_t matrix;
 
-} vg_block_group_transform_t;
+};
 
 /*
- * @brief Element group with animation
+ * @brief Defines a block "group with animation"
  */
-typedef struct vg_block_group_animation {
+struct vg_block_group_animation {
 
-	// [ *** copy of vg_block_t **
-
-	// block's kind and pointer to specific block's data
-	vg_block_kind_t kind;
-
-	// ] *** copy of vg_block_t **
+	vg_block_t block;
 
 	uint8_t padding;
 	uint16_t block_size;
@@ -248,62 +334,95 @@ typedef struct vg_block_group_animation {
 	float pivot_y;
 	float rotation;
 
-	// array of vg_animation_translate_t
-	// array of vg_animation_rotate_t
-	// array of vg_animation_scale_t
+	// + array of vg_animation_translate_t
+	// + array of vg_animation_rotate_t
+	// + array of vg_animation_scale_t
 
-} vg_block_group_animation_t;
+};
 
 /*
- * @brief Element group with animation
+ * @brief Defines a block "end of current group"
  */
-typedef struct vg_block_group_end {
+struct vg_block_group_end {
 
-	// [ *** copy of vg_block_t **
-
-	// block's kind and pointer to specific block's data
-	vg_block_kind_t kind;
-
-	// ] *** copy of vg_block_t **
+	vg_block_t block;
 
 	uint8_t padding0;
 	uint8_t padding1;
 	uint8_t padding2;
 
-} vg_block_group_end_t;
+};
 
 /*
- * @brief Element "draw VG path".
+ * @brief Defines a block "path with a color".
  */
-typedef struct vg_operation_color {
+struct vg_block_color {
 
-	vg_block_path_t header;
+	vg_block_path_t path;
 	uint32_t color;
 
-} vg_operation_color_t;
+};
 
 /*
- * @brief Element "draw VG gradient".
+ * @brief Defines a block "path with a gradient".
  */
-typedef struct vg_operation_gradient {
+struct vg_block_gradient {
 
-	vg_block_path_t header;
+	vg_block_path_t path;
 
-	// /!\ the VG-Lite gradient is constitued of the gradient header (colors and positions) and a VG-Lite image.
-	// A VG-Lite image is a header + a pixel buffer. This image is made at runtime by VG-Lite library according
-	// to the gradient data. The RAW format only embbeds the gradient header, not the "image" part to win some
-	// footprint. By consequence the gradient data to copy from ROM to RAM is:
-	// sizeof(gradient) == sizeof(vg_lite_linear_gradient_t) - sizeof(vg_lite_buffer_t)
+	// /!\ the VG-Lite gradient is only constitued of the gradient header (colors and positions)
+	// see GRADIENT_COPY_SIZE
 	vg_lite_linear_gradient_t* gradient;
 
-} vg_operation_gradient_t;
+};
 
 /*
- * @brief Element "animate color of path".
+ * @brief Defines a block "path with a color in a buffered image"
  */
-typedef struct vg_operation_animate_color {
+struct vg_block_bvi_color {
+	vg_block_color_t header;
+	vg_lite_matrix_t path_deformation;
+	int32_t scissor[4];
+	vg_block_t* next;
+};
 
-	vg_operation_color_t path;
+/*
+ * @brief Defines a block "path with a gradient in a buffered image"
+ */
+struct vg_block_bvi_gradient {
+	vg_block_gradient_t header;
+	vg_lite_matrix_t path_deformation;
+	int32_t scissor[4];
+	vg_block_t* next;
+	bool shared_gradient; // if true, means the gradient is shared with another block (must not free it)
+};
+
+/*
+ * @brief Defines a block "raw image in a buffered image"
+ */
+struct vg_block_bvi_image {
+
+	vg_block_t block;
+
+	uint8_t flags; // 0 == color_matrix is null
+	jchar alpha; // prevent to use the mask "& 0xff"
+
+	vector_image_t* image;
+	jfloat matrix[9];
+	jfloat color_matrix[COLOR_MATRIX_WIDTH];
+	jint elapsed_msb; // prevent unalignment access
+	jint elapsed_lsb;
+
+	vg_block_t* next;
+
+};
+
+/*
+ * @brief  Defines a block "animate color of a path".
+ */
+struct vg_block_animate_color {
+
+	vg_block_color_t header;
 
 	uint8_t nb_colors;
 	uint8_t nb_alphas;
@@ -313,58 +432,58 @@ typedef struct vg_operation_animate_color {
 	uint16_t block_size;
 	uint16_t padding1;
 
-	// array of vg_animation_color_t
-	// array of vg_animation_alpha_t
-	// array of vg_animation_path_data_t
+	// + array of vg_animation_color_t
+	// + array of vg_animation_alpha_t
+	// + array of vg_animation_path_data_t
 
-} vg_operation_animate_color_t;
+};
 
 /*
- * @brief Element "animate gradient of path".
+ * @brief  Defines a block "animate gradient of a path".
  */
-typedef struct vg_operation_animate_gradient {
+struct vg_block_animate_gradient {
 
-	vg_operation_gradient_t path;
+	vg_block_gradient_t header;
 
 	uint8_t nb_alphas;
 	uint8_t nb_path_datas;
 	uint16_t block_size;
 
-	// array of vg_animation_alpha_t
-	// array of vg_animation_path_data_t
+	// + array of vg_animation_alpha_t
+	// + array of vg_animation_path_data_t
 
-} vg_operation_animate_gradient_t;
+};
 
 /*
- * @brief Path interpolator
+ * @brief Defines a "path interpolator"
  */
-typedef struct vg_path_interpolator {
+struct vg_path_interpolator {
 
 	uint32_t size;
 
-	// array of end_time_ratio (short)
-	// padding
-	// array of start_x (float)
-	// array of start_y (float)
+	// + array of end_time_ratio (short)
+	// + optional padding
+	// + array of start_x (float)
+	// + array of start_y (float)
 
-} vg_path_interpolator_t;
+};
 
 /*
- * @brief Scale animation
+ * @brief Defines the header of an animation.
  */
-typedef struct vg_animation_header {
+struct vg_animation_header {
 
 	int32_t duration;
 	int32_t begin;
 	int32_t keep_duration;
 	vg_path_interpolator_t* offset_path_interpolator;
 
-} vg_animation_header_t;
+};
 
 /*
- * @brief Translate animation
+ * @brief Defines an animation "Translate"
  */
-typedef struct vg_animation_translate {
+struct vg_animation_translate {
 
 	vg_animation_header_t header;
 	float start_x;
@@ -372,22 +491,22 @@ typedef struct vg_animation_translate {
 	float translation_x;
 	float translation_y;
 
-} vg_animation_translate_t;
+};
 
 /*
- * @brief Translate XY animation
+ * @brief Defines an animation "Translate XY"
  */
-typedef struct vg_animation_translate_xy {
+struct vg_animation_translate_xy {
 
 	vg_animation_header_t header;
 	vg_path_interpolator_t* offset_path_interpolator;
 
-} vg_animation_translate_xy_t;
+};
 
 /*
- * @brief Rotate animation
+ * @brief Defines an animation "Rotate"
  */
-typedef struct vg_animation_rotate {
+struct vg_animation_rotate {
 
 	vg_animation_header_t header;
 	float start_angle;
@@ -397,12 +516,12 @@ typedef struct vg_animation_rotate {
 	float rotation_translation_center_x;
 	float rotation_translation_center_y;
 
-} vg_animation_rotate_t;
+};
 
 /*
- * @brief Scale animation
+ * @brief Defines an animation "Scale"
  */
-typedef struct vg_animation_scale {
+struct vg_animation_scale {
 
 	vg_animation_header_t header;
 	float scale_x_from;
@@ -412,75 +531,132 @@ typedef struct vg_animation_scale {
 	float pivot_x;
 	float pivot_y;
 
-} vg_animation_scale_t;
+};
 
 /*
- * @brief Color animation
+ * @brief Defines an animation "Color"
  */
-typedef struct vg_animation_color {
+struct vg_animation_color {
 
 	vg_animation_header_t header;
 	uint32_t start_color;
 	uint32_t end_color;
 
-} vg_animation_color_t;
+};
 
 /*
- * @brief Alpha animation
+ * @brief Defines an animation "Alpha"
  */
-typedef struct vg_animation_alpha {
+struct vg_animation_alpha {
 
 	vg_animation_header_t header;
 	uint8_t start_alpha;
 	uint8_t end_alpha;
 
-} vg_animation_alpha_t;
+};
 
 /*
- * @brief Path data animation
+ * @brief Defines an animation "Path data"
  */
-typedef struct vg_animation_path_data {
+struct vg_animation_path_data {
 
 	vg_animation_header_t header;
-	vg_path_t* from;
-	vg_path_t* to;
+	vg_path_desc_t* from;
+	vg_path_desc_t* to;
 
-} vg_animation_path_data_t;
-
-/*
- * @brief Function to update a matrix according an animation
- *
- * @param[in/out]: inout: the data to update
- * @param[in]: elapsed_time:  the time elapsed within this animation.
- * @param[in]: last: true when the final frame is reached
- *
- * @return: nothing
- */
-typedef void (* VG_RAW_apply_animation_t) (
-		vg_animation_header_t* animation,
-		void* inout,
-		jlong elapsed_time,
-		size_t memory_offset,
-		bool last
-);
+};
 
 /*
- * @brief Element transformation
+ * @brief Defines a RAW image
  */
-typedef struct vg_transformation {
+struct vector_image {
 
-	struct vg_transformation* previous;
+	uint32_t signature_msb;
+	uint32_t signature_lsb;
+
+	float width;
+	float height;
+
+	vg_flags_t flags;
+	vg_block_t* first_block;
+
+};
+
+/*
+ * @brief Defines a buffered image
+ */
+struct vector_buffered_image {
+
+	/*
+	 * @brief RAW image header
+	 */
+	vector_image_t header;
+
+	/*
+	 * @brief Pointer to vg_block_t* of last stored block.
+	 */
+	vg_block_t** latest_data;
+
+	/*
+	 * @brief Last block of image.
+	 */
+	vg_block_t last_block;
+
+	/*
+	 * @brief Pointer to last stored gradient in the bvi; to share same gradient
+	 * between several consecutive drawings (very useful when drawing a string).
+	 */
+	vg_lite_linear_gradient_t* last_stored_gradient;
+
+};
+
+/*
+ * @brief Element of a chained list: a transformation
+ */
+struct vg_transformation {
+
+	struct vg_transformation* parent;
 	vg_lite_matrix_t matrix;
 
-} vg_transformation_t;
+};
 
 /*
- * @brief Internal MicroJVM element to retrieve a resource in the microejapp.o.
+ * @brief
  */
-typedef struct {
-	void* data;
-	uint32_t size;
-} SNIX_resource;
+struct vg_drawing {
+
+	/*
+	 * @brief First image block to render.
+	 */
+	vg_block_t* first_block;
+
+	/*
+	 * @brief Offset to apply on each block data address.
+	 */
+	size_t memory_offset;
+
+	/*
+	 * @brief First transformation to apply when rendering an image. This
+	 * transformation only holds the image transformation: it does not hold
+	 * the final transformation: the image translation.
+	 *
+	 * This transformation is not stored in the heap to be sure to apply at
+	 * least this transformation when drawing an image even if the heap is
+	 * full.
+	 */
+	vg_transformation_t first_transformation;
+
+	/*
+	 * @brief At the end of the image drawing, tells if something has been
+	 * drawn or not (empty or cleared image).
+	 */
+	bool drawing_running;
+
+};
+
+// -----------------------------------------------------------------------------
+// Extern functions & fields
+// -----------------------------------------------------------------------------
 
 /*
  * @brief Internal MicroJVM function to retrieve a resource in the microejapp.o.
@@ -490,15 +666,10 @@ typedef struct {
  */
 extern int32_t SNIX_get_resource(char* path, SNIX_resource* resource);
 
-// -----------------------------------------------------------------------------
-// Extern functions & fields
-// -----------------------------------------------------------------------------
-
 /*
- * @brief Linker symbols that define the ROM block.
+ * @brief Function to retrieve the current scissor.
  */
-extern uint32_t m_text_start;
-extern uint32_t m_text_end;
+extern uint32_t vg_lite_get_scissor(int32_t** scissor);
 
 // -----------------------------------------------------------------------------
 // Global Variables
@@ -506,45 +677,49 @@ extern uint32_t m_text_end;
 
 const uint8_t signature[] = {(uint8_t)'M', (uint8_t)'E', (uint8_t)'J', (uint8_t)'_', (uint8_t)'M', (uint8_t)'V', (uint8_t)'G', (uint8_t)LLVG_RAW_VERSION};
 
-static BESTFIT_ALLOCATOR allocator_instance;
-static uint8_t allocator_heap[HEAP_SIZE];
 static bool initialiazed = false;
-
-/*
- * @brief First transformation to apply when rendering an image. This
- * transformation only holds the image transformation: it does not hold
- * the final transformation: the image translation.
- *
- * This transformation is not stored in the heap to be sure to apply at
- * least this transformation when drawing an image even if the heap is
- * full.
- */
-static vg_transformation_t first_transformation;
-
-/*
- * @brief Translation (== image translation) to apply on current transformation
- * when drawing a path (see render_matrix).
- */
-static vg_lite_matrix_t translate_matrix;
-
-/*
- * @brief Current transformation to apply when rendering a path. It is the
- * current transformation + the final transformation (== the image translation;
- * see translate_matrix).
- */
-static vg_lite_matrix_t render_matrix;
-
-/*
- * @brief Copy from RAW image (flash to RAM); require to target the path's data
- * in flash;
- */
-static vg_lite_path_t render_path;
 
 /*
  * @brief Gradient used for all drawings with gradient (only one image allocation,
  * does not alterate the original gradient's matrix and colors, etc.).
  */
 static vg_lite_linear_gradient_t render_gradient;
+
+/*
+ * @brief Path used for all drawings.
+ */
+static vg_lite_path_t render_path;
+
+/*
+ * @brief Working data to draw an image (RAW or BVI)
+ */
+static vg_drawing_t drawing_data;
+
+
+#if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+
+/*
+ * @brief Working data to draw a RAW image stored in a BVI.
+ */
+static vg_drawing_t raw_in_bvi_drawing_data;
+
+/*
+ * @brief BVI destination when rendering an image in a BVI
+ */
+static void* bvi_target;
+
+/*
+ * @brief Color matrix used to combine user matrix and RAW image matrix inside the BVI.
+ */
+static const float CONSTANT_ROW[5] = { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+static float combined_color_matrices[COLOR_MATRIX_WIDTH * COLOR_MATRIX_HEIGHT];
+
+#endif
+
+#ifdef DEBUG_ALLOCATOR
+static uint32_t cumul = 0;
+static uint32_t max = 0;
+#endif
 
 // -----------------------------------------------------------------------------
 // Private functions
@@ -556,13 +731,13 @@ static inline void* get_addr(void* addr, size_t memory_offset){
 	return (void*)(((uint8_t*)addr) + memory_offset);
 }
 
-static inline void* get_path_data_addr(vg_path_t* path){
-	return get_addr(path, sizeof(vg_path_t));
+static inline void* get_path_data_addr(vg_path_desc_t* path){
+	return get_addr(path, sizeof(vg_path_desc_t));
 }
 
-static inline vg_path_t* get_path_addr(vg_path_t* path, size_t memory_offset){
-	// cppcheck-suppress [misra-c2012-11.5] cast to vg_path_t* is valid for sure
-	return (vg_path_t*)get_addr(path, memory_offset);
+static inline vg_path_desc_t* get_path_addr(vg_path_desc_t* path, size_t memory_offset){
+	// cppcheck-suppress [misra-c2012-11.5] cast to vg_path_desc_t* is valid for sure
+	return (vg_path_desc_t*)get_addr(path, memory_offset);
 }
 
 static inline vg_lite_linear_gradient_t* get_gradient_addr(vg_lite_linear_gradient_t* gradient, size_t memory_offset){
@@ -581,11 +756,19 @@ static inline vg_path_interpolator_t* get_path_interpolator_addr(vg_path_interpo
  * @param[in] data: pointer on the data to free.
  */
 static void _free_data(void* data) {
-	// cppcheck-suppress [misra-c2012-18.4] HEAP_START and HEAP_END denote heap addresses
-	if ((NULL != data) && (data >= (void*) HEAP_START) && (data < (void*) HEAP_END)) {
+	if (NULL != data) {
+#ifdef DEBUG_ALLOCATOR
+		// cppcheck-suppress [misra-c2012-11.5] data is aligned on 32-bit for sure
+		uint32_t* addr = (uint32_t*)data;
+		--addr;
+		uint32_t size = *addr;
+		cumul -= size;
+		PRINTF("free %u\t0x%x\t(%u/%u)\n", size, addr, cumul, max);
+		FREE((uint8_t*)addr);
+#else
 		FREE(data);
+#endif
 	}
-	// else: data in flash (cannot be in RAM and outside the heap) or null
 }
 
 /*
@@ -595,36 +778,61 @@ static void _free_data(void* data) {
  *
  * @return the pointer to the stored data.
  */
-inline static uint8_t* _alloc_data(uint32_t size) {
+static inline uint8_t* _alloc_data(uint32_t size) {
+
+#ifdef DEBUG_ALLOCATOR
+	size += 4;
+	cumul += size;
+	max = (cumul > max) ? cumul : max;
+#endif
+
 	uint8_t* ret = MALLOC(size);
 	if (NULL == ret) {
 		MEJ_LOG_ERROR_MICROVG("OOM\n");
 	}
+
+#ifdef DEBUG_ALLOCATOR
+	PRINTF("alloc %u\t0x%x\t(%u/%u)\n", size, ret, cumul, max);
+	*((uint32_t*)ret) = size;
+	ret += 4;
+#endif
+
 	return ret;
 }
 
 /*
- * @brief Stores the given data in the heap or returns the given pointer
- * when targets RO memory (no need to copy).
+ * @brief Stores the given data in the heap.
  *
  * @param[in] data: pointer on the data to store.
  * @param[in] size: the data's size.
  *
- * @return the pointer to the stored data or the ROM address.
+ * @return the pointer to the stored data or NULL (OOM).
  */
 static uint8_t* _store_data(void* data, size_t size) {
-	uint8_t* ret;
-	if ((data >= &m_text_start) && (data < &m_text_end)) {
-		// cppcheck-suppress [misra-c2012-11.5] cast the object in a u8 address
-		ret = (uint8_t*)data;
-	}
-	else {
-		ret = _alloc_data(size);
-		if (NULL != ret){
-			(void)memcpy((void*)ret, data, size);
-		}
+	uint8_t* ret = _alloc_data(size);
+	if (NULL != ret){
+		(void)memcpy((void*)ret, data, size);
 	}
 	return ret;
+}
+
+static inline void _tag_image_in_ram(vector_image_t* image) {
+	image->flags.ram = (uint32_t)1;
+}
+
+/*
+ * @brief Tells if the image addresses (blocks, paths, etc.) are relative
+ */
+static inline bool _is_image_address_relative(vector_image_t* image) {
+	return ((uint32_t)0) == image->flags.absolute;
+}
+
+/*
+ * @brief Tells if the image is a buffered vector image.
+ * We use the flag "absolute" which is only true for the BVI.
+ */
+static inline bool _is_image_bvi(vector_image_t* image) {
+	return !_is_image_address_relative(image);
 }
 
 /*
@@ -632,7 +840,7 @@ static uint8_t* _store_data(void* data, size_t size) {
  *
  * @param[in] transformation: pointer on the transformation to store.
  *
- * @return the pointer to the stored transformation.
+ * @return the pointer to the stored transformation or NULL (OOM).
  */
 static vg_transformation_t* _store_vg_transformation(vg_transformation_t * transformation) {
 	// cppcheck-suppress [misra-c2012-11.3] the stored data is a vg_transformation_t for sure
@@ -678,6 +886,13 @@ static uint32_t _filter_color(uint32_t color, const float color_matrix[]) {
 	return COLOR_SET_COLOR(resultAlpha, resultRed, resultGreen, resultBlue, ARGB8888);
 }
 
+static void _filter_gradient(vg_lite_linear_gradient_t* gradient, const float color_matrix[]) {
+	uint32_t* colors = (uint32_t*)gradient->colors;
+	for(int i = 0; i < gradient->count; i++) {
+		colors[i] = _filter_color(colors[i], color_matrix);
+	}
+}
+
 static uint8_t _filter_alpha(uint8_t alpha, const float color_matrix[]) {
 	uint32_t color = alpha;
 	color <<= 24;
@@ -700,18 +915,14 @@ static uint32_t _prepare_render_color(uint32_t color, uint32_t alpha, const floa
 	return ret;
 }
 
-static void _prepare_render_gradient_colors(vg_lite_linear_gradient_t* gradient, uint32_t alpha, const float color_matrix[]) {
-
-	uint32_t* colors = (uint32_t*)gradient->colors;
+static void _prepare_gradient_colors(vg_lite_linear_gradient_t* gradient, uint32_t alpha, const float color_matrix[]) {
 
 	if (NULL != color_matrix) {
 		assert((uint32_t)0xff == alpha); // filter mode does not use global alpha
-
-		for(int i = 0; i < gradient->count; i++) {
-			colors[i] = _filter_color(colors[i], color_matrix);
-		}
+		_filter_gradient(gradient, color_matrix);
 	}
 	else if (alpha != (uint32_t)0xff) {
+		uint32_t* colors = (uint32_t*)gradient->colors;
 		for(int i = 0; i < gradient->count; i++) {
 			colors[i] = MICROVG_HELPER_apply_alpha(colors[i], alpha);
 		}
@@ -719,102 +930,6 @@ static void _prepare_render_gradient_colors(vg_lite_linear_gradient_t* gradient,
 	else {
 		// nothing to change
 	}
-}
-
-/*
- * @brief Prepares the matrix to apply to render the next paths: current transformation + image translation.
- *
- * FIXME idea: apply only the transformation when the next element to draw is a path. When it is a group, the
- * "rendering transformation" is useless. Beware: when leaving a group, have to check if the "rendering
- * transformation" has to be restored or not.
- */
-static inline void _apply_translation(vg_transformation_t* p_render_transformation){
-	LLVG_MATRIX_IMPL_multiply(MAP_VGLITE_MATRIX(&render_matrix), MAP_VGLITE_MATRIX(&translate_matrix), MAP_VGLITE_MATRIX(&(p_render_transformation->matrix)));
-}
-
-static bool _set_clip(MICROUI_GraphicsContext* gc, jfloat* matrix, jint* x, jint* y, jfloat width, jfloat height){
-
-	bool outside = false;
-
-	// Transform each corners points of the image viewbox
-	// top/left, not impacted by scale and rotate
-	float x0 = (float) (matrix[2]);
-	float y0 = (float) (matrix[5]);
-
-	// top/right
-	float x1 = (float) ((width * matrix[0]) + x0);
-	float y1 = (float) ((width * matrix[3]) + y0);
-
-	// bottom/Left
-	float x2 = (float) ((height * matrix[1]) + x0);
-	float y2 = (float) ((height * matrix[4]) + y0);
-
-	// bottom/right
-	float x3 = (float) (x2 + x1 - x0);
-	float y3 = (float) (y2 + y1 - y0);
-
-	// Compute the clipping area from all points
-	int render_area_x = round(MEJ_MIN(x0, MEJ_MIN(x1, MEJ_MIN(x2, x3))));
-	int render_area_y = round(MEJ_MIN(y0, MEJ_MIN(y1, MEJ_MIN(y2, y3))));
-
-	int render_area_max_x = ceil(MEJ_MAX(x0, MEJ_MAX(x1, MEJ_MAX(x2, x3))));
-	int render_area_max_y = ceil(MEJ_MAX(y0, MEJ_MAX(y1, MEJ_MAX(y2, y3))));
-
-	int render_area_width = render_area_max_x - render_area_x ;
-	int render_area_height = render_area_max_y - render_area_y;
-
-	// apply translate
-	render_area_x += *x;
-	render_area_y += *y;
-
-	// get GC clip
-	int master_clip_x = gc->clip_x1;
-	int master_clip_y = gc->clip_y1;
-	int master_clip_width = gc->clip_x2 - gc->clip_x1 + 1;
-	int master_clip_height = gc->clip_y2 - gc->clip_y1 + 1;
-
-	// crop x
-	if (render_area_x < master_clip_x) {
-		//-> decrease width and set x to the minimum coordinate
-		render_area_width -= master_clip_x - render_area_x;
-		render_area_x = master_clip_x;
-	}
-
-	// crop y
-	if (render_area_y < master_clip_y) {
-		//-> decrease height and set y to the minimum coordinate
-		render_area_height -= master_clip_y - render_area_y;
-		render_area_y = master_clip_y;
-	}
-
-	int master_clip_outside_x = master_clip_x + master_clip_width;
-	int master_clip_outside_y = master_clip_y + master_clip_height;
-
-	if (render_area_x >= master_clip_outside_x) {
-		// expected X is out of clip on the right: set an empty clip
-		render_area_width = 0;
-	} else {
-		// crop x+width, width is set to 0 if negative (empty clip)
-		render_area_width = MEJ_MAX(0, MEJ_MIN(render_area_width, master_clip_outside_x - render_area_x));
-	}
-
-	if (render_area_y >= master_clip_outside_y) {
-		// expected Y is out of clip on the bottom: set an empty clip
-		render_area_height = 0;
-	} else {
-		// crop y+height, height is set to 0 if negative (empty clip)
-		render_area_height = MEJ_MAX(0, MEJ_MIN(render_area_height, master_clip_outside_y - render_area_y));
-	}
-
-	if ((0 < render_area_width) && (0 < render_area_height)) {
-		vg_lite_enable_scissor();
-		vg_lite_set_scissor(render_area_x, render_area_y, render_area_width, render_area_height);
-	}
-	else {
-		outside = true;
-	}
-
-	return outside;
 }
 
 static float _get_path_interpolator_at_time(vg_path_interpolator_t* interpolator, float time, bool apply_x_transformation) {
@@ -1041,7 +1156,7 @@ static void _apply_path_animation_alpha(vg_animation_header_t* animation, void* 
  * @param[in]  pathSrc2: the second path array to merge.
  * @param[in]  ratio: the merge ratio between paths points.
  */
-static void _interpolate_paths(vg_lite_path_t* pathDest, vg_path_t* pathSrc1, vg_path_t* pathSrc2, float ratio) {
+static void _interpolate_paths(vg_lite_path_t* pathDest, vg_path_desc_t* pathSrc1, vg_path_desc_t* pathSrc2, float ratio) {
 
 	float remaining = (1.f - ratio);
 
@@ -1121,7 +1236,7 @@ static void _apply_path_animation_path_data(vg_animation_header_t* animation, vo
 	}
 	else {
 		// last path (== path "to")
-		vg_path_t* to = get_path_addr(animation_path_data->to, memory_offset);
+		vg_path_desc_t* to = get_path_addr(animation_path_data->to, memory_offset);
 		dest->path = get_path_data_addr(to);
 		(void)memcpy((void*)&(dest->bounding_box), (void*)&(to->bounding_box), (size_t)4 * sizeof(float));
 	}
@@ -1249,12 +1364,6 @@ static void* _apply_path_animations_path_data(vg_lite_path_t* path, jlong elapse
 	return (void*)anims;
 }
 
-static void _draw_path(void* target, vg_lite_path_t* p_render_path, vg_block_path_t* header, uint32_t color) {
-	uint32_t c = color;
-	VG_DRAWER_update_color(target, &c);
-	VG_DRAWER_draw_path(target, p_render_path, header->fill_rule, &render_matrix, VG_LITE_BLEND_SRC_OVER, c);
-}
-
 static uint32_t _get_path_animations_path_max_length(vg_lite_path_t* path, jlong elapsed_time, vg_animation_path_data_t* animations, uint32_t size, size_t memory_offset) {
 	vg_animation_path_data_t* anims = animations;
 	uint32_t length = path->path_length;
@@ -1265,16 +1374,14 @@ static uint32_t _get_path_animations_path_max_length(vg_lite_path_t* path, jlong
 	}
 	return length;
 }
-
 /*
  * @brief path is in ROM (RAW): have to copy the path in a local structure and update the address
  * (replace the path data offset by the absolute address in ROM).
  */
-static vg_lite_path_t* _prepare_render_path(vg_path_t* image_path, size_t memory_offset) {
-	vg_lite_path_t* p_render_path = &render_path;
-	vg_path_t* path = get_path_addr(image_path, memory_offset);
+static void _prepare_render_path(vg_drawing_t* drawing_data, vg_path_desc_t* image_path) {
+	vg_path_desc_t* path = get_path_addr(image_path, drawing_data->memory_offset);
 	vg_lite_init_path(
-			p_render_path,
+			&render_path,
 			path->format,
 			VG_LITE_HIGH,
 			path->length,
@@ -1284,51 +1391,48 @@ static vg_lite_path_t* _prepare_render_path(vg_path_t* image_path, size_t memory
 			path->bounding_box[2],
 			path->bounding_box[3]
 	);
-	p_render_path->path_type = VG_LITE_DRAW_FILL_PATH;
-	return p_render_path;
+	render_path.path_type = VG_LITE_DRAW_FILL_PATH;
 }
 
-static vg_lite_linear_gradient_t* _prepare_render_gradient(void* target, vg_operation_gradient_t* op, uint8_t alpha, const float color_matrix[], bool draw_gradient_flushed, size_t memory_offset) {
+static inline jint _draw_render_path(VG_DRAWING_VGLITE_draw_image_element_t drawer, vg_lite_matrix_t* matrix, vg_block_path_t* op, uint32_t color) {
+	return (*drawer)(&render_path, op->fill_rule, matrix, VG_LITE_BLEND_SRC_OVER, color, NULL, false);
+}
 
-	// copy the gradient content but not the image that renders the gradient
-	size_t copy_size = sizeof(vg_lite_linear_gradient_t) - sizeof(vg_lite_buffer_t);
+static inline jint _draw_render_gradient(VG_DRAWING_VGLITE_draw_image_element_t drawer, vg_lite_matrix_t* matrix, vg_lite_fill_t fill_rule, bool is_new_gradient) {
+	return (*drawer)(&render_path, fill_rule, matrix, VG_LITE_BLEND_SRC_OVER, 0, &render_gradient, is_new_gradient);
+}
+
+static bool _prepare_render_gradient(vg_drawing_t* drawing_data, vg_block_gradient_t* op, uint8_t alpha, const float color_matrix[], vg_lite_matrix_t* transformation) {
 
 	// copy op's gradient in a local gradient to apply the opacity
 	vg_lite_linear_gradient_t local_gradient;
-	vg_lite_linear_gradient_t* op_gradient = get_gradient_addr(op->gradient, memory_offset);
-	(void)memcpy(&local_gradient, op_gradient, copy_size);
-	_prepare_render_gradient_colors(&local_gradient, alpha, color_matrix);
+	vg_lite_linear_gradient_t* op_gradient = get_gradient_addr(op->gradient, drawing_data->memory_offset);
+	(void)memcpy(&local_gradient, op_gradient, GRADIENT_COPY_SIZE);
+	_prepare_gradient_colors(&local_gradient, alpha, color_matrix);
 
 	vg_lite_linear_gradient_t* p_render_gradient = &render_gradient;
-	if (0 != memcmp(p_render_gradient, &local_gradient, copy_size)) {
-		// not same gradient than previous: have to:
+	bool is_new_gradient = (0 != memcmp(p_render_gradient, &local_gradient, GRADIENT_CMP_SIZE));
 
-		// 1- flush the previous gradient drawings because we will update the shared gradient's image
-		if (!draw_gradient_flushed) {
-			DISPLAY_VGLITE_start_operation(false);
-		}
-
-		// 2- copy the new gradient data in shared gradient
-		(void)memcpy(p_render_gradient, &local_gradient, copy_size);
-
-		// 3- update the shared gradient's image.
-		VG_DRAWER_update_gradient(target, p_render_gradient);
+	if (is_new_gradient) {
+		// copy the new gradient data in shared gradient
+		(void)memcpy(p_render_gradient, &local_gradient, GRADIENT_COPY_SIZE);
 	}
-	// else: same gradient than previous: no need to update gradient's image again
 
 	// update the gradient's matrix
 	LLVG_MATRIX_IMPL_multiply(
 			MAP_VGLITE_MATRIX(&(p_render_gradient->matrix)),
-			MAP_VGLITE_MATRIX(&render_matrix),
+			MAP_VGLITE_MATRIX(transformation),
 			MAP_VGLITE_MATRIX(&op_gradient->matrix)
 	);
 
-	return p_render_gradient;
+	return is_new_gradient;
 }
 
-static uint8_t* _animate_path(vg_lite_path_t* p_render_path, jlong elapsed_time, vg_animation_path_data_t* first_animation, uint32_t nb_animations, size_t memory_offset) {
+static uint8_t* _animate_render_path(jlong elapsed_time, vg_animation_path_data_t* first_animation, uint32_t nb_animations, size_t memory_offset, jint* error) {
 
 	uint8_t* command_buffer;
+
+	*error = LLVG_SUCCESS;
 
 	if ((uint8_t)0 < nb_animations) {
 
@@ -1338,26 +1442,29 @@ static uint8_t* _animate_path(vg_lite_path_t* p_render_path, jlong elapsed_time,
 
 		if (NULL != command_buffer) {
 
-			void* original_commands = p_render_path->path;
-			int32_t original_commands_length = p_render_path->path_length;
+			void* original_commands = render_path.path;
+			int32_t original_commands_length = render_path.path_length;
 
 			// update the destination commands buffer address
-			p_render_path->path = (void*)command_buffer;
-			p_render_path->path_length = 0;
+			render_path.path = (void*)command_buffer;
+			render_path.path_length = 0;
 
 			// update path commands, the path length and the bounding box
-			(void)_apply_path_animations_path_data(p_render_path, elapsed_time, first_animation, nb_animations, memory_offset);
+			(void)_apply_path_animations_path_data(&render_path, elapsed_time, first_animation, nb_animations, memory_offset);
 
-			if (0 == p_render_path->path_length) {
+			if (0 == render_path.path_length) {
 
 				// no animation has been applied: restore the original path
-				p_render_path->path = original_commands;
-				p_render_path->path_length = original_commands_length;
+				render_path.path = original_commands;
+				render_path.path_length = original_commands_length;
 
 				// free the useless command buffer
 				_free_data(command_buffer);
 				command_buffer = NULL;
 			}
+		}
+		else {
+			*error = LLVG_OUT_OF_MEMORY;
 		}
 		// else not enough memory in heap: use original path
 	}
@@ -1380,24 +1487,439 @@ static inline vg_block_t* _go_to_next_block(vg_block_t* block, size_t size) {
 	return (vg_block_t*)(((uint8_t*)block) + size);
 }
 
-static bool _draw_raw_image(void* target, vg_block_t* first_block, size_t memory_offset, jint x, jint y, jfloat* matrix, uint32_t alpha, jlong elapsedTime, const float color_matrix[]) {
+static jint _manage_block_gradient(vg_drawing_t* drawing_data, VG_DRAWING_VGLITE_draw_image_element_t target, vg_block_t* block, vg_lite_matrix_t* matrix, uint32_t alpha, const float color_matrix[], vg_lite_matrix_t* gradient_deformation) {
 
-	vg_block_t* block = first_block;
-	bool draw_gradient_flushed = true; // no drawing with gradient has been added yet
+	// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_gradient_t for sure
+	vg_block_gradient_t* op = (vg_block_gradient_t*)block;
+
+	// prepare the gradient
+	_prepare_render_path(drawing_data, op->path.desc);
+	bool is_new_gradient = _prepare_render_gradient(drawing_data, op, alpha, color_matrix, gradient_deformation);
+
+	return _draw_render_gradient(target, matrix, op->path.fill_rule, is_new_gradient);
+}
+
+static void _get_image_parameters(vector_image_t* image, vg_drawing_t* drawing_data) {
+
+	if (!_is_image_address_relative(image)) {
+		// the addresses are absolute: no memory offset
+		drawing_data->memory_offset = 0;
+	}
+	else {
+		// the addresses are relative: the memory offset is tehe image address
+		// cppcheck-suppress [misra-c2012-11.4] save the image address as the memory offset to apply on each address
+		drawing_data->memory_offset = (size_t)image;
+	}
+
+	uint8_t* first_block_addr = (uint8_t*)image->first_block;
+
+	// cppcheck-suppress [misra-c2012-18.4] adds the absolute memory offset
+	first_block_addr += drawing_data->memory_offset;
+
+	// cppcheck-suppress [misra-c2012-11.3] address points to the first block for sure
+	drawing_data->first_block = (vg_block_t*)first_block_addr;
+
+	drawing_data->drawing_running = false;
+}
+
+// -----------------------------------------------------------------------------
+// BufferedVectorImage (BVI) Management
+// -----------------------------------------------------------------------------
+
+#if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+
+/*
+ * @brief Tells if the image is in ROM.
+ */
+static inline bool _bvi_is_image_in_rom(vector_image_t* image) {
+	return 0u == image->flags.ram;
+}
+
+static inline void _bvi_tag_image_as_absolute(vector_image_t* image) {
+	image->flags.absolute = 1u;
+}
+
+static vg_path_desc_t* _bvi_store_vglite_path(vg_lite_path_t* path) {
+	// cppcheck-suppress [misra-c2012-11.3] the allocated data is a vg_path_desc_t for sure
+	vg_path_desc_t* data = (vg_path_desc_t*)_alloc_data(sizeof(vg_path_desc_t) + path->path_length);
+
+	if (NULL != data) {
+		uint8_t* cmd_addr = (uint8_t*)data;
+
+		// cppcheck-suppress [misra-c2012-18.4] points after the path description
+		cmd_addr += sizeof(vg_path_desc_t);
+
+		(void)memcpy((void*)&(data->bounding_box), (void*)&(path->bounding_box), (size_t)4 * sizeof(float));
+		(void)memcpy((void*)cmd_addr, path->path, path->path_length);
+		data->format = path->format;
+		data->length = path->path_length;
+	}
+
+	return data;
+}
+
+static inline vg_lite_linear_gradient_t* _bvi_store_vglite_gradient(vg_lite_linear_gradient_t * grad) {
+	return (vg_lite_linear_gradient_t*)_store_data(grad, GRADIENT_COPY_SIZE);
+}
+
+static inline vg_block_t* _bvi_free_operation_color(vg_block_bvi_color_t* op) {
+	vg_block_t* ret = op->next;
+	_free_data(op->header.path.desc);
+	_free_data(op);
+	return ret;
+}
+
+static inline vg_block_t* _bvi_free_operation_gradient(vg_block_bvi_gradient_t* op) {
+	vg_block_t* ret = op->next;
+	_free_data(op->header.path.desc);
+	if (!op->shared_gradient) {
+		_free_data(op->header.gradient);
+	}
+	_free_data(op);
+	return ret;
+}
+
+static inline vg_block_t* _bvi_free_operation_image(vg_block_bvi_image_t* op) {
+	vg_block_t* ret = op->next;
+	_free_data(op);
+	return ret;
+}
+
+static vg_block_t* _bvi_free_block(vg_block_t* block) {
+	vg_block_t* ret;
+	switch(block->kind) {
+	case VG_BLOCK_BVI_COLOR:
+		// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_bvi_color_t for sure
+		ret = _bvi_free_operation_color((vg_block_bvi_color_t*)block);
+		break;
+	case VG_BLOCK_BVI_GRADIENT:
+		// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_bvi_gradient_t for sure
+		ret = _bvi_free_operation_gradient((vg_block_bvi_gradient_t*)block);
+		break;
+	case VG_BLOCK_BVI_IMAGE:
+		// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_bvi_image_t for sure
+		ret = _bvi_free_operation_image((vg_block_bvi_image_t*)block);
+		break;
+	case VG_BLOCK_GROUP_TRANSFORM:
+	case VG_BLOCK_GROUP_END:
+	case VG_BLOCK_LAST:
+	case VG_BLOCK_GROUP_ANIMATE:
+	case VG_BLOCK_RAW_GRADIENT:
+	case VG_BLOCK_PATH_COLOR_ANIMATE:
+	case VG_BLOCK_PATH_GRADIENT_ANIMATE:
+	default:
+		// a BVI cannot free this kind of block: never here
+		ret = block;
+		break;
+	}
+	return ret;
+}
+
+static inline jint _bvi_link_operations(vector_buffered_image_t* raw, vg_block_t* op, vg_block_t** op_next_block, bool oom) {
+
+	jint ret;
+
+	if (!oom) {
+		if (NULL == raw->latest_data) {
+			// very first block
+			raw->header.first_block = op;
+		}
+		else {
+			*(raw->latest_data) = op;
+		}
+		raw->latest_data = op_next_block;
+		*(op_next_block) = &(raw->last_block);
+
+		ret = LLVG_SUCCESS;
+	}
+	else {
+		(void)_bvi_free_block(op);
+		ret = LLVG_OUT_OF_MEMORY;
+	}
+
+	return ret;
+}
+
+static inline vector_buffered_image_t* _bvi_get_bvi_from_target(void* target) {
+	// cppcheck-suppress [misra-c2012-11.5] cast is possible (the target stored in drawer is a vector_buffered_image_t* for sure)
+	return (vector_buffered_image_t*)target;
+}
+
+static jint _bvi_add_draw_raw_image(
+		vector_buffered_image_t* dest,
+		vector_image_t* source,
+		jfloat *matrix,
+		jint alpha,
+		jlong elapsed,
+		const float color_matrix[]
+) {
+
+	// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_bvi_image_t for sure
+	vg_block_bvi_image_t* op = (vg_block_bvi_image_t*)_alloc_data(sizeof(vg_block_bvi_image_t));
+	jint ret = LLVG_OUT_OF_MEMORY;
+
+	if (NULL != op) {
+
+		op->block.kind = VG_BLOCK_BVI_IMAGE;
+		op->alpha = (jchar)alpha;
+		op->image = source;
+		(void)memcpy((void*)&(op->matrix), (void*)matrix, (size_t)LLVG_MATRIX_SIZE * sizeof(jfloat));
+		if (NULL != color_matrix) {
+			// required size is checked by Java library
+			(void)memcpy((void*)&(op->color_matrix), color_matrix, (size_t)COLOR_MATRIX_WIDTH * sizeof(jfloat));
+			op->flags = 1u;
+		}
+		else {
+			op->flags = 0u;
+		}
+		op->elapsed_msb = (jint)elapsed;
+		op->elapsed_lsb = (jint)(elapsed >> 32);
+
+		// cppcheck-suppress [misra-c2012-11.3] operation is a vg_block_t
+		ret = _bvi_link_operations(dest, (vg_block_t*)op, &(op->next), false);
+	}
+
+	return ret;
+}
+
+/*
+ * @brief Function type is "VG_DRAWING_VGLITE_draw_image_element_t" (called by _draw_raw_image()).
+ */
+static jint _bvi_add_image_element(vg_lite_path_t * path, vg_lite_fill_t fill_rule, vg_lite_matrix_t * matrix, vg_lite_blend_t blend, vg_lite_color_t color, vg_lite_linear_gradient_t * grad, bool is_new_gradient) {
+	(void)is_new_gradient;
+	jint ret;
+	if (NULL == grad) {
+		ret = BVI_VGLITE_add_draw_path(bvi_target, path, fill_rule, matrix, blend, color);
+	}
+	else {
+		ret = BVI_VGLITE_add_draw_gradient(bvi_target, path, fill_rule, matrix, grad, blend);
+	}
+	return ret;
+}
+
+static void _save_current_vglite_scissor(int32_t* dest) {
+	int32_t* scissor;
+	if (0u != vg_lite_get_scissor(&scissor)) {
+		(void)memcpy((void*)dest, (void*)scissor, 4u * sizeof(int32_t));
+	}
+	else {
+		// no clip: -1 is not a valid X clip value
+		dest[0] = -1;
+	}
+}
+
+/*
+ * @brief Transform a 2D point by a given matrix.
+ *
+ * Copy from vg_lite.c
+ */
+static void _bvi_transform_point(vg_lite_point_t * result, vg_lite_float_t x, vg_lite_float_t y, vg_lite_matrix_t * matrix) {
+
+	/* Transform w. */
+	vg_lite_float_t pt_w = (x * matrix->m[2][0]) + (y * matrix->m[2][1]) + matrix->m[2][2];
+	if (pt_w <= 0.0f) {
+		result->x = 0;
+		result->y = 0;
+	}
+	else {
+		/* Transform x and y. */
+		vg_lite_float_t pt_x = (x * matrix->m[0][0]) + (y * matrix->m[0][1]) + matrix->m[0][2];
+		vg_lite_float_t pt_y = (x * matrix->m[1][0]) + (y * matrix->m[1][1]) + matrix->m[1][2];
+
+		/* Compute projected x and y. */
+		result->x = (int)(pt_x / pt_w);
+		result->y = (int)(pt_y / pt_w);
+	}
+}
+
+/*
+ * @brief Applies the scissor. The scissor is adjusted with the given matrix (image's matrix)
+ * and the current scissor (master scissor).
+ *
+ * @param[in] scissor: pointer to the scissor to apply or NULL.
+ * @param[in] matrix: pointer to the matrix to apply to the scissor.
+ * @param[in/out] current_scissor: pointer to the current scissor, set to NULL when the scissor is modified and has to be restored after the drawing.
+ *
+ * @return false when no drawing should be performed (empty scissor), true otherise.
+ */
+static bool _bvi_apply_scissor(int32_t* scissor, vg_lite_matrix_t *matrix, int32_t** current_scissor) {
+
+	bool draw = true;
+
+	if (scissor[0] >= 0) {
+		vg_lite_point_t top_left;
+		vg_lite_point_t bottom_right;
+
+		// get the top-left and bottom-right scissor points adjusted with the given matrix.
+		_bvi_transform_point(&top_left, (vg_lite_float_t)scissor[0], (vg_lite_float_t)scissor[1], matrix);
+		_bvi_transform_point(&bottom_right, (vg_lite_float_t)(scissor[0] + scissor[2] - 1), (vg_lite_float_t)(scissor[1] + scissor[3] - 1), matrix);
+
+		if ((*current_scissor) != NULL) {
+
+			int32_t cx1 = (*current_scissor)[0];
+			int32_t cy1 = (*current_scissor)[1];
+			int32_t cx2 = cx1 + (*current_scissor)[2] - 1;
+			int32_t cy2 = cy1 + (*current_scissor)[3] - 1;
+
+			if (top_left.x < cx1) {
+				top_left.x = cx1;
+			}
+			if (top_left.y < cy1) {
+				top_left.y = cy1;
+			}
+			if (bottom_right.x >= cx2) {
+				bottom_right.x = cx2;
+			}
+			if (bottom_right.y >= cy2) {
+				bottom_right.y = cy2;
+			}
+		}
+
+		if ((top_left.x <= bottom_right.x) && (top_left.y <= bottom_right.y)) {
+			vg_lite_enable_scissor();
+			vg_lite_set_scissor(top_left.x, top_left.y, bottom_right.x - top_left.x + 1, bottom_right.y - top_left.y + 1);
+			*current_scissor = NULL; // have to restore the clip
+		}
+		else {
+			// empty clip: nothing to restore and nothing to draw
+			draw = false;
+		}
+
+	}
+	// else: no local clip: nothing to restore
+
+	return draw;
+}
+
+static int32_t* _bvi_restore_scissor(int32_t* original_scissor, int32_t* current_scissor) {
+	if (original_scissor != current_scissor) {
+		// the scissor has been modified: restore the original one
+		if (NULL != original_scissor) {
+			vg_lite_enable_scissor();
+			vg_lite_set_scissor(original_scissor[0], original_scissor[1], original_scissor[2], original_scissor[3]);
+		}
+		else {
+			vg_lite_disable_scissor();
+		}
+	}
+	return original_scissor;
+}
+
+static vg_block_t* _bvi_clear_blocks(vector_buffered_image_t* image) {
+	vg_block_t* block = image->header.first_block;
+	while(VG_BLOCK_LAST != block->kind) {
+		block = _bvi_free_block(block);
+	}
+	return block;
+}
+
+/*
+ * @brief Combines two color matrices into a single one.
+ * <p>
+ * The application of the returned matrix is equivalent to the successive application of the two given matrices.
+ * <p>
+ * The algorithm used in this method is based on to the computation of the matrix multiplication <code>B x A</code>
+ * where a 5th row of values <code>(0, 0, 0, 0, 1)</code> would be appended to the matrix A.
+ * <p>
+ * - Matrix a can be null, in such case, matrix b is returned,
+ * - Matrix b can be null, in such case, matrix a is returned,
+ * - Both matrices can be null, in such case, NULL is returned,
+ * - if not null, the result is stored in the global matrix "combined_color_matrices" (old content is overwritten)
+ * and returned
+ *
+ * @param a
+ *            the operation matrix.
+ * @param b
+ *            the transformation to apply.
+ * @return the combined matrix.
+ */
+static float* _combine_color_matrices(float* a, float* b) {
+
+	float* dest;
+
+	if (NULL != a) {
+		// operation holds a color matrix (image matrix)
+		if (NULL != b) {
+			// draw with another matrix
+
+			// -> need to combine user matrix and operation matrix
+			// use the shared array
+			dest = combined_color_matrices;
+			(void)memset(dest, 0, (size_t)COLOR_MATRIX_WIDTH * (size_t)COLOR_MATRIX_HEIGHT * sizeof(float));
+
+			for (int y = 0; y < COLOR_MATRIX_HEIGHT; y++) {
+				int y5 = y * COLOR_MATRIX_WIDTH;
+				for (int x = 0; x < COLOR_MATRIX_WIDTH; x++) {
+					// here (x,y) is the cell to compute
+					for (int i = 0; i < COLOR_MATRIX_WIDTH; i++) {
+						if (i < COLOR_MATRIX_HEIGHT) {
+							int i5 = i * COLOR_MATRIX_WIDTH;
+							dest[y5 + x] += b[y5 + i] * a[i5 + x];
+						} else {
+							dest[y5 + x] += b[y5 + i] * CONSTANT_ROW[x];
+						}
+					}
+				}
+			}
+		}
+		else {
+			// use the operation matrix
+			dest = a;
+		}
+	}
+	else if (NULL != b){
+		// use the user matrix
+		dest = b;
+	}
+	else {
+		// no color matrix to apply
+		dest = NULL;
+	}
+
+	return dest;
+}
+
+#endif // #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+
+static jint _draw_raw_image(vg_drawing_t* drawing_data, VG_DRAWING_VGLITE_draw_image_element_t target, jfloat* matrix, uint32_t alpha, jlong elapsedTime, const float color_matrix[]) {
+
+	vg_block_t* block = drawing_data->first_block;
 	bool animate = elapsedTime >= 0;
 	jlong elapsed_time = animate ? elapsedTime : 0; // default time when there is no animation
 
-	// create the image translation matrix
-	LLVG_MATRIX_IMPL_setTranslate(MAP_VGLITE_MATRIX(&translate_matrix), x, y);
-
 	// create initial transformation with application's matrix
-	first_transformation.previous = NULL;
-	(void)memcpy((void*)&(first_transformation.matrix), (void*)matrix, sizeof(vg_lite_matrix_t));
-	vg_transformation_t* p_render_transformation = &first_transformation;
+	drawing_data->first_transformation.parent = NULL;
+	(void)memcpy((void*)&(drawing_data->first_transformation.matrix), (void*)matrix, sizeof(vg_lite_matrix_t));
+	vg_transformation_t* p_render_transformation = &(drawing_data->first_transformation);
 
-	// get the transformation to draw the first path: image transformation + translation
-	_apply_translation(p_render_transformation);
 
+#if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+
+	int32_t original_scissor[4];
+	int32_t* p_original_scissor;
+	int32_t* p_current_scissor;
+	if (0u != vg_lite_get_scissor(&p_original_scissor)) {
+		// p_original_scissor points to vglite scissor
+
+		// save vglite scissor in "original scissor"
+		original_scissor[0] = p_original_scissor[0];
+		original_scissor[1] = p_original_scissor[1];
+		original_scissor[2] = p_original_scissor[2];
+		original_scissor[3] = p_original_scissor[3];
+
+		// now p_original_scissor points to the local array
+		p_original_scissor = original_scissor;
+		p_current_scissor = original_scissor;
+	}
+	else {
+		// no current scissor
+		p_original_scissor = NULL;
+		p_current_scissor = NULL;
+	}
+
+#endif // #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+
+	jint ret = LLVG_SUCCESS;
 	bool done = false;
 	while(!done) {
 
@@ -1417,30 +1939,27 @@ static bool _draw_raw_image(void* target, vg_block_t* first_block, size_t memory
 			p_render_transformation = _store_vg_transformation(parent_transformation);
 
 			if (NULL != p_render_transformation){
-				p_render_transformation->previous = parent_transformation;
+				p_render_transformation->parent = parent_transformation;
 
 				// concatenate first transformation with new operation transformation
 				LLVG_MATRIX_IMPL_concatenate(MAP_VGLITE_MATRIX(&(p_render_transformation->matrix)), MAP_VGLITE_MATRIX(&(op->matrix)));
-
-				// create matrix "transformation + image translation" (prevent to do it for each path of current group)
-				_apply_translation(p_render_transformation);
 			}
-			// else: cannot apply a new transformation: keep current one
+			else {
+				ret = LLVG_OUT_OF_MEMORY;
+				// Cannot apply a new transformation: keep the current one.
+			}
 
 			block = _go_to_next_block(block, sizeof(vg_block_group_transform_t));
 		}
 		break;
 
 		case VG_BLOCK_GROUP_END:{
-			if (NULL != p_render_transformation->previous){
+			if (NULL != p_render_transformation->parent){
 
 				// back to parent transformation
 				vg_transformation_t* transformation_to_remove = p_render_transformation;
-				p_render_transformation = transformation_to_remove->previous;
+				p_render_transformation = transformation_to_remove->parent;
 				_free_vg_transformation(transformation_to_remove);
-
-				// restore the final transformation (transformation + image translation)
-				_apply_translation(p_render_transformation);
 			}
 
 			block = _go_to_next_block(block, sizeof(vg_block_group_end_t));
@@ -1456,7 +1975,7 @@ static bool _draw_raw_image(void* target, vg_block_t* first_block, size_t memory
 			p_render_transformation = _store_vg_transformation(parent_transformation);
 
 			if (NULL != p_render_transformation){
-				p_render_transformation->previous = parent_transformation;
+				p_render_transformation->parent = parent_transformation;
 
 				float* mapped_matrix = MAP_VGLITE_MATRIX(&(p_render_transformation->matrix));
 				// cppcheck-suppress [misra-c2012-18.4] points after the operation
@@ -1464,16 +1983,16 @@ static bool _draw_raw_image(void* target, vg_block_t* first_block, size_t memory
 
 				if (animate) {
 					// cppcheck-suppress [misra-c2012-11.5] animations_offset points on a vg_animation_translate_t for sure
-					animations_offset = _apply_group_animations_translate(mapped_matrix, elapsed_time, (vg_animation_translate_t*)animations_offset, op->nb_translates, memory_offset);
+					animations_offset = _apply_group_animations_translate(mapped_matrix, elapsed_time, (vg_animation_translate_t*)animations_offset, op->nb_translates, drawing_data->memory_offset);
 					// cppcheck-suppress [misra-c2012-11.5] animations_offset points on a vg_animation_translate_xy_t for sure
-					animations_offset = _apply_group_animations_translate_xy(mapped_matrix, elapsed_time, (vg_animation_translate_xy_t*)animations_offset, op->nb_translates_xy, memory_offset);
+					animations_offset = _apply_group_animations_translate_xy(mapped_matrix, elapsed_time, (vg_animation_translate_xy_t*)animations_offset, op->nb_translates_xy, drawing_data->memory_offset);
 				}
 
 				LLVG_MATRIX_IMPL_translate(mapped_matrix, op->translate_x, op->translate_y);
 
 				if (animate) {
 					// cppcheck-suppress [misra-c2012-11.5] animations_offset points on a vg_animation_rotate_t for sure
-					animations_offset = _apply_group_animations_rotate(mapped_matrix, elapsed_time, (vg_animation_rotate_t*)animations_offset, op->nb_rotates, memory_offset);
+					animations_offset = _apply_group_animations_rotate(mapped_matrix, elapsed_time, (vg_animation_rotate_t*)animations_offset, op->nb_rotates, drawing_data->memory_offset);
 				}
 
 				LLVG_MATRIX_IMPL_translate(mapped_matrix, op->pivot_x, op->pivot_y);
@@ -1482,44 +2001,52 @@ static bool _draw_raw_image(void* target, vg_block_t* first_block, size_t memory
 
 				if (animate) {
 					// cppcheck-suppress [misra-c2012-11.5] animations_offset points on a vg_animation_scale_t for sure
-					animations_offset = _apply_group_animations_scale(mapped_matrix, elapsed_time, (vg_animation_scale_t*)animations_offset, op->nb_scales, memory_offset);
+					/*animations_offset =*/ (void)_apply_group_animations_scale(mapped_matrix, elapsed_time, (vg_animation_scale_t*)animations_offset, op->nb_scales, drawing_data->memory_offset);
 				}
 
 				LLVG_MATRIX_IMPL_translate(mapped_matrix, op->pivot_x, op->pivot_y);
 				LLVG_MATRIX_IMPL_scale(mapped_matrix, op->scale_x, op->scale_y);
 				LLVG_MATRIX_IMPL_translate(mapped_matrix, -op->pivot_x, -op->pivot_y);
-
-				// create matrix "transformation + image translation" (prevent to do it for each path of current group)
-				_apply_translation(p_render_transformation);
 			}
-			// else: cannot apply a new transformation: keep current one
+			else {
+				ret = LLVG_OUT_OF_MEMORY;
+				// Cannot apply a new transformation: keep the current one.
+			}
 
 			block = _go_to_next_block(block, op->block_size);
 		}
 		break;
 
 		case VG_BLOCK_PATH_COLOR_ANIMATE: {
-			// cppcheck-suppress [misra-c2012-11.3] block is a vg_operation_animate_color_t for sure
-			vg_operation_animate_color_t* op = (vg_operation_animate_color_t*)block;
+			// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_animate_color_t for sure
+			vg_block_animate_color_t* op = (vg_block_animate_color_t*)block;
 			// cppcheck-suppress [misra-c2012-18.4] points after the operation
-			void* animations_offset = ((uint8_t*)op) + sizeof(vg_operation_animate_color_t);
+			void* animations_offset = ((uint8_t*)op) + sizeof(vg_block_animate_color_t);
 
 			// update color & alpha
-			uint32_t color = op->path.color;
+			uint32_t color = op->header.color;
 			uint8_t color_alpha = COLOR_GET_CHANNEL(color, ARGB8888, ALPHA);
 			// cppcheck-suppress [misra-c2012-11.5] animations_offset points on a vg_animation_color_t for sure
-			animations_offset = _apply_path_animations_color(&color, elapsed_time, (vg_animation_color_t*)animations_offset, op->nb_colors, memory_offset);
+			animations_offset = _apply_path_animations_color(&color, elapsed_time, (vg_animation_color_t*)animations_offset, op->nb_colors, drawing_data->memory_offset);
 			// cppcheck-suppress [misra-c2012-11.5] animations_offset points on a vg_animation_alpha_t for sure
-			animations_offset = _apply_path_animations_alpha(&color_alpha, elapsed_time, (vg_animation_alpha_t*)animations_offset, op->nb_alphas, memory_offset);
+			animations_offset = _apply_path_animations_alpha(&color_alpha, elapsed_time, (vg_animation_alpha_t*)animations_offset, op->nb_alphas, drawing_data->memory_offset);
 			color |= (color_alpha << COLOR_ARGB8888_ALPHA_OFFSET);
 			color = _prepare_render_color(color, alpha, color_matrix);
 
 			// prepare & animate the path
-			vg_lite_path_t* p_render_path = _prepare_render_path(op->path.header.path, memory_offset);
+			_prepare_render_path(drawing_data, op->header.path.desc);
+			jint error;
 			// cppcheck-suppress [misra-c2012-11.5] animations_offset points on a vg_animation_path_data_t for sure
-			uint8_t* command_buffer = _animate_path(p_render_path, elapsed_time, (vg_animation_path_data_t*)animations_offset, op->nb_path_datas, memory_offset);
+			uint8_t* command_buffer = _animate_render_path(elapsed_time, (vg_animation_path_data_t*)animations_offset, op->nb_path_datas, drawing_data->memory_offset, &error);
+			if (LLVG_SUCCESS != error) {
+				ret = error;
+			}
 
-			_draw_path(target, p_render_path, &(op->path.header), color);
+			error = _draw_render_path(target, &(p_render_transformation->matrix), &(op->header.path), color);
+			if (LLVG_SUCCESS != error) {
+				ret = error;
+			}
+			drawing_data->drawing_running = true;
 
 			_animation_path_end(command_buffer);
 
@@ -1528,31 +2055,38 @@ static bool _draw_raw_image(void* target, vg_block_t* first_block, size_t memory
 		break;
 
 		case VG_BLOCK_PATH_GRADIENT_ANIMATE: {
-			// cppcheck-suppress [misra-c2012-11.3] block is a vg_operation_animate_gradient_t for sure
-			vg_operation_animate_gradient_t* op = (vg_operation_animate_gradient_t*)block;
+			// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_animate_gradient_t for sure
+			vg_block_animate_gradient_t* op = (vg_block_animate_gradient_t*)block;
 			// cppcheck-suppress [misra-c2012-18.4] points after the operation
-			void* animations_offset = ((uint8_t*)op) + sizeof(vg_operation_animate_gradient_t);
+			void* animations_offset = ((uint8_t*)op) + sizeof(vg_block_animate_gradient_t);
 
 			uint32_t alpha_to_apply = alpha;
 			if ((uint8_t)0 < op->nb_alphas) {
 				// update alpha
 				uint8_t alpha_anim = (uint8_t)0xff;
 				// cppcheck-suppress [misra-c2012-11.5] animations_offset points on a vg_animation_alpha_t for sure
-				animations_offset = _apply_path_animations_alpha(&alpha_anim, elapsed_time, (vg_animation_alpha_t*)animations_offset, op->nb_alphas, memory_offset);
+				animations_offset = _apply_path_animations_alpha(&alpha_anim, elapsed_time, (vg_animation_alpha_t*)animations_offset, op->nb_alphas, drawing_data->memory_offset);
 				alpha_to_apply *= alpha_anim;
 				alpha_to_apply /= 255;
 			}
 
-			// prepare the gradient
-			vg_lite_linear_gradient_t* p_render_gradient = _prepare_render_gradient(target, &(op->path), alpha_to_apply, color_matrix, draw_gradient_flushed, memory_offset);
-
 			// prepare & animate the path
-			vg_lite_path_t* p_render_path = _prepare_render_path(op->path.header.path, memory_offset);
+			_prepare_render_path(drawing_data, op->header.path.desc);
+			jint error;
 			// cppcheck-suppress [misra-c2012-11.5] animations_offset points on a vg_animation_path_data_t for sure
-			uint8_t* command_buffer = _animate_path(p_render_path, elapsed_time, (vg_animation_path_data_t*)animations_offset, op->nb_path_datas, memory_offset);
+			uint8_t* command_buffer = _animate_render_path(elapsed_time, (vg_animation_path_data_t*)animations_offset, op->nb_path_datas, drawing_data->memory_offset, &error);
+			if (LLVG_SUCCESS != error) {
+				ret = error;
+			}
 
-			VG_DRAWER_draw_gradient(target, p_render_path, op->path.header.fill_rule, &render_matrix, p_render_gradient, VG_LITE_BLEND_SRC_OVER);
-			draw_gradient_flushed = false;
+			// prepare the gradient
+			bool is_new_gradient = _prepare_render_gradient(drawing_data, &(op->header), alpha_to_apply, color_matrix, &(p_render_transformation->matrix));
+
+			error = _draw_render_gradient(target, &(p_render_transformation->matrix), op->header.path.fill_rule, is_new_gradient);
+			if (LLVG_SUCCESS != error) {
+				ret = error;
+			}
+			drawing_data->drawing_running = true;
 
 			_animation_path_end(command_buffer);
 
@@ -1561,44 +2095,136 @@ static bool _draw_raw_image(void* target, vg_block_t* first_block, size_t memory
 		break;
 
 		case VG_BLOCK_PATH_COLOR: {
-			// cppcheck-suppress [misra-c2012-11.3] block is a vg_operation_color_t for sure
-			vg_operation_color_t* op = (vg_operation_color_t*)block;
-			vg_lite_path_t* p_render_path = _prepare_render_path(op->header.path, memory_offset);
+			// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_color_t for sure
+			vg_block_color_t* op = (vg_block_color_t*)block;
+			_prepare_render_path(drawing_data, op->path.desc);
 			uint32_t color = _prepare_render_color(op->color, alpha, color_matrix);
-			_draw_path(target, p_render_path, &(op->header), color);
-			block = _go_to_next_block(block, sizeof(vg_operation_color_t));
+			jint error = _draw_render_path(target, &(p_render_transformation->matrix), &(op->path), color);
+			if (LLVG_SUCCESS != error) {
+				ret = error;
+			}
+			drawing_data->drawing_running = true;
+			block = _go_to_next_block(block, sizeof(vg_block_color_t));
 		}
 		break;
 
-		case VG_BLOCK_PATH_GRADIENT: {
-			// cppcheck-suppress [misra-c2012-11.3] block is a vg_operation_gradient_t for sure
-			vg_operation_gradient_t* op = (vg_operation_gradient_t*)block;
-
-			// prepare the gradient
-			vg_lite_path_t* p_render_path = _prepare_render_path(op->header.path, memory_offset);
-			vg_lite_linear_gradient_t* p_render_gradient = _prepare_render_gradient(target, op, alpha, color_matrix, draw_gradient_flushed, memory_offset);
-
-			VG_DRAWER_draw_gradient(target, p_render_path, op->header.fill_rule, &render_matrix, p_render_gradient, VG_LITE_BLEND_SRC_OVER);
-			draw_gradient_flushed = false;
-
-			block = _go_to_next_block(block, sizeof(vg_operation_gradient_t));
+		case VG_BLOCK_RAW_GRADIENT: {
+			// apply same deformation on path and gradient
+			jint error = _manage_block_gradient(drawing_data, target, block, &(p_render_transformation->matrix), alpha, color_matrix, &(p_render_transformation->matrix));
+			if (LLVG_SUCCESS != error) {
+				ret = error;
+			}
+			drawing_data->drawing_running = true;
+			block = _go_to_next_block(block, sizeof(vg_block_gradient_t));
 		}
 		break;
+
+#if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+
+		case VG_BLOCK_BVI_COLOR: {
+			// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_bvi_color_t for sure
+			vg_block_bvi_color_t* op = (vg_block_bvi_color_t*)block;
+
+			if (_bvi_apply_scissor(op->scissor, &(p_render_transformation->matrix), &p_current_scissor)) {
+
+				// concatenate first transformation with new operation transformation
+				vg_lite_matrix_t temp;
+				LLVG_MATRIX_IMPL_multiply(MAP_VGLITE_MATRIX(&temp), MAP_VGLITE_MATRIX(&(p_render_transformation->matrix)), MAP_VGLITE_MATRIX(&(op->path_deformation)));
+
+				_prepare_render_path(drawing_data, op->header.path.desc);
+				uint32_t color = _prepare_render_color(op->header.color, alpha, color_matrix);
+				jint error = _draw_render_path(target, &temp, &(op->header.path), color);
+				if (LLVG_SUCCESS != error) {
+					ret = error;
+				}
+				drawing_data->drawing_running = true;
+
+				// the clip may have been modified: restore the original one
+				p_current_scissor = _bvi_restore_scissor(p_original_scissor, p_current_scissor);
+			}
+			block = op->next;
+		}
+		break;
+
+		case VG_BLOCK_BVI_GRADIENT: {
+			// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_bvi_gradient_t for sure
+			vg_block_bvi_gradient_t* op = (vg_block_bvi_gradient_t*)block;
+
+			if (_bvi_apply_scissor(op->scissor, &(p_render_transformation->matrix), &p_current_scissor)) {
+
+				// concatenate first transformation with new operation transformation
+				vg_lite_matrix_t temp;
+				LLVG_MATRIX_IMPL_multiply(MAP_VGLITE_MATRIX(&temp), MAP_VGLITE_MATRIX(&(p_render_transformation->matrix)), MAP_VGLITE_MATRIX(&(op->path_deformation)));
+
+				// do not apply same deformation on path and gradient (gradient already "has" the path's deformation)
+				jint error = _manage_block_gradient(drawing_data, target, block, &temp, alpha, color_matrix, &(p_render_transformation->matrix));
+				if (LLVG_SUCCESS != error) {
+					ret = error;
+				}
+				drawing_data->drawing_running = true;
+
+				// the clip may have been modified: restore the original one
+				p_current_scissor = _bvi_restore_scissor(p_original_scissor, p_current_scissor);
+			}
+			block = op->next;
+		}
+		break;
+
+		case VG_BLOCK_BVI_IMAGE: {
+			// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_bvi_image_t for sure
+			vg_block_bvi_image_t* op = (vg_block_bvi_image_t*)block;
+
+			_get_image_parameters(op->image, &raw_in_bvi_drawing_data);
+
+			// retrieve elapsed time
+			jlong elapsedTime_msb = op->elapsed_msb;
+			jlong elapsedTime_lsb = op->elapsed_lsb;
+			elapsedTime_msb <<= 32;
+			elapsedTime_lsb &= 0xfffffffful;
+			jlong raw_elapsed_time = (elapsedTime_msb | elapsedTime_lsb);
+
+			// merge operation's color matrix with global color matrix
+			float* image_color_matrix = (1u == op->flags) ? (float*)op->color_matrix : NULL;
+			// cppcheck-suppress [misra-c2012-11.8] allow cast to float*
+			image_color_matrix = _combine_color_matrices(image_color_matrix, (float*)color_matrix);
+
+			// merge operation's alpha with global alpha
+			uint32_t image_alpha = op->alpha;
+			image_alpha *= alpha;
+			image_alpha /= 255;
+
+			// concatenate first transformation with new operation transformation
+			vg_lite_matrix_t temp;
+			LLVG_MATRIX_IMPL_multiply(MAP_VGLITE_MATRIX(&temp), MAP_VGLITE_MATRIX(&(p_render_transformation->matrix)), MAP_VGLITE_MATRIX(&(op->matrix)));
+
+			// cppcheck-suppress [misra-c2012-17.2] only one level of recursion
+			jint error = _draw_raw_image(&raw_in_bvi_drawing_data, target, MAP_VGLITE_MATRIX(&temp), image_alpha, raw_elapsed_time, image_color_matrix);
+			if (LLVG_SUCCESS != error) {
+				ret = error;
+			}
+			drawing_data->drawing_running |= raw_in_bvi_drawing_data.drawing_running;
+
+			block = op->next;
+		}
+		break;
+
+#endif // #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
 
 		default:
 			MEJ_LOG_ERROR_MICROVG("unknown operation: %u\n", block->kind);
+			ret = LLVG_DATA_INVALID;
 			done = true;
 			break;
 		}
 	}
 
-	return VG_BLOCK_LAST == block->kind;
+	return ret;
 }
 
-static void _derive_raw_image(vg_block_t* first_block, size_t memory_offset, const float color_matrix[]) {
+static void _derive_raw_image(vg_drawing_t* drawing_data, const float color_matrix[]) {
 
 	bool done = false;
-	vg_block_t* block = first_block;
+	vg_block_t* block = drawing_data->first_block;
 
 	while(!done) {
 
@@ -1630,50 +2256,53 @@ static void _derive_raw_image(vg_block_t* first_block, size_t memory_offset, con
 		break;
 
 		case VG_BLOCK_PATH_COLOR_ANIMATE: {
-			// cppcheck-suppress [misra-c2012-11.3] block is a vg_operation_animate_color_t for sure
-			vg_operation_animate_color_t* op = (vg_operation_animate_color_t*)block;
+			// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_animate_color_t for sure
+			vg_block_animate_color_t* op = (vg_block_animate_color_t*)block;
 			// cppcheck-suppress [misra-c2012-18.4] points after the operation
-			void* animations_offset = ((uint8_t*)op) + sizeof(vg_operation_animate_color_t);
-			op->path.color = _filter_color(op->path.color, color_matrix);
+			void* animations_offset = ((uint8_t*)op) + sizeof(vg_block_animate_color_t);
+			op->header.color = _filter_color(op->header.color, color_matrix);
 			// cppcheck-suppress [misra-c2012-11.5] animations_offset points on a vg_animation_color_t for sure
 			animations_offset = _derive_path_animations_color((vg_animation_color_t*)animations_offset, op->nb_colors, color_matrix);
 			// cppcheck-suppress [misra-c2012-11.5] animations_offset points on a vg_animation_alpha_t for sure
-			animations_offset = _derive_path_animations_alpha((vg_animation_alpha_t*)animations_offset, op->nb_alphas, color_matrix);
+			/*animations_offset =*/ (void)_derive_path_animations_alpha((vg_animation_alpha_t*)animations_offset, op->nb_alphas, color_matrix);
 			block = _go_to_next_block(block, op->block_size);
 		}
 		break;
 
 		case VG_BLOCK_PATH_GRADIENT_ANIMATE: {
-			// cppcheck-suppress [misra-c2012-11.3] block is a vg_operation_animate_gradient_t for sure
-			vg_operation_animate_gradient_t* op = (vg_operation_animate_gradient_t*)block;
-			vg_lite_linear_gradient_t* gradient = get_gradient_addr(op->path.gradient, memory_offset);
-			uint32_t* colors = (uint32_t*)gradient->colors;
-			for(int i = 0; i < gradient->count; i++) {
-				colors[i] = _filter_color(colors[i], color_matrix);
-			}
+			// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_animate_gradient_t for sure
+			vg_block_animate_gradient_t* op = (vg_block_animate_gradient_t*)block;
+			vg_lite_linear_gradient_t* gradient = get_gradient_addr(op->header.gradient, drawing_data->memory_offset);
+			_filter_gradient(gradient, color_matrix);
 			block = _go_to_next_block(block, op->block_size);
 		}
 		break;
 
 		case VG_BLOCK_PATH_COLOR: {
-			// cppcheck-suppress [misra-c2012-11.3] block is a vg_operation_color_t for sure
-			vg_operation_color_t* op = (vg_operation_color_t*)block;
+			// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_color_t for sure
+			vg_block_color_t* op = (vg_block_color_t*)block;
 			op->color = _filter_color(op->color, color_matrix);
-			block = _go_to_next_block(block, sizeof(vg_operation_color_t));
+			block = _go_to_next_block(block, sizeof(vg_block_color_t));
 		}
 		break;
 
-		case VG_BLOCK_PATH_GRADIENT: {
-			// cppcheck-suppress [misra-c2012-11.3] block is a vg_operation_gradient_t for sure
-			vg_operation_gradient_t* op = (vg_operation_gradient_t*)block;
-			vg_lite_linear_gradient_t* gradient = get_gradient_addr(op->gradient, memory_offset);
-			uint32_t* colors = (uint32_t*)gradient->colors;
-			for(int i = 0; i < gradient->count; i++) {
-				colors[i] = _filter_color(colors[i], color_matrix);
-			}
-			block = _go_to_next_block(block, sizeof(vg_operation_gradient_t));
+		case VG_BLOCK_RAW_GRADIENT: {
+			// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_gradient_t for sure
+			vg_block_gradient_t* op = (vg_block_gradient_t*)block;
+			vg_lite_linear_gradient_t* gradient = get_gradient_addr(op->gradient, drawing_data->memory_offset);
+			_filter_gradient(gradient, color_matrix);
+			block = _go_to_next_block(block, sizeof(vg_block_gradient_t));
 		}
 		break;
+
+#if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+
+		case VG_BLOCK_BVI_COLOR:
+		case VG_BLOCK_BVI_GRADIENT:
+		case VG_BLOCK_BVI_IMAGE:
+			// must not occur: can only derive from a RAW image (see BufferedVectorImage.filterImage())
+
+#endif // #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
 
 		default:
 			MEJ_LOG_ERROR_MICROVG("unknown operation: %u\n", block->kind);
@@ -1686,49 +2315,36 @@ static void _derive_raw_image(vg_block_t* first_block, size_t memory_offset, con
 static void _initialize(void) {
 	if (!initialiazed) {
 
-		// prepare the allocator
-		BESTFIT_ALLOCATOR_new(&allocator_instance);
-		// cppcheck-suppress [misra-c2012-11.4,misra-c2012-18.4] HEAP_START and HEAP_END denote heap addresses
-		BESTFIT_ALLOCATOR_initialize(&allocator_instance, (uint32_t) HEAP_START, (uint32_t) HEAP_END);
-
 		// prepare the gradient used by all draw_gradient
-		(void)memset(&render_gradient, 0, sizeof(vg_lite_linear_gradient_t));
-		(void)vg_lite_init_grad(&render_gradient); // always success
+		(void)memset(&(render_gradient), 0, sizeof(vg_lite_linear_gradient_t));
+		(void)vg_lite_init_grad(&(render_gradient)); // always success
 		render_gradient.image.format = VG_LITE_RGBA8888; // fix color format
 
 		initialiazed = true;
 	}
 }
 
-static inline bool _is_raw_image(const uint8_t image[]) {
+/*
+ * @brief Tells if the byte array denotes a RAW image. A RAW image is identified
+ * by its signature.
+ */
+static inline bool _is_raw_image(uint8_t* image) {
 	return 0 == memcmp(image, signature, sizeof(signature));
 }
 
-static inline void _get_image_parameters(vector_image_t* image, vg_block_t** first_block, size_t* memory_offset) {
-	// cppcheck-suppress [misra-c2012-11.4] save the image address as the memory offset to apply on each address
-	*memory_offset = (size_t)image;
-	// cppcheck-suppress [misra-c2012-11.4] offset points to the first block for sure
-	*first_block = (vg_block_t*)(image->offset_first_block + *memory_offset);
-}
-
-static inline void __store_image_resource(vector_image_t* image, int32_t resource_size, SNIX_resource* resource) {
-	resource->data = (void*) image;
-	resource->size = resource_size;
-}
-
-static inline void __store_image_metadata(const vector_image_t* image, jint extra_flags, jint* metadata) {
+static inline void _store_image_metadata(const vector_image_t* image, jint extra_flags, jint* metadata) {
 	metadata[RAW_OFFSET_F32_WIDTH] = JFLOAT_TO_UINT32_t(image->width);
 	metadata[RAW_OFFSET_F32_HEIGHT] = JFLOAT_TO_UINT32_t(image->height);
 	metadata[RAW_OFFSET_U32_DURATION] = image->flags.duration;
 	metadata[RAW_OFFSET_U32_FLAGS] = (image->flags.overlapping ? RAW_FLAG_OVERLAP_PATH : 0) | extra_flags;
 }
 
-static inline void __store_image_resource_and_metadata(vector_image_t* image, int32_t resource_size, jint extra_flags, SNIX_resource* resource, jint* metadata) {
-	__store_image_resource(image, resource_size, resource);
-	__store_image_metadata(image, extra_flags, metadata);
-}
-
 #if VG_FEATURE_RAW_EXTERNAL
+
+static inline void _store_image_resource(vector_image_t* image, int32_t resource_size, SNIX_resource* resource) {
+	resource->data = (void*) image;
+	resource->size = resource_size;
+}
 
 /*
  * @brief Loads a RAW vector image from external memory
@@ -1743,10 +2359,10 @@ static inline void __store_image_resource_and_metadata(vector_image_t* image, in
  * @param[out] resource: structure to save the address and size of the image
  * @param[out] metadata: integer array to save the width, height, animation duration and flags of the image
  *
- * @return IMAGE_SUCCESS on a successful loading, any other value on a failure.
+ * @return LLVG_SUCCESS on a successful loading, any other value on a failure.
  */
-static int __load_external_image(char const* image_name, bool allocation_allowed, SNIX_resource* resource, jint* metadata) {
-	int result = IMAGE_SUCCESS;
+static int _load_external_image(char const* image_name, bool allocation_allowed, SNIX_resource* resource, jint* metadata) {
+	int result = LLVG_SUCCESS;
 
 	// Ignore the leading '/' in the path.
 	char const* image_external_path = image_name;
@@ -1755,7 +2371,7 @@ static int __load_external_image(char const* image_name, bool allocation_allowed
 	// Open the resource matching the provided path.
 	RES_ID resource_id = LLEXT_RES_open(image_external_path);
 	if (0 > resource_id) {
-		result = IMAGE_INVALID_PATH;
+		result = LLVG_DATA_INVALID_PATH;
 	}
 	else {
 		// Retrieve the address and size of the resource.
@@ -1769,16 +2385,17 @@ static int __load_external_image(char const* image_name, bool allocation_allowed
 
 		if (-1 != base_address) {
 			// The resource is located in a byte-addressable memory area. This will be the output address.
+			// cppcheck-suppress [misra-c2012-11.4] base_address is a vector_image_t for sure
 			image = (vector_image_t*) base_address;
 
 			// Put the address, size and metadata in the ouptut parameters.
-			__store_image_resource_and_metadata(image, resource_size, 0, resource, metadata);
+			_store_image_resource(image, resource_size, resource);
 
-			result = IMAGE_SUCCESS;
+			result = LLVG_SUCCESS;
 		}
 		else if (!allocation_allowed) {
 			// image is available but required a copy in the images heap
-			result = IMAGE_INVALID_PATH;
+			result = LLVG_DATA_INVALID_PATH;
 		}
 		else {
 			// The resource is located in a memory area that cannot be byte-addressed.
@@ -1787,20 +2404,27 @@ static int __load_external_image(char const* image_name, bool allocation_allowed
 			image = (vector_image_t*) LLUI_DISPLAY_IMPL_image_heap_allocate(resource_size);
 			if (NULL == image) {
 				// Out of memory.
-				result = IMAGE_OOM;
+				result = LLVG_OUT_OF_MEMORY;
 			}
 			else {
 				// Copy the image from the external memory into the allocated area.
 				if (LLEXT_RES_OK != LLEXT_RES_read(resource_id, (void*) image, &resource_size)) {
-					result = IMAGE_INVALID;
+					result = LLVG_DATA_INVALID;
+				}
+				else if (!_is_raw_image((uint8_t*)image)){
+					// it is not a RAW image -> free it
+					LLUI_DISPLAY_IMPL_image_heap_free((uint8_t* )image);
+					result = LLVG_DATA_INVALID;
 				}
 				else {
 					/* Put the address, size and metadata in the ouptut parameters.
 					 * RAW_FLAG_FREE_MEMORY_ON_CLOSE flags the image as requiring to be deallocated.
 					 */
-					__store_image_resource_and_metadata(image, resource_size, RAW_FLAG_FREE_MEMORY_ON_CLOSE, resource, metadata);
+					_store_image_resource(image, resource_size, resource);
+					_store_image_metadata(image, RAW_FLAG_FREE_MEMORY_ON_CLOSE, metadata);
+					_tag_image_in_ram(image);
 
-					result = IMAGE_SUCCESS;
+					result = LLVG_SUCCESS;
 				}
 			}
 		}
@@ -1815,43 +2439,217 @@ static int __load_external_image(char const* image_name, bool allocation_allowed
 #endif // VG_FEATURE_RAW_EXTERNAL
 
 // -----------------------------------------------------------------------------
-// RAW Management
+// BufferedVectorImage (BVI) Management
 // -----------------------------------------------------------------------------
+
+#if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+
+void BVI_VGLITE_adjust_new_image_characteristics(uint32_t width, uint32_t height, uint32_t* data_size, uint32_t* data_alignment) {
+	(void)width;
+	(void)height;
+	(void)data_alignment;
+	*data_size += sizeof(vector_buffered_image_t);
+}
+
+void BVI_VGLITE_initialize_new_image(MICROUI_Image* image) {
+
+	_initialize();
+
+	vector_buffered_image_t* bvi = MAP_BVI_ON_IMAGE(image);
+
+	bvi->header.width = (float)image->width;
+	bvi->header.height = (float)image->height;
+	bvi->header.flags.duration = 0;
+	bvi->header.flags.overlapping = 0;
+	bvi->header.first_block = &(bvi->last_block);
+
+	bvi->last_block.kind = VG_BLOCK_LAST;
+	bvi->latest_data = NULL; // very first block
+	bvi->last_stored_gradient = NULL;
+
+	// cppcheck-suppress [misra-c2012-11.3] bvi is a vector_image_t for sure
+	vector_image_t* raw = (vector_image_t*)bvi;
+	_tag_image_in_ram(raw);
+	_bvi_tag_image_as_absolute(raw);
+}
+
+jint BVI_VGLITE_add_draw_path(
+		void* target,
+		vg_lite_path_t * path,
+		vg_lite_fill_t fill_rule,
+		vg_lite_matrix_t * matrix,
+		vg_lite_blend_t blend,
+		vg_lite_color_t color) {
+
+	// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_bvi_color_t for sure
+	vg_block_bvi_color_t* op = (vg_block_bvi_color_t*)_alloc_data(sizeof(vg_block_bvi_color_t));
+	jint ret = LLVG_OUT_OF_MEMORY;
+
+	if (NULL != op) {
+		vector_buffered_image_t* image = _bvi_get_bvi_from_target(target);
+
+		op->header.path.block.kind = VG_BLOCK_BVI_COLOR;
+		op->header.path.fill_rule = fill_rule;
+		op->header.path.blend = blend;
+		op->header.path.desc = _bvi_store_vglite_path(path);
+		op->header.color = (uint32_t)color;
+		_save_current_vglite_scissor(op->scissor);
+		(void)memcpy((void*)&(op->path_deformation), (void*)matrix, sizeof(vg_lite_matrix_t));
+
+		// cppcheck-suppress [misra-c2012-11.3] operation is a vg_block_t
+		ret = _bvi_link_operations(image, (vg_block_t*)op, &(op->next), (NULL == op->header.path.desc));
+	}
+
+	return ret;
+}
+
+jint BVI_VGLITE_add_draw_gradient(
+		void* target,
+		vg_lite_path_t * path,
+		vg_lite_fill_t fill_rule,
+		vg_lite_matrix_t * matrix,
+		vg_lite_linear_gradient_t * grad,
+		vg_lite_blend_t blend) {
+
+	// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_bvi_gradient_t for sure
+	vg_block_bvi_gradient_t* op = (vg_block_bvi_gradient_t*)_alloc_data(sizeof(vg_block_bvi_gradient_t));
+	jint ret = LLVG_OUT_OF_MEMORY;
+
+	if (NULL != op) {
+		vector_buffered_image_t* image = _bvi_get_bvi_from_target(target);
+
+		op->header.path.block.kind = VG_BLOCK_BVI_GRADIENT;
+		op->header.path.fill_rule = fill_rule;
+		op->header.path.blend = blend;
+		op->header.path.desc = _bvi_store_vglite_path(path);
+
+		if ((NULL != image->last_stored_gradient) && (0 == memcmp(grad, image->last_stored_gradient, GRADIENT_COPY_SIZE))) {
+			// the both gradient operations use the same gradient
+			// -> second operation can link the gradient of first operation
+			op->header.gradient = image->last_stored_gradient;
+			op->shared_gradient = true; // do not free it!
+		}
+		else {
+			op->header.gradient = _bvi_store_vglite_gradient(grad);
+			op->shared_gradient = false; // have to free it
+			image->last_stored_gradient = op->header.gradient;
+		}
+
+		_save_current_vglite_scissor(op->scissor);
+		(void)memcpy((void*)&(op->path_deformation), (void*)matrix, sizeof(vg_lite_matrix_t));
+
+		// cppcheck-suppress [misra-c2012-11.3] operation is a vg_block_t
+		ret = _bvi_link_operations(image, (vg_block_t*)op, &(op->next), ((NULL == op->header.path.desc) || (NULL == op->header.gradient)));
+	}
+
+	return ret;
+}
+
+jint BVI_VGLITE_add_draw_image(void* target, void* sni_context, jfloat* drawing_matrix, jint alpha, jlong elapsed, const float color_matrix[]){
+
+	// cppcheck-suppress [misra-c2012-11.5] sni_context is a vector image for sure
+	vector_image_t* image = (vector_image_t*)((SNIX_resource*)sni_context)->data;
+	jint ret;
+
+	if (_bvi_is_image_in_rom(image)) {
+		// no need to parse the image: just add a block in the BVI
+		vector_buffered_image_t* dest = _bvi_get_bvi_from_target(target);
+		ret = _bvi_add_draw_raw_image(dest, image, drawing_matrix, alpha, elapsed, color_matrix);
+	}
+	else {
+		// have to copy all image elements in the destination (== a bvi)
+		// if the source image holds a RAW image block (points to a RAW image), each element of this
+		// RAW image is drawn in the destination.
+
+		_get_image_parameters(image, &drawing_data);
+		bvi_target = target;
+		ret = _draw_raw_image(&drawing_data, &_bvi_add_image_element, drawing_matrix, alpha, elapsed, color_matrix);
+
+		/*
+		 * When the target is a BufferedVectorImage, the data of render_gradient has been updated but not the VGLite image
+		 * (it is useless and time consuming). However the image may be required later (if the new drawing's gradient data
+		 * is equal to the stored gradient data). In this case, the VGLite image will be out of date (not synchronized with
+		 * the gradient data) but will not be updated.
+		 * A simple solution consists to ensure that next gradient comparison will fail.
+		 */
+		(void)memset(&render_gradient, 0, GRADIENT_CMP_SIZE);
+	}
+
+	return ret;
+}
+
+void LLVG_BVI_IMPL_map_context(MICROUI_Image* ui, void* sni_context) {
+	// cppcheck-suppress [misra-c2012-11.5] sni_context is a SNIX_resource for sure
+	SNIX_resource* vg = (SNIX_resource*)sni_context;
+	vg->data = (void*)MAP_BVI_ON_IMAGE(ui);
+	vg->size = sizeof(vector_buffered_image_t);
+}
+
+void LLVG_BVI_IMPL_clear(MICROUI_GraphicsContext* gc) {
+
+	if (LLUI_DISPLAY_requestDrawing(gc, (SNI_callback)&LLVG_BVI_IMPL_clear)) {
+
+		// map a struct on graphics context's pixel area
+		vector_buffered_image_t* image = MAP_BVI_ON_GC(gc);
+
+		image->header.first_block = _bvi_clear_blocks(image); // reset first block
+		image->latest_data = NULL; // reset to identify the very first block
+
+		LLUI_DISPLAY_setDrawingStatus(DRAWING_DONE);
+	}
+}
+
+#endif // #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+
+// -----------------------------------------------------------------------------
+// Java library natives
+// -----------------------------------------------------------------------------
+
+void VG_DRAWING_get_image_size(void* sni_context, float* width, float* height) {
+	// cppcheck-suppress [misra-c2012-11.5] data is a vector image for sure
+	vector_image_t* image = (vector_image_t*)((SNIX_resource*)sni_context)->data;
+	*width = image->width;
+	*height = image->height;
+}
 
 jint Java_ej_microvg_VectorGraphicsNatives_getImage(char* path, jint path_length, SNIX_resource* res, jint* metadata) {
 
+	LOG_MICROVG_IMAGE_START(load);
+
 	(void)path_length;
+
+	_initialize();
 
 	jint ret;
 	int32_t sni_ret = SNIX_get_resource(path, res);
 
 #if VG_FEATURE_RAW_EXTERNAL
 	// image not found in the application resource list
-	if ((sni_ret < 0) && (IMAGE_SUCCESS == __load_external_image(path, false, res, metadata))) {
+	if ((sni_ret < 0) && (LLVG_SUCCESS == _load_external_image(path, false, res, metadata))) {
 		// image found available in external memory which is byte addressable
 		sni_ret = 0;
 	}
 #endif // VG_FEATURE_RAW_EXTERNAL
 
 	if (sni_ret < 0) {
-		ret = IMAGE_INVALID_PATH;
+		ret = LLVG_DATA_INVALID_PATH;
 	}
 	// cppcheck-suppress [misra-c2012-11.5] cast the resource in a u8 address
 	else if (!_is_raw_image((uint8_t*)res->data)) {
-		ret = IMAGE_INVALID;
+		ret = LLVG_DATA_INVALID;
 	}
 	else {
-
-		_initialize();
 
 		// cppcheck-suppress [misra-c2012-11.5] resource is a vector image for sure
 		vector_image_t* image = (vector_image_t*)res->data;
 
 		// metadata used by the Java library during image opening
-		__store_image_metadata(image, 0, metadata);
+		_store_image_metadata(image, 0, metadata);
 
-		ret = IMAGE_SUCCESS;
+		ret = LLVG_SUCCESS;
 	}
+
+	LOG_MICROVG_IMAGE_END(load);
 	return ret;
 }
 
@@ -1859,43 +2657,33 @@ jint Java_ej_microvg_VectorGraphicsNatives_loadImage(char* path, jint path_lengt
 	jint result = Java_ej_microvg_VectorGraphicsNatives_getImage(path, path_length, res, metadata);
 
 #if VG_FEATURE_RAW_EXTERNAL
-	if (IMAGE_SUCCESS != result) {
-		result = __load_external_image(path, true, res, metadata);
+	if (LLVG_DATA_INVALID_PATH == result) {
+		// try to load a non-byte addressable image (copy in ui heap)
+		result = _load_external_image(path, true, res, metadata);
 	}
 #endif
 
 	return result;
 }
 
-jint Java_ej_microvg_PainterNatives_drawImage(MICROUI_GraphicsContext* gc, SNIX_resource* sni_context, jint x, jint y, jfloat *matrix, jint alpha, jlong elapsed, const float color_matrix[]){
-
-	jint ret = IMAGE_SUCCESS;
-
+jint VG_DRAWING_VGLITE_draw_image(VG_DRAWING_VGLITE_draw_image_element_t drawer, void* sni_context, jfloat* drawing_matrix, jint alpha, jlong elapsed, const float color_matrix[], bool* rendered){
 	// cppcheck-suppress [misra-c2012-11.5] sni_context is a vector image for sure
-	vector_image_t* image = (vector_image_t*)sni_context->data;
-
-	if ((alpha > (uint32_t)0)
-			&& !_set_clip(gc, matrix, &x, &y, image->width, image->height)
-			&& LLUI_DISPLAY_requestDrawing(gc, (SNI_callback)&Java_ej_microvg_PainterNatives_drawImage)) {
-
-		size_t memory_offset;
-		vg_block_t* first_block;
-		_get_image_parameters(image, &first_block, &memory_offset);
-		void* target = VG_DRAWER_configure_target(gc);
-		if (_draw_raw_image(target, first_block, memory_offset, x, y, matrix, alpha, elapsed, color_matrix)) {
-			// flush all operations
-			LLUI_DISPLAY_setDrawingStatus(VG_DRAWER_post_operation(target, VG_LITE_SUCCESS));
-		}
-		else {
-			LLUI_DISPLAY_setDrawingStatus(DRAWING_DONE);
-			ret = IMAGE_INVALID;
-		}
-	}
-
-	return ret;
+	vector_image_t* image = (vector_image_t*)((SNIX_resource*)sni_context)->data;
+	_get_image_parameters(image, &drawing_data);
+	jint error = _draw_raw_image(&drawing_data, drawer, drawing_matrix, alpha, elapsed, color_matrix);
+	*rendered = (LLVG_SUCCESS == error) && drawing_data.drawing_running;
+	return error;
 }
 
 jint Java_ej_microvg_VectorGraphicsNatives_createImage(SNIX_resource* source, SNIX_resource* dest, const float color_matrix[]) {
+
+	LOG_MICROVG_IMAGE_START(create);
+
+	// cppcheck-suppress [misra-c2012-11.5] source is a vector image for sure
+	vector_image_t* image = (vector_image_t*)source->data;
+
+	// the source is a RAW image (in ROM or RAM) but not a BVI (see BufferedVectorImage.filterImage())
+	assert(!_is_image_bvi(image));
 
 	dest->data = (void*)LLUI_DISPLAY_IMPL_image_heap_allocate(source->size);
 	jint ret;
@@ -1905,31 +2693,57 @@ jint Java_ej_microvg_VectorGraphicsNatives_createImage(SNIX_resource* source, SN
 		dest->size = source->size;
 
 		// cppcheck-suppress [misra-c2012-11.5] destination is a vector image for sure
-		vector_image_t* image = (vector_image_t*)dest->data;
+		image = (vector_image_t*)dest->data;
+		_tag_image_in_ram(image);
 
-		size_t memory_offset;
-		vg_block_t* first_block;
-		_get_image_parameters(image, &first_block, &memory_offset);
+		_get_image_parameters(image, &drawing_data);
+		_derive_raw_image(&drawing_data, color_matrix);
 
-		_derive_raw_image(first_block, memory_offset, color_matrix);
-
-		ret = IMAGE_SUCCESS;
+		ret = LLVG_SUCCESS;
 	}
 	else {
-		ret = IMAGE_OOM;
+		ret = LLVG_OUT_OF_MEMORY;
 	}
 
+	LOG_MICROVG_IMAGE_END(create);
 	return ret;
 }
 
 void Java_ej_microvg_VectorGraphicsNatives_closeImage(SNIX_resource* res) {
 	if ((NULL != res) && (NULL != res->data) && ((uint32_t)0 < res->size)) {
-		// cppcheck-suppress [misra-c2012-11.5] cast the resource in a u8 address
-		LLUI_DISPLAY_IMPL_image_heap_free((uint8_t* )res->data);
+
+		LOG_MICROVG_IMAGE_START(close);
+
+		// cppcheck-suppress [misra-c2012-11.5] cast res->data as uint8_t* is allowed
+		if (_is_raw_image((uint8_t*)res->data)) {
+			// have to free to vector resource image data
+			// cppcheck-suppress [misra-c2012-11.5] cast the resource in a u8 address
+			LLUI_DISPLAY_IMPL_image_heap_free((uint8_t* )res->data);
+		}
+		else {
+
+#if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+			// cppcheck-suppress [misra-c2012-11.5] source is a vector image for sure
+			vector_image_t* image = (vector_image_t*)res->data;
+
+			if (_is_image_bvi(image)) {
+				// res->data points on the glosed buffered image's data buffer. Just have to clear the
+				// bvi blocks because the associated buffered image is already closed
+
+				// cppcheck-suppress [misra-c2012-11.3] source is a vector_buffered_image_t for sure
+				(void)_bvi_clear_blocks((vector_buffered_image_t*)image);
+			}
+#else
+			// else : it is a image allocated in java heap: nothing to free
+#endif //  #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+
+		}
+
+		LOG_MICROVG_IMAGE_END(close);
+
 		res->data = NULL;
 		res->size = 0;
 	}
-	// else: the image has been already closed
 }
 
 // -----------------------------------------------------------------------------

@@ -10,7 +10,7 @@
 * @brief MicroEJ MicroVG library low level API: helper to implement library natives
 * methods.
 * @author MicroEJ Developer Team
-* @version 2.1.0
+* @version 3.0.1
 */
 
 // -----------------------------------------------------------------------------
@@ -39,7 +39,7 @@
 	#error "Undefined MICROVG_CONFIGURATION_VERSION, it must be defined in microvg_configuration.h"
 #endif
 
-#if defined MICROVG_CONFIGURATION_VERSION && MICROVG_CONFIGURATION_VERSION != 1
+#if defined MICROVG_CONFIGURATION_VERSION && MICROVG_CONFIGURATION_VERSION != 2
 	#error "Version of the configuration file microvg_configuration.h is not compatible with this implementation."
 #endif
 
@@ -101,33 +101,36 @@ void MICROVG_HELPER_initialize(void) {
 int MICROVG_HELPER_get_utf(unsigned short *textCharRam, int length, int *offset) {
 
 	unsigned short highPart = GET_NEXT_CHARACTER(textCharRam, length, *offset);
-	int ret;
+	int ret = 0; // means "error" (see doc)
 
-	if (((highPart >= MIN_HIGH_SURROGATE) && (highPart <= MAX_HIGH_SURROGATE))
-			&& (*offset < (length - 1))) {
+	if ((highPart >= MIN_HIGH_SURROGATE) && (highPart <= MAX_HIGH_SURROGATE)) {
 
-		unsigned short lowPart = GET_NEXT_CHARACTER(textCharRam, length, *(offset) + 1);
+		if (*offset < (length - 1)) {
 
-		if ((lowPart >= MIN_LOW_SURROGATE) && (lowPart <= MAX_LOW_SURROGATE)) {
-			*offset += 2;
+			unsigned short lowPart = GET_NEXT_CHARACTER(textCharRam, length, *(offset) + 1);
 
-			ret = 0;
-			ret += ((int)highPart - (int)MIN_HIGH_SURROGATE);
-			ret <<= (int)10;
-			ret += ((int)lowPart - (int)MIN_LOW_SURROGATE);
-			ret += (int)MIN_SUPPLEMENTARY_CODE_POINT;
+			if ((lowPart >= MIN_LOW_SURROGATE) && (lowPart <= MAX_LOW_SURROGATE)) {
+				*offset += 2;
+
+				ret = 0;
+				ret += ((int)highPart - (int)MIN_HIGH_SURROGATE);
+				ret <<= (int)10;
+				ret += ((int)lowPart - (int)MIN_LOW_SURROGATE);
+				ret += (int)MIN_SUPPLEMENTARY_CODE_POINT;
+			}
+			// else: invalid surrogate pair
 		}
+		// else: missing second part of surrogate pair
 	}
 	else {
 		*offset += 1;
 
-		// standard character or missing low part
+		// standard character
 		ret = 0x0000FFFF & (int)highPart;
 	}
 
 	return ret;
 }
-
 
 // See the header file for the function documentation
 void MICROVG_HELPER_layout_configure(int faceHandle, unsigned short *text, int length){

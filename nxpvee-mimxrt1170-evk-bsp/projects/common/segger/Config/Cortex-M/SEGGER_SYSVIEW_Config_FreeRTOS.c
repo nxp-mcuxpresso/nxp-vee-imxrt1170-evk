@@ -1,9 +1,9 @@
 /*********************************************************************
-*                    SEGGER Microcontroller GmbH                     *
+*                SEGGER Microcontroller GmbH & Co. KG                *
 *                        The Embedded Experts                        *
 **********************************************************************
 *                                                                    *
-*            (c) 1995 - 2021 SEGGER Microcontroller GmbH             *
+*       (c) 2015 - 2017  SEGGER Microcontroller GmbH & Co. KG        *
 *                                                                    *
 *       www.segger.com     Support: support@segger.com               *
 *                                                                    *
@@ -17,14 +17,24 @@
 *                                                                    *
 * SEGGER strongly recommends to not make any changes                 *
 * to or modify the source code of this software in order to stay     *
-* compatible with the SystemView and RTT protocol, and J-Link.       *
+* compatible with the RTT protocol and J-Link.                       *
 *                                                                    *
 * Redistribution and use in source and binary forms, with or         *
 * without modification, are permitted provided that the following    *
-* condition is met:                                                  *
+* conditions are met:                                                *
 *                                                                    *
 * o Redistributions of source code must retain the above copyright   *
-*   notice, this condition and the following disclaimer.             *
+*   notice, this list of conditions and the following disclaimer.    *
+*                                                                    *
+* o Redistributions in binary form must reproduce the above          *
+*   copyright notice, this list of conditions and the following      *
+*   disclaimer in the documentation and/or other materials provided  *
+*   with the distribution.                                           *
+*                                                                    *
+* o Neither the name of SEGGER Microcontroller GmbH & Co. KG         *
+*   nor the names of its contributors may be used to endorse or      *
+*   promote products derived from this software without specific     *
+*   prior written permission.                                        *
 *                                                                    *
 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND             *
 * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,        *
@@ -42,7 +52,11 @@
 *                                                                    *
 **********************************************************************
 *                                                                    *
-*       SystemView version: 3.32                                    *
+*       SystemView version: V2.52a                                    *
+*                                                                    *
+**********************************************************************
+*                                                                    *
+* Copyright 2023 MicroEJ Corp. This file has been modified by MicroEJ Corp.  *
 *                                                                    *
 **********************************************************************
 -------------------------- END-OF-HEADER -----------------------------
@@ -53,7 +67,12 @@ Revision: $Rev: 7745 $
 */
 #include "FreeRTOS.h"
 #include "SEGGER_SYSVIEW.h"
-#include "fsl_debug_console.h"
+
+#include "task.h"
+#include "LLMJVM_MONITOR_sysview.h"
+#include "LLTRACE_sysview_configuration.h"
+#include "SEGGER_SYSVIEW_Conf.h"
+#include "nxpvee_ui.h"
 
 extern const SEGGER_SYSVIEW_OS_API SYSVIEW_X_OS_TraceAPI;
 
@@ -64,10 +83,10 @@ extern const SEGGER_SYSVIEW_OS_API SYSVIEW_X_OS_TraceAPI;
 **********************************************************************
 */
 // The application name to be displayed in SystemViewer
-#define SYSVIEW_APP_NAME        "FreeRTOS Demo Application"
+#define SYSVIEW_APP_NAME        "FreeRTOS Application"
 
 // The target device name
-#define SYSVIEW_DEVICE_NAME     "Cortex-M4"
+#define SYSVIEW_DEVICE_NAME     "Cortex-M7"
 
 // Frequency of the timestamp. Must match SEGGER_SYSVIEW_GET_TIMESTAMP in SEGGER_SYSVIEW_Conf.h
 #define SYSVIEW_TIMESTAMP_FREQ  (configCPU_CLOCK_HZ)
@@ -89,18 +108,62 @@ static void _cbSendSystemDesc(void) {
   SEGGER_SYSVIEW_SendSysDesc("N="SYSVIEW_APP_NAME",D="SYSVIEW_DEVICE_NAME",O=FreeRTOS");
   SEGGER_SYSVIEW_SendSysDesc("I#15=SysTick");
 }
+
 /*********************************************************************
 *
 *       Global functions
 *
 **********************************************************************
 */
+
+SEGGER_SYSVIEW_OS_API SYSVIEW_MICROEJ_X_OS_TraceAPI;
+
+static void SYSVIEW_MICROEJ_X_OS_SendTaskList(void){
+   SYSVIEW_X_OS_TraceAPI.pfSendTaskList();
+
+// The strategy to send tasks info is different in post mortem and live analysis.
+#if (1 == SEGGER_SYSVIEW_POST_MORTEM_MODE)
+   /**
+   * POST MORTEM analysis
+   *
+   * Using the post mortem analysis, FreeRTOS tasks regularly call the SYSVIEW_MICROEJ_X_OS_SendTaskList() function when
+   * a packet (systemview event) is sent to the SEGGER circular buffer. It is necessary because the information of tasks
+   * must be regularly uploaded in the circular buffer in order to provide a valid analysis at any moment.
+   * Consequently, we only allow to call LLMJVM_MONITOR_SYSTEMVIEW_send_task_list() when the current task is the MicroEJ Core Engine.
+   */
+
+   /* Obtain the handle of the current task. */
+   TaskHandle_t xHandle = xTaskGetCurrentTaskHandle();
+   configASSERT( xHandle ); // Check the handle is not NULL.
+
+   // Check if the current task handle is the MicroEJ Core Engine task handle. pvMicrojvmCreatedTask is an external variable.
+   if( xHandle == pvMicrojvmCreatedTask){
+      // Launched by the MicroEJ Core Engine, we execute LLMJVM_MONITOR_SYSTEMVIEW_send_task_list()
+      LLMJVM_MONITOR_SYSTEMVIEW_send_task_list();
+   }
+#else
+   /**
+   * LIVE analysis
+   *
+   * Using the live analysis, the call of SYSVIEW_MICROEJ_X_OS_SendTaskList() is triggered by
+   * the SystemView Software through the J-Link probe. Consequently, the MicroEJ Core Engine task will never call
+   * the function LLMJVM_MONITOR_SYSTEMVIEW_send_task_list(). However, if the MicroEJ Core Engine task is created,
+   * the function must be called LLMJVM_MONITOR_SYSTEMVIEW_send_task_list().
+   */
+   // Check if the MicroEJ Core Engine task handle is not NULL. pvMicrojvmCreatedTask is an external variable.
+   if( NULL != pvMicrojvmCreatedTask){
+      // The MicroEJ Core Engine task is running, we execute LLMJVM_MONITOR_SYSTEMVIEW_send_task_list()
+      LLMJVM_MONITOR_SYSTEMVIEW_send_task_list();
+   }
+#endif
+}
+
 void SEGGER_SYSVIEW_Conf(void) {
-  SEGGER_SYSVIEW_Init(SYSVIEW_TIMESTAMP_FREQ, SYSVIEW_CPU_FREQ, 
-                      &SYSVIEW_X_OS_TraceAPI, _cbSendSystemDesc);
-  SEGGER_SYSVIEW_SetRAMBase(SYSVIEW_RAM_BASE);
-  extern void* _SEGGER_RTT;
-  PRINTF("SEGGER_RTT block address: 0x%x\r\n", &(_SEGGER_RTT));
+   SYSVIEW_MICROEJ_X_OS_TraceAPI.pfGetTime = SYSVIEW_X_OS_TraceAPI.pfGetTime;
+   SYSVIEW_MICROEJ_X_OS_TraceAPI.pfSendTaskList = SYSVIEW_MICROEJ_X_OS_SendTaskList;
+
+   SEGGER_SYSVIEW_Init(SYSVIEW_TIMESTAMP_FREQ, SYSVIEW_CPU_FREQ, &SYSVIEW_MICROEJ_X_OS_TraceAPI, _cbSendSystemDesc);
+   SEGGER_SYSVIEW_SetRAMBase(SYSVIEW_RAM_BASE);
 }
 
 /*************************** End of file ****************************/

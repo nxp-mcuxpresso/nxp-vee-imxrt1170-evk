@@ -3,19 +3,23 @@
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
+ * 
+ * Copyright 2023 MicroEJ Corp. This file has been modified by MicroEJ Corp.
  */
 
 /* FreeRTOS kernel includes. */
 #include "FreeRTOS.h"
 #include "task.h"
+#include "cpuload.h"
 
+#include "nxpvee_ui.h"
 #include "fsl_debug_console.h"
 #include "fsl_soc_src.h"
 #include "fsl_dmamux.h"
 #include "fsl_edma.h"
 #include "pin_mux.h"
 #include "board.h"
-#ifdef SEGGER_DEBUG
+#ifdef ENABLE_SYSTEM_VIEW
 #include "SEGGER_SYSVIEW.h"
 #include "SEGGER_debug_def.h"
 #endif
@@ -36,7 +40,10 @@
 #include "sdcard_helper.h"
 #include <assert.h>
 #include "ksdk_mbedtls.h"
-
+#ifndef __MCUXPRESSO
+#include "tree_version.h"
+#endif
+#include "SEGGER_RTT.h"
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
@@ -44,7 +51,6 @@
 #define microej_PRIORITY (configMAX_PRIORITIES - 6)
 #define DEMO_EDMA          DMA0
 #define DEMO_DMAMUX        DMAMUX0
-
 /*******************************************************************************
  * Code
  ******************************************************************************/
@@ -62,6 +68,10 @@ static void microej_task(void *pvParameters);
 /* Initialize Enet timeouts. */
 #define ENET_RST_ASSERT_TIME_US 10000
 #define ENET_RST_SETTLE_TIME_US 30000
+
+/* Global extern variables ---------------------------------------------------*/
+
+TaskHandle_t pvMicrojvmCreatedTask = NULL;
 
 static bool dhcp_ip_assigned = false;
 
@@ -159,9 +169,10 @@ int main(void)
     status_t status = CRYPTO_InitHardware() ;
     assert( status == kStatus_Success );
 
-#ifdef SEGGER_DEBUG
+#ifdef ENABLE_SYSTEM_VIEW
     SEGGER_SYSVIEW_Conf();
 #endif
+/* Start the MicroJvm thread */
 
     /* ERR050396
      * Errata description:
@@ -178,14 +189,18 @@ int main(void)
     START_SDCARD_Task(NULL);
 #endif
 
-    if (xTaskCreate(microej_task, "Microej task", MICROEJ_TASK_STACK_SIZE, NULL, microej_PRIORITY, NULL) !=
+    if (xTaskCreate(microej_task, "Microej task", MICROEJ_TASK_STACK_SIZE, NULL, microej_PRIORITY, &pvMicrojvmCreatedTask) !=
         pdPASS)
     {
         PRINTF("Task creation failed!.\r\n");
         while (1)
             ;
     }
-
+#if ENABLE_SYSTEM_VIEW == 1
+    // start_sysview_logging:
+    PRINTF("SEGGER_RTT block address: %p\n", &(_SEGGER_RTT));
+    SEGGER_SYSVIEW_setMicroJVMTask((U32)pvMicrojvmCreatedTask);
+#endif // ENABLE_SYSTEM_VIEW
     vTaskStartScheduler();
     for (;;)
         ;
@@ -198,6 +213,9 @@ int main(void)
 static void microej_task(void *pvParameters)
 {
     PRINTF("microej_task\r\n");
+    PRINTF("NXP VEE Port '%s' '%s'\r\n", VEE_VERSION, GIT_SHA_1);
+    /* Start the CPU Load task */
+    cpuload_init();  
     microej_main(0, NULL);
     vTaskDelete(NULL);
 }
@@ -209,6 +227,15 @@ void vApplicationMallocFailedHook()
     /* Loop forever */
     for (;;)
         ;
+}
+
+/*!
+ * @brief Call the cpuload_idle function in FreeRTOS ilde hook function
+ */
+
+void vApplicationIdleHook(void)
+{
+	cpuload_idle();
 }
 
 /* Functions used in Core Validation test */

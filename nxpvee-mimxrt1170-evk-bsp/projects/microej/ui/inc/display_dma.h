@@ -7,13 +7,14 @@
 
 /*
  * @file
- * @brief MicroEJ MicroUI library low level API: implementation over VG-Lite
+ * @brief MicroEJ MicroUI library low level API: implementation over VG-Lite. Provides
+ * a set of functions to drive a DMA.
  * @author MicroEJ Developer Team
- * @version 4.0.0
+ * @version 6.0.1
  */
 
 #if !defined DISPLAY_DMA_H
-# define DISPLAY_DMA_H
+#define DISPLAY_DMA_H
 
 #if defined __cplusplus
 extern "C" {

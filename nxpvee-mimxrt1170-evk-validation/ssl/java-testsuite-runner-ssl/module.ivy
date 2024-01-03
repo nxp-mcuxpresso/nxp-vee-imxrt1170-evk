@@ -28,7 +28,7 @@
     		The last module version is automatically fetched by default.
     		To freeze the module version, add the following attribute: ej:match="perfect"    	
     	-->
-		<dependency org="com.microej.pack.net" name="net-ssl-2_2-testsuite" rev="4.0.1"/>
+		<dependency org="com.microej.pack.net" name="net-ssl-2_2-testsuite" rev="4.0.2"/>
 		<!--
 			Add the following dependency if running the testsuite over Wi-Fi.
 		<dependency org="com.microej.pack.net" name="net-1_1-testsuite-wifi" rev="2.1.1"/>

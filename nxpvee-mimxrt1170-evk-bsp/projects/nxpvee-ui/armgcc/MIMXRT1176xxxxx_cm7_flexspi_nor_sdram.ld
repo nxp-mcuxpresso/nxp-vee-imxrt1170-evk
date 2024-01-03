@@ -245,6 +245,7 @@ SECTIONS
   {
     *(NonCacheable)
     . = ALIGN(4);
+    *(.bss.microui.display.imagesHeap)
     __noncachedata_end__ = .;     /* define a global symbol at ncache data end */
   } > m_ncache
 
@@ -256,14 +257,8 @@ SECTIONS
   {
     . = ALIGN(4);
     *(DataQuickAccess)       /* quick access data section */
-    *(_java_heap)
-    *(.bss.vm.stacks.java)
-    *(ICETEA_HEAP)
-    *(.bss.soar)
-    *(MicroJvm*)
-    *(VMCORE*)
-    *(core_*)
-    *(microejapp.o)
+    *(.bss.microej.stacks)
+    *(.bss.microej.runtime)
     . = ALIGN(4);
   } > m_data2
 

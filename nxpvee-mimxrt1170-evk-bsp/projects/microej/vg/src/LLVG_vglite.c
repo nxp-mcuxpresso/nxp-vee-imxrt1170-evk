@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief MicroVG library low level API over VG-Lite.
  * @author MicroEJ Developer Team
- * @version 4.0.0
+ * @version 6.1.0
  */
 
 // -----------------------------------------------------------------------------
@@ -28,7 +28,6 @@
 #include "microvg_vglite_helper.h"
 #include "vg_lite.h"
 #include "color.h"
-#include "display_vglite.h"
 #include "bsp_util.h"
 
 // -----------------------------------------------------------------------------
@@ -134,6 +133,12 @@ vg_lite_blend_t MICROVG_VGLITE_HELPER_get_blend(jint blend) {
 	case LLVG_BLEND_DST_IN:
 		ret = VG_LITE_BLEND_DST_IN;
 		break;
+	case LLVG_BLEND_DST_OUT:
+		ret = VG_LITE_BLEND_SUBTRACT;
+		break;
+	case LLVG_BLEND_PLUS:
+		ret = VG_LITE_BLEND_ADDITIVE;
+		break;
 	case LLVG_BLEND_SCREEN:
 		ret = VG_LITE_BLEND_SCREEN;
 		break;
@@ -142,27 +147,6 @@ vg_lite_blend_t MICROVG_VGLITE_HELPER_get_blend(jint blend) {
 		break;
 	}
 	return ret;
-}
-
-// See the header file for the function documentation
-bool MICROVG_VGLITE_HELPER_enable_vg_lite_scissor(MICROUI_GraphicsContext* gc)
-{
-    int32_t width =  gc->clip_x2 - gc->clip_x1 + 1;
-    int32_t height =  gc->clip_y2 - gc->clip_y1 + 1;
-
-    bool ret;
-    if ((width > 0) && (height > 0))
-    {
-        vg_lite_enable_scissor();
-        vg_lite_set_scissor(gc->clip_x1, gc->clip_y1, width, height);
-        ret = true;
-    }
-    else {
-	    // drawing is useless
-    	LLUI_DISPLAY_setDrawingStatus(DRAWING_DONE);
-    	ret = false;
-    }
-    return ret;
 }
 
 // -----------------------------------------------------------------------------

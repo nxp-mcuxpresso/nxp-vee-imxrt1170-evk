@@ -4,7 +4,7 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
- * Copyright 2020-2022 MicroEJ Corp. This file has been modified by MicroEJ Corp.
+ * Copyright 2020-2023 MicroEJ Corp. This file has been modified by MicroEJ Corp.
  */
 
 /*
@@ -21,7 +21,7 @@
 // #include "fsl_power.h"
 #include "vg_lite.h"
 #include "vg_lite_platform.h"
-#include "display_vglite.h"
+#include "bsp_util.h"
 
 /*******************************************************************************
  * Definitions
@@ -60,10 +60,19 @@ uint32_t vglite_cmd_buff_size = VG_LITE_COMMAND_BUFFER_SIZE;
 /*******************************************************************************
  * Code
  ******************************************************************************/
+
+/*
+ * @brief Notifies the CCO MicroUI-VGLite about the GPU interrupt. When this CCO
+ * is not installed / available, the default function is used and does nothing.
+ */
+BSP_DECLARE_WEAK_FCNT void UI_VGLITE_IRQHandler(void) {
+	// does nothing by default
+}
+
 void GPU2D_IRQHandler(void)
 {
     vg_lite_IRQHandler();
-    DISPLAY_VGLITE_IRQHandler();
+    UI_VGLITE_IRQHandler();
 }
 
 // modified by MicroEJ

@@ -35,7 +35,8 @@ endif
 	$(TOUCH) $@
 
 .java.configuration:
-	cd $(CONF_DIR) $(LINK) $(MICROEJ_BUILDKIT_PATH_VAR)/bin/mmm publish  \
+	cd $(CONF_DIR) $(LINK) $(MICROEJ_BUILDKIT_PATH_VAR)/bin/mmm publish $(PUBLISH_MODE) \
+		$(PUBLISH_ARTIFACTS) \
 		-Declipse.home="$(ECLIPSE_HOME)" \
 		-Dcom.microej.platformbuilder.architecture.usage=$(USAGE) \
 		$(MODULE_REPOSITORY_SETTINGS) \
@@ -50,17 +51,6 @@ javasec.prop :
 
 $(addprefix .java.test.,$(VALIDATIONS)): javasec.prop
 	cd $(TEST_DIR$@) $(LINK) $(EXPORT) TEST_TYPE="ARMGCC" $(LINK) $(MICROEJ_BUILDKIT_PATH_VAR)/bin/mmm publish  \
-		-Declipse.home="$(ECLIPSE_HOME)" \
-		$(MODULE_REPOSITORY_SETTINGS) \
-		-Dcom.microej.platformbuilder.architecture.usage=$(USAGE) \
-		-Dplatform-loader.target.platform.dir=$(PLAT_DIR)/source \
-		-Ddeploy.bsp.root.dir=$(BSP_DIR) \
-		-Dlaunch.properties.jvm="-Djava.security.properties=$(BASE_DIR)/javasec.prop" \
-		-D"local.repo.url=$(BASE_DIR)/test_results/" \
-		-Dplatform-launcher.platform.dir=$(PLAT_DIR)/source $(JAVA_VERBOSE)
-
-$(addprefix .mcu.java.test.,$(VALIDATIONS)): javasec.prop
-	cd $(TEST_DIR$@) $(LINK) $(EXPORT) TEST_TYPE="MCU" $(LINK) $(MICROEJ_BUILDKIT_PATH_VAR)/bin/mmm publish  \
 		-Declipse.home="$(ECLIPSE_HOME)" \
 		$(MODULE_REPOSITORY_SETTINGS) \
 		-Dcom.microej.platformbuilder.architecture.usage=$(USAGE) \
@@ -117,7 +107,7 @@ $(addsuffix -java_run,$(PROJS)): .java.fp .java.mock .java.configuration
 		-Dapplication.main.class=$(if $(MAIN),$(MAIN),$(MAIN.$(@:%-java_run=%).java.app)) \
 		-Dplatform-launcher.platform.dir=$(PLAT_DIR)/source $(JAVA_VERBOSE)
 
-$(addsuffix -java_rebuild,$(PROJS)):
+$(addsuffix -java_rebuild,$(PROJS)): .java.fp .java.mock .java.configuration
 	$(call del_file,.*.java.app)
 	make .$(@:%-java_rebuild=%).java.app
 
@@ -129,6 +119,11 @@ $(addsuffix -clean,$(PROJS)):
 	$(call del_file,javasec.prop*)
 	$(call del_dir,$(PLAT_DIR)/build/)
 	$(call del_dir,$(PLAT_DIR)/source/)
+	$(call del_dir,$(CONF_DIR)/dropins/include)
+	$(call del_dir,$(CONF_DIR)/dropins/javaLibs)
+	$(call del_dir,$(CONF_DIR)/dropins/mocks)
+	$(call del_dir,$(CONF_DIR)/dropins/scripts)
+	$(call del_file,$(CONF_DIR)/dropins/workbenchExtension_launchScriptFramework.jar)
 	$(call del_file,$(CONF_DIR)/dropins/imagegenerator-vectorimage.jar)
 	$(call del_file,$(CONF_DIR)/dropins/license-checker.jar)
 	$(call del_dir,$(CONF_DIR)/target~/)

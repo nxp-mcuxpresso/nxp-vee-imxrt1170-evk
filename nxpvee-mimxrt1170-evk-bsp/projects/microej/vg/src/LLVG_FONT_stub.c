@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2020-2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2020-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ MicroVG library low level API: implementation over FreeType
  * @author MicroEJ Developer Team
- * @version 2.1.0
+ * @version 3.0.1
  */
 
 #include "microvg_configuration.h"
@@ -21,7 +21,7 @@
 // -----------------------------------------------------------------------------
 
 #include <LLVG_FONT_impl.h>
-#include <LLVG_FONT_PAINTER_impl.h>
+#include <LLVG_PAINTER_impl.h>
 
 // -----------------------------------------------------------------------------
 // LLVG_FONT_impl.h functions
@@ -68,86 +68,6 @@ jfloat LLVG_FONT_IMPL_get_height(jint faceHandle, jfloat size) {
 // See the header file for the function documentation
 void LLVG_FONT_IMPL_dispose(jint faceHandle) {
 	(void)faceHandle;
-}
-// -----------------------------------------------------------------------------
-// LLVG_FONT_PAINTER_impl.h functions
-// -----------------------------------------------------------------------------
-
-// See the header file for the function documentation
-jint LLVG_FONT_PAINTER_IMPL_draw_string(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jfloat x, jfloat y,  jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing){
-	(void)gc;
-	(void)text;
-	(void)faceHandle;
-	(void)size;
-	(void)x;
-	(void)y;
-	(void)matrix;
-	(void)alpha;
-	(void)blend;
-	(void)letterSpacing;
-        
-    return(0);
-}
-
-// See the header file for the function documentation
-jint LLVG_FONT_PAINTER_IMPL_draw_string_gradient(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jfloat x, jfloat y,  jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jint *gradientData, jfloat *gradientMatrix){
-	(void)gc;
-	(void)text;
-	(void)faceHandle;
-	(void)size;
-	(void)x;
-	(void)y;
-	(void)matrix;
-	(void)alpha;
-	(void)blend;
-	(void)letterSpacing;
-	(void)gradientData;
-	(void)gradientMatrix;
-
-    return(0);
-}
-
-// See the header file for the function documentation
-jint LLVG_FONT_PAINTER_IMPL_draw_string_on_circle(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jint x, jint y, jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jfloat radius, jint direction){
-	(void)gc;
-	(void)text;
-	(void)faceHandle;
-	(void)size;
-	(void)x;
-	(void)y;
-	(void)matrix;
-	(void)alpha;
-	(void)blend;
-	(void)letterSpacing;
-	(void)radius;
-	(void)direction;
-
-    return(0);
-}
-
-// See the header file for the function documentation
-jint LLVG_FONT_PAINTER_IMPL_draw_string_on_circle_gradient(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jint x, jint y, jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jfloat radius, jint direction, jint *gradientData, jfloat *gradientMatrix){
-	(void)gc;
-	(void)text;
-	(void)faceHandle;
-	(void)size;
-	(void)x;
-	(void)y;
-	(void)matrix;
-	(void)alpha;
-	(void)blend;
-	(void)letterSpacing;
-	(void)radius;
-	(void)direction;
-	(void)gradientData;
-	(void)gradientMatrix;
-
-    return(0);
-}
-
-// See the header file for the function documentation
-void LLVG_FONT_IMPL_set_complex_layout(bool enabled){
-	(void)enabled;
 }
 
 // See the header file for the function documentation

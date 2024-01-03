@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ MicroVG library low level API: implementation of LinearGradient.
  * @author MicroEJ Developer Team
- * @version 2.1.0
+ * @version 3.0.1
  */
 
 #if !defined MICROVG_GRADIENT_H
@@ -37,13 +37,12 @@ extern "C" {
 // Structs
 // -----------------------------------------------------------------------------
 
+#if (VG_FEATURE_GRADIENT == VG_FEATURE_GRADIENT_FULL)
+
 /*
  * @brief Map a jint array that represents a linear gradient
  */
-typedef struct MICROVG_GRADIENT_HEADER
-{
-
-#if (VG_FEATURE_GRADIENT == VG_FEATURE_GRADIENT_FULL)
+typedef struct {
 	jint count;  // number of colors and positions
 	jfloat x;
 	jfloat y;
@@ -51,12 +50,7 @@ typedef struct MICROVG_GRADIENT_HEADER
 	jfloat length;
 	jint colors_offset;
 	jint positions_offset;
-#else
-	jint color; // only one color
-#endif
 } MICROVG_GRADIENT_HEADER_t;
-
-#if (VG_FEATURE_GRADIENT == VG_FEATURE_GRADIENT_FULL)
 
 // -----------------------------------------------------------------------------
 // Specific gradient formatting functions [mandatory]

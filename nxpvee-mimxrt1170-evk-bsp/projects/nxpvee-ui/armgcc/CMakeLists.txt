@@ -22,8 +22,11 @@ SET(ProjDirPath ${CMAKE_CURRENT_SOURCE_DIR})
 SET(EXECUTABLE_OUTPUT_PATH ${ProjDirPath}/${CMAKE_BUILD_TYPE})
 SET(LIBRARY_OUTPUT_PATH ${ProjDirPath}/${CMAKE_BUILD_TYPE})
 
+find_package(Git)
 
 project(nxpvee_ui)
+
+file (STRINGS "${ProjDirPath}/../../../nvee_version.txt" VEE_VERSION)
 
 set(MCUX_BUILD_TYPES flexspi_nor_sdram_debug flexspi_nor_sdram_release sdram_debug sdram_release)
 
@@ -38,15 +41,15 @@ if (NOT DEFINED SdkOverlayRootDirPath)
 endif()
 
 if (NOT DEFINED SdkRootDirPath)
-    SET(SdkRootDirPath ${ProjDirPath}/../../../../../mcux-sdk/core/)
+    SET(SdkRootDirPath ${ProjDirPath}/../../../mcux-sdk/core/)
 endif()
 
 if (NOT DEFINED SdkMiddlewareDirPath)
-    SET(SdkMiddlewareDirPath ${ProjDirPath}/../../../../../mcux-sdk/middleware/)
+    SET(SdkMiddlewareDirPath ${ProjDirPath}/../../../mcux-sdk/middleware/)
 endif()
 
 if (NOT DEFINED RtosRootDirPath)
-    SET(RtosRootDirPath ${ProjDirPath}/../../../../../mcux-sdk/rtos/)
+    SET(RtosRootDirPath ${ProjDirPath}/../../../mcux-sdk/rtos/)
 endif()
 
 
@@ -56,8 +59,17 @@ include(${ProjDirPath}/config.cmake)
 
 include(${SdkMiddlewareDirPath}/coreHTTP/httpFilePaths.cmake)
 
+execute_process(COMMAND
+  "${GIT_EXECUTABLE}" describe --always --abbrev=8 --dirty
+  WORKING_DIRECTORY "${ProjDirPath}"
+  OUTPUT_VARIABLE GIT_SHA_1
+  ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+configure_file("${ProjDirPath}/../app/tree_version.c.in" "${CMAKE_CURRENT_BINARY_DIR}/tree_version.c" @ONLY)
+
 add_executable(${MCUX_SDK_PROJECT_NAME}
     "${ProjDirPath}/../app/nxpvee_ui.c"
+    "${ProjDirPath}/../app/nxpvee_ui.h"
     "${ProjDirPath}/../bsp/board.c"
     "${ProjDirPath}/../bsp/board.h"
     "${ProjDirPath}/../bsp/clock_config.c"
@@ -71,12 +83,15 @@ add_executable(${MCUX_SDK_PROJECT_NAME}
     "${ProjDirPath}/../bsp/pin_mux.c"
     "${ProjDirPath}/../bsp/pin_mux.h"
     "${ProjDirPath}/../bsp/simple_gfx_app_imp.c"
+    "${CMAKE_CURRENT_BINARY_DIR}/tree_version.c"
 )
 
 target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
+    ${ProjDirPath}/../app
     ${ProjDirPath}/../bsp
     ${MicroEjRootDirPath}/
     ${MicroEjRootDirPath}/core/inc
+    ${MicroEjRootDirPath}/cpuload/inc
     ${MicroEjRootDirPath}/fs/inc
     ${MicroEjRootDirPath}/net/inc
     ${MicroEjRootDirPath}/platform/inc
@@ -85,6 +100,7 @@ target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
     ${MicroEjRootDirPath}/security/inc
     ${MicroEjRootDirPath}/thirdparty/freetype/inc
     ${MicroEjRootDirPath}/thirdparty/harfbuzz/inc
+    ${MicroEjRootDirPath}/trace/inc
     ${MicroEjRootDirPath}/ui/inc
     ${MicroEjRootDirPath}/util/inc
     ${MicroEjRootDirPath}/vg/inc
@@ -98,10 +114,13 @@ target_compile_definitions(${MCUX_SDK_PROJECT_NAME}  PRIVATE MBEDTLS_CONFIG_FILE
 
 set(CMAKE_MODULE_PATH
     ${MicroEjRootDirPath}/core
+    ${MicroEjRootDirPath}/cpuload
     ${MicroEjRootDirPath}/fs
+    ${MicroEjRootDirPath}/kf
     ${MicroEjRootDirPath}/net
     ${MicroEjRootDirPath}/thirdparty/freetype
     ${MicroEjRootDirPath}/thirdparty/harfbuzz
+    ${MicroEjRootDirPath}/security
     ${MicroEjRootDirPath}/ui
     ${MicroEjRootDirPath}/util
     ${MicroEjRootDirPath}/vg
@@ -110,6 +129,7 @@ set(CMAKE_MODULE_PATH
     ${ProjDirPath}/../../common/bsp/sdmmc
     ${ProjDirPath}/../../common/segger
     ${SdkOverlayRootDirPath}/components/phy/mdio/enet
+    ${SdkOverlayRootDirPath}/core/components/exception_handling
     ${SdkOverlayRootDirPath}/middleware/vglite
     ${SdkOverlayRootDirPath}/middleware/vglite
     ${SdkOverlayRootDirPath}/rtos/freertos/freertos-kernel
@@ -165,6 +185,7 @@ set(CMAKE_MODULE_PATH
     ${SdkRootDirPath}/middleware/vglite
     ${MicroEjRootDirPath}/security
     ${MicroEjRootDirPath}/ssl
+    ${MicroEjRootDirPath}/trace
     ${SdkRootDirPath}/utilities
     ${SdkRootDirPath}/utilities/assert
     ${SdkRootDirPath}/utilities/misc_utilities
@@ -174,6 +195,7 @@ set(CMAKE_MODULE_PATH
 include(CMSIS_DSP_Source)
 include(CMSIS_Include_core_cm)
 include(CMSIS_Include_core_cm)
+include(component_exception_handling_cm7)
 include(component_igpio_adapter)
 include(component_lists)
 include(component_lpuart_adapter)
@@ -222,10 +244,13 @@ include(driver_xip_device)
 include(driver_xmcd_evkmimxrt1170)
 include(httpFilePaths)
 include(microej_core)
+include(microej_cpuload)
 include(microej_fs)
+include(microej_kf)
 include(microej_net)
 include(microej_security)
 include(microej_ssl)
+include(microej_trace)
 include(microej_ui)
 include(microej_util)
 include(microej_vg)
@@ -249,6 +274,10 @@ include(thirdparty_harfbuzz)
 IF(NOT DEFINED TARGET_LINK_SYSTEM_LIBRARIES)
     SET(TARGET_LINK_SYSTEM_LIBRARIES "-lm -lc -lgcc -lnosys")
 ENDIF()
+
+if (ENABLE_SYSTEM_VIEW)
+    include(utility_segger)
+endif(ENABLE_SYSTEM_VIEW)
 
 TARGET_LINK_LIBRARIES(${MCUX_SDK_PROJECT_NAME} PRIVATE -Wl,--start-group)
 

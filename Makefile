@@ -33,7 +33,7 @@ endef
 
 
 BSP_DIR=$(BASE_DIR)/nxpvee-mimxrt1170-evk-bsp
-PLAT_DIR=$(BASE_DIR)/MIMXRT1170-Platform-CM7hardfp_GCC48-1.0.0
+PLAT_DIR=$(BASE_DIR)/MIMXRT1170-evk_platform-CM7hardfp_GCC48-2.0.0
 APP_DIR=$(BASE_DIR)/nxpvee-mimxrt1170-evk-apps
 FP_DIR=$(BASE_DIR)/MIMXRT1170-fp
 MOCK_DIR=$(BASE_DIR)/nxpvee-mimxrt1170-evk-mock
@@ -45,14 +45,10 @@ TEST_DIR.java.test.ui=$(VAL_DIR)/ui/ui3/java-testsuite-runner-ui3
 TEST_DIR.java.test.fs=$(VAL_DIR)/fs/java-testsuite-runner-fs
 TEST_DIR.java.test.net=$(VAL_DIR)/net/java-testsuite-runner-net
 TEST_DIR.java.test.ssl=$(VAL_DIR)/ssl/java-testsuite-runner-ssl
+TEST_DIR.java.test.security=$(VAL_DIR)/security/java-testsuite-runner-security
+TEST_DIR.java.test.vg=$(VAL_DIR)/vg/java-testsuite-runner-vg
 
-TEST_DIR.mcu.java.test.core=$(TEST_DIR.java.test.core)
-TEST_DIR.mcu.java.test.ui=$(TEST_DIR.java.test.ui)
-TEST_DIR.mcu.java.test.fs=$(TEST_DIR.java.test.fs)
-TEST_DIR.mcu.java.test.net=$(TEST_DIR.java.test.net)
-TEST_DIR.mcu.java.test.ssl=$(TEST_DIR.java.test.ssl)
-
-VALIDATIONS ?= core ui fs net ssl
+VALIDATIONS ?= core ui fs net ssl security vg
 
 ifeq ($(ECLIPSE_HOME_VAR),)
 $(error Define ECLIPSE_HOME_VAR to i.e. ~/MicroEJ/MicroEJ-SDK-21.11/rcp/)
@@ -66,13 +62,19 @@ ifeq ($(strip $(QUIET)),1)
 	JAVA_VERBOSE=-q
 endif
 
-USAGE?=eval
+ifeq ($(strip $(PUBLISH)),1)
+	PUBLISH_ARTIFACTS=-Dskip.publish=false
+	PUBLISH_MODE=release
+	MODULE_REPOSITORY_SETTINGS=
+else
+	PUBLISH_ARTIFACTS=
+	PUBLISH_MODE=
+endif
 
-ifeq ($(USAGE),prod)
+USAGE?=eval
 
 ifneq ($(MODULE_REPOSITORY_SETTINGS_FILE),)
 	MODULE_REPOSITORY_SETTINGS=--module-repository-settings-file=$(MODULE_REPOSITORY_SETTINGS_FILE)
-endif
 endif
 
 MAIN ?=

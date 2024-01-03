@@ -463,10 +463,8 @@ char *get_lwip_netif_name(int32_t id)
 
 struct netif* getNetworkInterface(int8_t* name)
 {
-	PRINTF("netif name is %c \n \r", name);
 	char *llnet_netif[] = LLNET_NETIF_NAMES;
 	for (int32_t netif_idx = 0; netif_idx < (sizeof(llnet_netif) / sizeof(llnet_netif[0])); netif_idx++) {
-		PRINTF("netif name is %c \n \r", llnet_netif[netif_idx]);
 		if (strcmp((char *)name, llnet_netif[netif_idx]) == 0) {
 			// the same interface name at LLNET level can have different names at platform level
 			// so, keep trying to find the lwip level interface until one is found or until we exhaust the list

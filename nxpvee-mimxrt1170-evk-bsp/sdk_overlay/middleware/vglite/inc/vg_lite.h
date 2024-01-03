@@ -25,6 +25,9 @@
 *    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 *    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
+*    Copyright 2022-2023 MicroEJ Corp. This file has been modified by MicroEJ Corp.
+*    1. Add "vg_lite_get_scissor()"
+*
 *****************************************************************************/
 
 #ifndef _vg_lite_h_
@@ -1934,6 +1937,19 @@ extern "C" {
      @result
       Returns the status as defined by <code>vg_lite_error_t</code>.*/
     vg_lite_error_t vg_lite_set_scissor(int32_t x, int32_t y, int32_t width, int32_t height);
+
+    /*!
+     @abstract Get scissor used for render target's boundary.
+
+     @discussion
+      This function is used to get the scissor of render target.
+
+     @param scissor
+      A pointer to a scissor array where to store the scissor bounds.
+
+     @result
+      Returns the scissor status: "1" enabled and "0" disabled.*/
+    uint32_t vg_lite_get_scissor(int32_t** scissor); // added by MicroEJ
 
     /*!
       @abstract Enable scissor.

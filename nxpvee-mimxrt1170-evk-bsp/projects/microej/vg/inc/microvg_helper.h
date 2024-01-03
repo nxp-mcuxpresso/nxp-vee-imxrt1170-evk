@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2020-2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2020-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -10,7 +10,7 @@
 * @brief MicroEJ MicroVG library low level API: helper to implement library natives
 * methods.
 * @author MicroEJ Developer Team
-* @version 2.1.0
+* @version 3.0.1
 */
 
 #if !defined MICROVG_HELPER_H
@@ -86,7 +86,16 @@ extern "C" {
 void MICROVG_HELPER_initialize(void);
 
 /**
- * @brief Gets the next UTF character from a text buffer.
+ * @brief Gets the UTF character from a text buffer at the given offset and updates
+ * the offset to point to the next character.
+ *
+ * Some characters have some special values; they are made up of two Unicode characters
+ * in two specific ranges such that the first Unicode character is in one range (for
+ * example 0xD800-0xD8FF) and the second Unicode character is in the second range (for
+ * example 0xDC00-0xDCFF). This is called a surrogate pair.
+ *
+ * If a surrogate pair is incomplete (missing second character), this function returns
+ * "0" (error) and does not update the offset.
  *
  * @param[in] text: text buffer encoded in UTF16 where to read UTF character.
  * @param[in] length: lenght of the text buffer.
@@ -96,7 +105,6 @@ void MICROVG_HELPER_initialize(void);
  * @return The decoded UTF character.
  */
 int MICROVG_HELPER_get_utf(unsigned short *text, int length, int *offset);
-
 
 /*
  * @brief Configures the font layouter with a font and a text

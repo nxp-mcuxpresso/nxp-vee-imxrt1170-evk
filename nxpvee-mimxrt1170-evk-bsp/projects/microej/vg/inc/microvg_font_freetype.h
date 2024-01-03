@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2020-2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2020-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
 * @file
 * @brief MicroEJ MicroVG library low level API: implementation over FreeType.
 * @author MicroEJ Developer Team
-* @version 2.1.0
+* @version 3.0.1
 */
 
 #if !defined MICROVG_FONT_FREETYPE_H
@@ -44,7 +44,9 @@ void MICROVG_FONT_FREETYPE_initialize(void);
 // -----------------------------------------------------------------------------
 // EOF
 // -----------------------------------------------------------------------------
-#endif // defined VG_FEATURE_FONT
+#endif // defined VG_FEATURE_FONT && \
+	   // (defined VG_FEATURE_FONT_FREETYPE_VECTOR || defined VG_FEATURE_FONT_FREETYPE_BITMAP) && \
+	   // (VG_FEATURE_FONT == VG_FEATURE_FONT_FREETYPE_VECTOR || VG_FEATURE_FONT == VG_FEATURE_FONT_FREETYPE_BITMAP)
 
 #ifdef __cplusplus
 }

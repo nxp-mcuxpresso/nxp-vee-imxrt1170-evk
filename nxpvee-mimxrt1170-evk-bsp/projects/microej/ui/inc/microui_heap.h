@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2021-2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2021-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,13 +9,12 @@
  * @file
  * @brief See LLUI_DISPLAY_HEAP_impl.c.
  * @author MicroEJ Developer Team
- * @version 2.0.1
- * @date 1 December 2022
+ * @version 3.0.0
  * @since MicroEJ UI Pack 13.1.0
  */
 
 #if !defined MICROUI_HEAP_H
-# define MICROUI_HEAP_H
+#define MICROUI_HEAP_H
 
 // -----------------------------------------------------------------------------
 // Includes

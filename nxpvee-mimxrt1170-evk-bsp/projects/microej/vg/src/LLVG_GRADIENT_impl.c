@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -13,7 +13,7 @@
  * positions.
  *
  * @author MicroEJ Developer Team
- * @version 2.1.0
+ * @version 3.0.1
  */
 
 #include "microvg_configuration.h"

@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -10,9 +10,10 @@
 
 /**
 * @file
-* @brief MicroVG library low level API
+* @brief MicroVG library low level API. Provides helper defines and functions to
+* manipulates the VG-Lite objects.
 * @author MicroEJ Developer Team
-* @version 4.0.0
+* @version 6.1.0
 */
 
 #if defined __cplusplus
@@ -27,6 +28,35 @@ extern "C" {
 #include <LLUI_DISPLAY.h>
 
 #include "vg_lite.h"
+
+/*
+ * @brief Sets the drawing log flags matching a MicroVG error code.
+ *
+ * @see LLUI_DISPLAY_reportError
+ *
+ * @param[in] gc: the graphics context holding the drawing log flags.
+ * @param[in] error: the MicroVG error code.
+ *
+ * @return the drawing status that should be return by the calling drawing function.
+ */
+static inline DRAWING_Status MICROVG_VGLITE_report_error(MICROUI_GraphicsContext* gc, jint error) {
+	LLUI_DISPLAY_reportError(gc, DRAWING_LOG_LIBRARY_INCIDENT | ((LLVG_OUT_OF_MEMORY == error) ? DRAWING_LOG_OUT_OF_MEMORY : 0));
+	return DRAWING_DONE;
+}
+
+/*
+ * @brief Processes a MicroVG status code and reports the error if needed.
+ *
+ * @see MICROVG_VGLITE_report_error
+ *
+ * @param[in] gc: the graphics context holding the drawing log flags.
+ * @param[in] vg_lite_error: the MicroVG status code.
+ */
+static inline void MICROVG_VGLITE_handle_error(MICROUI_GraphicsContext* gc, jint status) {
+	if (LLVG_SUCCESS != status) {
+		(void) MICROVG_VGLITE_report_error(gc, status);
+	}
+}
 
 // -----------------------------------------------------------------------------
 // Macros and Defines
@@ -78,20 +108,6 @@ vg_lite_fill_t MICROVG_VGLITE_HELPER_get_fill_rule(jint fill_type);
  * @return a VG-Lite error code
  */
 vg_lite_error_t MICROVG_VGLITE_HELPER_to_vg_lite_gradient(vg_lite_linear_gradient_t* gradient, jint* gradientData, jfloat* matrix, jfloat* globalMatrix, jint globalAlpha);
-
-/*
- * @brief Configures the vg_lite's scissor according to the MicroUI clip.
- *
- * If the clip is empty, the drawing is useless. In that case the LLUI_DISPLAY's
- * drawing status is updated and this function returns false.
- *
- * Otherwise the VG-Lite scissor is configured to match the MicroUI clip.
- *
- * @param[in] gc: the destination where performing the drawing (MicroUI Graphics Context)
- *
- * @return false when the drawing is useless (bounds out of clip)
- */
-bool MICROVG_VGLITE_HELPER_enable_vg_lite_scissor(MICROUI_GraphicsContext* gc);
 
 // -----------------------------------------------------------------------------
 // EOF
