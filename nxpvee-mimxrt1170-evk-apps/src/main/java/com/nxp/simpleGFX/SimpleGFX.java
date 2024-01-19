@@ -74,7 +74,7 @@ public class SimpleGFX extends Thread {
 				decrease_grey = true;
 			}
 		}
-		Painter.fillCircle(g, 0, 0, 720);
+		Painter.fillCircle(g, 0, 0, DISPLAY_SIZE);
 		// int centre = this.DISPLAY_SIZE / 2;
 		// double sine_orange = 30.0 * Math.cos(t * Math.PI / 45.0);
 		// double sine_blue = 75.0 * Math.sin(t * Math.PI / 45.0);

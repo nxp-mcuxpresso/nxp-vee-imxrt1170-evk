@@ -90,7 +90,7 @@
     <stringAttribute key="com.is2t.microej.workbench.stdMicroEJLaunchConfigurationPlatformName" value="evk_platform"/>
     <stringAttribute key="com.is2t.microej.workbench.stdMicroEJLaunchConfigurationPlatformProvider" value="NXP"/>
     <stringAttribute key="com.is2t.microej.workbench.stdMicroEJLaunchConfigurationPlatformToolchain" value="CM7hardfp_GCC48"/>
-    <stringAttribute key="com.is2t.microej.workbench.stdMicroEJLaunchConfigurationPlatformVersion" value="2.0.0"/>
+    <stringAttribute key="com.is2t.microej.workbench.stdMicroEJLaunchConfigurationPlatformVersion" value="2.1.0"/>
     <stringAttribute key="com.is2t.microej.workbench.stdMicroEJLaunchConfigurationProject" value="nxpvee-mimxrt1170-evk-apps"/>
     <booleanAttribute key="com.is2t.microej.workbench.stdMicroEJLaunchConfigurationVerbose" value="false"/>
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">

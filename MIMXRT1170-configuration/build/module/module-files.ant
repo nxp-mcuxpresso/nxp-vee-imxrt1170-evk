@@ -22,7 +22,7 @@
     <available file="${additional.readme.file}" property="has.additional.readme.file" />
 
 	<property name="additional.changelog.dir" value="${project.parent.dir}" />
-	<property name="additional.changelog.ext" value="rst" />
+	<property name="additional.changelog.ext" value="md" />
     <property name="additional.changelog.name" value="CHANGELOG" />
     <property name="additional.changelog.file" location="${additional.changelog.dir}/${additional.changelog.name}.${additional.changelog.ext}" />
     <available file="${additional.changelog.file}" property="has.additional.changelog.file" />

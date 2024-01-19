@@ -16,7 +16,7 @@
 
 	<dependencies>
 		<dependency org="ej.tool.frontpanel" name="widget" rev="3.0.0"/>
-		<dependency org="com.microej.pack.ui" name="ui-pack" rev="13.7.0">
+		<dependency org="com.microej.pack.ui" name="ui-pack" rev="13.7.2">
 			<artifact name="frontpanel" type="jar"/>
 		 </dependency>
 	</dependencies>

@@ -684,7 +684,7 @@ void LLFS_File_IMPL_get_file_pointer_action(MICROEJ_ASYNC_WORKER_job_t* job) {
 	}
 
 #ifdef LLFS_DEBUG
-	printf("[%s:%u] get file pointer file %ld (status %lld)\n",__func__, __LINE__, (int32_t) fd, param->result);
+	LLFS_DEBUG_TRACE("[%s:%u] get file pointer file %ld (status %lld)\n",__func__, __LINE__, (int32_t) fd, param->result);
 #endif
 }
 

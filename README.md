@@ -1,4 +1,4 @@
-- [NXP VEE for i.MX RT1170 EVK v2.0.0](#nxp-vee-for-imx-rt1170-evk-v200)
+- [NXP VEE for i.MX RT1170 EVK v2.1.0](#nxp-vee-for-imx-rt1170-evk-v210)
   - [MicroEJ SDK 6](#microej-sdk-6)
   - [MicroEJ SDK 5](#microej-sdk-5)
   - [VEE Port Specifications](#vee-port-specifications)
@@ -46,8 +46,7 @@
     - [License Error when building application](#license-error-when-building-application)
   - [Known issues](#known-issues)
     - [RSA key size limited to 2048 bits](#rsa-key-size-limited-to-2048-bits)
-    - [Multi-Sandbox applications on simulator](#multi-sandbox-applications-on-simulator)
-# NXP VEE for i.MX RT1170 EVK v2.0.0
+# NXP VEE for i.MX RT1170 EVK v2.1.0
 This project is used to build an NXP VEE Port for the [i.MX RT1170 EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/i-mx-rt1170-evaluation-kit:MIMXRT1170-EVK) with a display panel [RK055HDMIPI4MA0](https://www.nxp.com/part/RK055HDMIPI4MA0#/).
 
 ![imxrt1170evk](Documentation/pictures/RT1170/evkmimxrt1170-rk055hdmipi04ma0.jpg)
@@ -132,7 +131,7 @@ This VEE Port provides the following Foundation Libraries:
 ├── MIMXRT1170-bsp
 ├── MIMXRT1170-configuration
 ├── MIMXRT1170-fp
-├── MIMXRT1170-evk_platform-CM7hardfp_GCC48-2.0.0
+├── MIMXRT1170-evk_platform-CM7hardfp_GCC48-2.1.0
 |   Directory holding the VEE runtime files
 ├── nxpvee-mimxrt1170-evk-apps
 ├── nxpvee-mimxrt1170-evk-bsp
@@ -301,7 +300,7 @@ Right-click on the configuration project and select `Build Module`:
 
 ![Build platform](Documentation/pictures/RT1170/sdk_build_platform.png)
 
-Building the platform will populate the initally empty `MIMXRT1170-evk_platform-CM7hardfp_GCC48-2.0.0` project which will be used to build VEE applications.
+Building the platform will populate the initally empty `MIMXRT1170-evk_platform-CM7hardfp_GCC48-2.1.0` project which will be used to build VEE applications.
 Under the `source` folder of the VEE Port, you will find the following files: 
 * The C header files of the native needed by the VEE Port libraries are located in the `include` folder.
 * The Java API of the VEE Port libraries is located in the `javaAPIS` folder.
@@ -729,7 +728,3 @@ If you have the following error `[M65] - License check failed [tampered (3)]`, p
 ### RSA key size limited to 2048 bits
 
 Due to a known bug, the RSA key size for the SECURITY Foundation Library is limited to 2048 bits, larger keys will cause errors.
-
-### Multi-Sandbox applications on simulator
-
-Due to a known bug in the MicroUI Pack 13.7.0, Multi-Sandbox applications will not run on the simulator.

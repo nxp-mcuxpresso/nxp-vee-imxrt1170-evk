@@ -114,7 +114,7 @@ int32_t LLFS_set_path_param(uint8_t* path, uint8_t* path_param);
 
 #ifdef LLFS_DEBUG
 #include <stdio.h>
-#define LLFS_DEBUG_TRACE printf("[DEBUG] ");printf
+#define LLFS_DEBUG_TRACE PRINTF("[DEBUG] ");PRINTF
 #else
 #define LLFS_DEBUG_TRACE(...) 
 //#define LLFS_DEBUG_TRACE DbgConsole_Printf

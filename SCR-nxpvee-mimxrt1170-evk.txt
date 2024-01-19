@@ -1,5 +1,5 @@
 Release Name: NXPVEE-MIMXRT1170-EVK
-Release Version: 2.0.0
+Release Version: 2.1.0
 Date: January 2024
 Package License: LICENSE.txt
 Outgoing License: LA_OPT_EVAL_DEMO_ONLY v21 December 2022
@@ -354,7 +354,7 @@ MicroEJ MicroUI            Name: MicroUI
                            Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/UI/MicroUI/index.html
 
 MicroEJ MicroUI Pack       Name: MicroUI Pack
-                           Version: 13.7.0
+                           Version: 13.7.2
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Enable the creation of user interface in Java
