@@ -9,11 +9,13 @@ S2SEXE=$(BSP_DIR)/projects/common/scripts/s2s.bat
 LINK=&&
 TOUCH=cmd /c type nul >
 EXPORT=SET
+UNZIP=tar -xf
 else
 S2SEXE=$(BSP_DIR)/projects/common/scripts/s2s.sh
 LINK=;
 TOUCH=touch
 EXPORT=export
+UNZIP=unzip
 endif
 
 .PRECIOUS: .java.fp .java.mock .java.configuration .%.java.app
@@ -81,6 +83,11 @@ nxpvee-mcu-validation.prj: clean .java.fp .java.mock .java.configuration .java.t
 
 %.prj: .java.fp .java.mock .java.configuration .%.java.app
 	make -C $(BSP_DIR)/projects/$(basename $@)/sdk_makefile
+
+$(addsuffix -javazip,$(PROJS)):
+	make clean
+	cd $(BSP_DIR)/projects/microej; $(UNZIP) $(JAVAZIP)
+	make -C $(BSP_DIR)/projects/$(@:%-javazip=%)/sdk_makefile
 
 $(addsuffix -flash,$(PROJS)):
 	make $(@:%-flash=%).prj

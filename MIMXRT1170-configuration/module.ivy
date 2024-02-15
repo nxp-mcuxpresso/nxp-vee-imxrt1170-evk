@@ -3,7 +3,7 @@
 	MicroEJ Corp. PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
 -->
 <ivy-module version="2.0" xmlns:ea="http://www.easyant.org" xmlns:m="http://ant.apache.org/ivy/extra" xmlns:ej="https://developer.microej.com" ej:version="2.0.0">
-	<info organisation="com.nxp.vee.mimxrt1170" module="evk_platform" status="integration" revision="2.1.0">
+	<info organisation="com.nxp.vee.mimxrt1170" module="evk_platform" status="integration" revision="2.1.1">
 		<ea:build organisation="com.is2t.easyant.buildtypes" module="build-custom" revision="2.2.+"/>
 		<ea:plugin org="com.is2t.easyant.plugins" module="eclipse-antRunner" revision="1.+"/>
 		<ea:plugin org="com.is2t.easyant.plugins" module="mam" revision="1.+"/>

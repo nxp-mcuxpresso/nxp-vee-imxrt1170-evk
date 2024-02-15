@@ -1,6 +1,6 @@
 Release Name: NXPVEE-MIMXRT1170-EVK
-Release Version: 2.1.0
-Date: January 2024
+Release Version: 2.1.1
+Date: February 2024
 Package License: LICENSE.txt
 Outgoing License: LA_OPT_EVAL_DEMO_ONLY v21 December 2022
 

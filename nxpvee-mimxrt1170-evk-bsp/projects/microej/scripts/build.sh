@@ -11,6 +11,9 @@ CURRENT_DIRECTORY=$(pwd)
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 cd "$SCRIPT_DIR/../../nxpvee-ui/sdk_makefile" || exit 1
 
+# shell scripts may have lost their execution flag is they come from a zip
+chmod -f +x $SCRIPT_DIR/../../nxpvee-ui/armgcc/*.sh || true
+
 make RELEASE=1 || exit 2
 
 cp ../armgcc/flexspi_nor_sdram_release/nxpvee_ui.elf "$CURRENT_DIRECTORY"/application.out || exit 3

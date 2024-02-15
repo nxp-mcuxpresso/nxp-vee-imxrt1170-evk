@@ -1,4 +1,4 @@
-- [NXP VEE for i.MX RT1170 EVK v2.1.0](#nxp-vee-for-imx-rt1170-evk-v210)
+- [NXP VEE for i.MX RT1170 EVK v2.1.1](#nxp-vee-for-imx-rt1170-evk-v211)
   - [MicroEJ SDK 6](#microej-sdk-6)
   - [MicroEJ SDK 5](#microej-sdk-5)
   - [VEE Port Specifications](#vee-port-specifications)
@@ -18,7 +18,7 @@
   - [Build and run applications using the MicroEJ SDK IDE](#build-and-run-applications-using-the-microej-sdk-ide)
     - [Build and run the applications in simulation mode](#build-and-run-the-applications-in-simulation-mode)
     - [Modify the `AnimatedMascot` application](#modify-the-animatedmascot-application)
-  - [Build and run applications on your i.MX RT1170](#build-and-run-applications-on-your-imx-rt1170)
+  - [Build and run applications on your i.MX RT1170 EVK](#build-and-run-applications-on-your-imx-rt1170-evk)
     - [Get an evaluation license](#get-an-evaluation-license)
     - [Build the applications for target](#build-the-applications-for-target)
     - [Build the firmware for target hardware using VS Code](#build-the-firmware-for-target-hardware-using-vs-code)
@@ -46,10 +46,11 @@
     - [License Error when building application](#license-error-when-building-application)
   - [Known issues](#known-issues)
     - [RSA key size limited to 2048 bits](#rsa-key-size-limited-to-2048-bits)
-# NXP VEE for i.MX RT1170 EVK v2.1.0
+# NXP VEE for i.MX RT1170 EVK v2.1.1
 This project is used to build an NXP VEE Port for the [i.MX RT1170 EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/i-mx-rt1170-evaluation-kit:MIMXRT1170-EVK) with a display panel [RK055HDMIPI4MA0](https://www.nxp.com/part/RK055HDMIPI4MA0#/).
 
-![imxrt1170evk](Documentation/pictures/RT1170/evkmimxrt1170-rk055hdmipi04ma0.jpg)
+![imxrt1170evk](Documentation/pictures/RT1170/evkmimxrt1170.jpg)
+![rk055hdmipi4ma0](Documentation/pictures/RT1170/rk055hdmipi4ma0.jpg)
 
 VEE stands for Virtual Execution Environment and provides a hardware abstraction to develop applications in high-level programming languages such as Java.
 NXP VEE is built upon [MicroEJ technology](https://www.microej.com/product/vee/).
@@ -61,7 +62,7 @@ This release provides:
 * the necessary recipes to embed the VEE architecture for GCC
 * various [Foundation Libraries](https://docs.microej.com/en/latest/ApplicationDeveloperGuide/libraries.html) to provide high level libraries to developers
 * in particular, Foundation Libraries [MicroUI](https://docs.microej.com/en/latest/ApplicationDeveloperGuide/UI/MicroUI/index.html#section-app-microui) to create user interfaces and [MicroVG](https://docs.microej.com/en/latest/ApplicationDeveloperGuide/UI/MicroVG/index.html) to provide accelerated vector drawing capabilities
-* [MCUXpresso SDK](https://mcuxpresso.nxp.com/en/welcome) 2.14.0 for RT1170
+* [MCUXpresso SDK](https://mcuxpresso.nxp.com/en/welcome) 2.14.0 for i.MX RT1170 EVK
 * FreeRTOS version 10.4.3
 * sample applications demonstrating NXP VEE:
     * SimpleGFX: draw moving NXP coloured boxes using MicroUI
@@ -124,21 +125,18 @@ This VEE Port provides the following Foundation Libraries:
 ```
 ├── BuildKit.readme.txt
 ├── Documentation
-├── EULA-EVAL.txt
+├── LICENSE.txt
 ├── Licenses
 ├── Makefile
 ├── Makefile.inc
 ├── MIMXRT1170-bsp
 ├── MIMXRT1170-configuration
 ├── MIMXRT1170-fp
-├── MIMXRT1170-evk_platform-CM7hardfp_GCC48-2.1.0
-|   Directory holding the VEE runtime files
+├── MIMXRT1170-evk_platform-CM7hardfp_GCC48-2.1.1
 ├── nxpvee-mimxrt1170-evk-apps
 ├── nxpvee-mimxrt1170-evk-bsp
 ├── nxpvee-mimxrt1170-evk-mock
-|   Project holding mockup functions
 ├── nxpvee-mimxrt1170-evk-validation
-|   Project holding Java tests to validate the VEE
 ├── SCR-nxpvee-mimxrt1170-evk.txt
 └── west.yml
 ```
@@ -271,9 +269,9 @@ Launch MicroEJ SDK and create a blank workspace.
 
 Import the cloned repository as an existing project:
 
-![Import...](Documentation/pictures/RT1170/sdk_import.png)
+![Import...](Documentation/pictures/common/sdk_import.png)
 
-![Existing Projects Into Workspace](Documentation/pictures/RT1170/sdk_existing_project.png)
+![Existing Projects Into Workspace](Documentation/pictures/common/sdk_existing_project.png)
 
 Then select all projects from the repository.
 
@@ -300,7 +298,7 @@ Right-click on the configuration project and select `Build Module`:
 
 ![Build platform](Documentation/pictures/RT1170/sdk_build_platform.png)
 
-Building the platform will populate the initally empty `MIMXRT1170-evk_platform-CM7hardfp_GCC48-2.1.0` project which will be used to build VEE applications.
+Building the platform will populate the initally empty `MIMXRT1170-evk_platform-CM7hardfp_GCC48-2.1.1` project which will be used to build VEE applications.
 Under the `source` folder of the VEE Port, you will find the following files: 
 * The C header files of the native needed by the VEE Port libraries are located in the `include` folder.
 * The Java API of the VEE Port libraries is located in the `javaAPIS` folder.
@@ -309,16 +307,21 @@ Under the `source` folder of the VEE Port, you will find the following files:
 * The VEE core, the MicroJVM, and some tools.
 
 ## Build and run applications using the MicroEJ SDK IDE
+
 Two example VEE applications are provided with this release.
+
 
 Application `SimpleGFX` displays three moving rectangles using the [MicroUI API](https://docs.microej.com/en/latest/ApplicationDeveloperGuide/UI/MicroUI/index.html#section-app-microui). The coordinates of the rectangles are calculated in C native functions.
 
-Application `AnimatedMascot` draws an animated [Android Vectordrawable](https://developer.android.com/develop/ui/views/graphics/vector-drawable-resources) image. It uses the i.MX RT1170's GCNanoLite-V as an accelerator.
+
+Application `AnimatedMascot` draws an animated [Android Vectordrawable](https://developer.android.com/develop/ui/views/graphics/vector-drawable-resources) image. It uses the RT1170's GCNanoLite-V as an accelerator.
+
 
 ### Build and run the applications in simulation mode
 To run applications in simulation mode, right-click on the apps project and select `Run As -> MicroEJ Application`:
 
 ![Run As MicroEJ Application](Documentation/pictures/RT1170/sdk_run_as_microej_app.png)
+
 
 The IDE will prompt which application should be built: either `SimpleGFX` or `AnimatedMascot`:
 
@@ -326,7 +329,9 @@ The IDE will prompt which application should be built: either `SimpleGFX` or `An
 
 Choose the application. Then run the application in simulation mode by choosing the mode _(SIM)_:
 
+
 ![Choose build mode](Documentation/pictures/RT1170/sdk_choose_app_mode.png)
+
 
 Here is the `AnimatedMascot` application running in simulation:
 
@@ -353,7 +358,7 @@ Here is the modified `AnimatedMascot` application running in simulation:
 ![Modified Animated Mascot](Documentation/pictures/RT1170/sdk_sim_modified_mascot.png)
 
 
-## Build and run applications on your i.MX RT1170
+## Build and run applications on your i.MX RT1170 EVK
 
 ### Get an evaluation license
 A license is required to build an embedded application. 
@@ -542,20 +547,20 @@ nxpvee-validation.prj        # compile and run validation
 
 ### compile and flash
 ```
-nxpvee-ui.prj
+make nxpvee-ui.prj
 
 # flash with a J-Link probe
-nxpvee-ui-flash
+make nxpvee-ui-flash
 
 # or flash with USB using CMSIS-DAP
-nxpvee-ui-flash_cmsisdap
+make nxpvee-ui-flash_cmsisdap
 ```
 
 ### debug
 ```
-nxpvee-ui-gdb
+make nxpvee-ui-gdb
 # or
-nxpvee-ui-gdb_cmsisdap
+make nxpvee-ui-gdb_cmsisdap
 ```
 
 ### Ninja

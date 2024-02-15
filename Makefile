@@ -33,7 +33,7 @@ endef
 
 
 BSP_DIR=$(BASE_DIR)/nxpvee-mimxrt1170-evk-bsp
-PLAT_DIR=$(BASE_DIR)/MIMXRT1170-evk_platform-CM7hardfp_GCC48-2.1.0
+PLAT_DIR=$(BASE_DIR)/MIMXRT1170-evk_platform-CM7hardfp_GCC48-2.1.1
 APP_DIR=$(BASE_DIR)/nxpvee-mimxrt1170-evk-apps
 FP_DIR=$(BASE_DIR)/MIMXRT1170-fp
 MOCK_DIR=$(BASE_DIR)/nxpvee-mimxrt1170-evk-mock
@@ -76,6 +76,8 @@ USAGE?=eval
 ifneq ($(MODULE_REPOSITORY_SETTINGS_FILE),)
 	MODULE_REPOSITORY_SETTINGS=--module-repository-settings-file=$(MODULE_REPOSITORY_SETTINGS_FILE)
 endif
+
+JAVAZIP ?=
 
 MAIN ?=
 

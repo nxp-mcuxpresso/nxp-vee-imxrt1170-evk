@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.1.1] - 2024-02-16
+
+### Changed
+
+- Fix MicroEJ SDK 6 builds on Linux.
+
 ## [2.1.0] - 2024-01-19
 
 ### Added
