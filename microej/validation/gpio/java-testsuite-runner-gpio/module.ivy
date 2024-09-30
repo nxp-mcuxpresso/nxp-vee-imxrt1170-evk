@@ -1,0 +1,20 @@
+<ivy-module version="2.0" xmlns:ea="http://www.easyant.org" xmlns:ej="https://developer.microej.com" ej:version="2.0.0">
+	<info organisation="com.nxp.pack.gpio" module="gpio-java-testsuite-runner-report" status="integration" revision="1.0.0">
+		<ea:build organisation="com.is2t.easyant.buildtypes" module="build-microej-testsuite" revision="4.2.+">
+		</ea:build>
+	</info>
+	
+	<configurations>
+		<conf name="default" />
+		<conf name="provided" />
+		<conf name="build-test" visibility="private" />
+		<conf name="test" visibility="private" description="this scope indicates that the dependency is not required for normal use of the application, and is only available for the test compilation and execution phases."/>
+	</configurations>
+	
+	<publications>
+	</publications>
+	
+	<dependencies>
+		<dependency org="com.nxp.pack.gpio" name="gpio-testsuite" rev="1.0.0" conf="test->default;provided->provided"/>
+	</dependencies>
+</ivy-module>

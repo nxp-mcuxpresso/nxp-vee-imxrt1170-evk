@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><platform hardwarePartNumber="MIMXRT1170" name="evk_platform" version="2.2.0" provider="NXP" vendorUrl="https://www.nxp.com" workbenchMinVersion="5.1.2">
+                            
+    
+    
+    
+    
+    
+    <environment architecture="CM7" baseline="14" hardwarePartNumber="CM7" toolchain="CM7hardfp_GCC48" name="flopi7G26" techVersion="1.6" version="8.1.1" level="eval" provider="MicroEJ" licenseTag="IS2T_J8F5C"/>
+                            
+    
+    
+    
+    
+    
+    <group name="frontPanel"/>
+                            
+    
+    
+    
+    
+    
+    <group name="fs"/>
+                            
+    
+    
+    
+    
+    
+    <group name="net"/>
+                            
+    
+    
+    
+    
+    
+    <group name="ssl"/>
+                            
+    
+    
+    
+    
+    
+    <group name="ui"/>
+                            
+    
+    
+    
+    
+    
+    <group name="ssl"/>
+                                          
+</platform>

@@ -7,26 +7,31 @@ tags
 **/CMakeCache.txt
 **/build_log.txt
 **/cmake_install.cmake
-**/flexspi_nor_debug/
-**/flexspi_nor_release/
 **/output.map
 **/CMakeFiles
 **/clean
 **/armgcc/Makefile
-**/flexspi_nor_sdram_debug/
-**/flexspi_nor_sdram_release/
+**/flexspi_nor_debug*/
+**/flexspi_nor_release*/
+**/flexspi_nor_sdram_debug*/
+**/flexspi_nor_sdram_release*/
 **/*.ninja_deps
 **/*.ninja_log
 **/build.ninja
 **/rules.ninja
+**/.settings/*
 
 *.s
 *.i
 
-MIMXRT1170-*-CM7hardfp_GCC48-*/build/
-MIMXRT1170-*-CM7hardfp_GCC48-*/source/
+microej/MIMXRT1170-*-CM7hardfp_GCC48-*/build/
+microej/MIMXRT1170-*-CM7hardfp_GCC48-*/source/
 
-nxpvee-mimxrt1170-evk-apps/launchers/*.properties
+microej/vee-port-configuration/dropins/javaAPIs/
+microej/vee-port-configuration/dropins/resources/
+microej/apps/launchers/*.properties
+microej/apps/com.nxp.*/bsp/*
+microej/apps/com.nxp.*/soar/*
 
 BuildKit/bin/
 BuildKit/conf/
@@ -45,17 +50,22 @@ BuildKit/release.properties
 .*.java.mock
 javasec.prop
 
-nxpvee-mimxrt1170-evk-bsp/projects/microej/ai/
-nxpvee-mimxrt1170-evk-bsp/projects/microej/cco_ai.properties
-nxpvee-mimxrt1170-evk-bsp/projects/microej/platform/
+bsp/projects/microej/platform/
 **/redlink.err
 **/redlink.log
 **/.gdb_history
 gdb.cmd
+**/application.bin
+**/application.hex
+**/application.elf
 **/application.out
+**/build/*
+**/script.jlink
 **/bin
 test_results/*
-nxpvee-mimxrt1170-evk-bsp/projects/nxpvee-ui/mcuide/Release/
-nxpvee-mimxrt1170-evk-bsp/projects/nxpvee-ui/mcuide/Debug/
-nxpvee-mimxrt1170-evk-bsp/projects/nxpvee-ui/armgcc/tree_version.c
-nxpvee-mimxrt1170-evk-bsp/mcux-sdk
+bsp/mcux-sdk
+bsp/projects/nxpvee-ui/armgcc/mcux_include.json
+bsp/projects/nxpvee-ui/armgcc/tree_version.c
+bsp/projects/nxpvee-ui/armgcc/.cmake/*
+bsp/projects/nxpvee-ui/armgcc/compile_commands.json
+bsp/projects/nxpvee-ui/sdk_makefile/jlink_flash.script

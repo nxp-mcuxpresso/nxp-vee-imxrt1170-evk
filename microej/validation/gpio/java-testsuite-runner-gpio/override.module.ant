@@ -1,0 +1,16 @@
+<!--
+ANT
+Copyright 2023 NXP Semiconductors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be found with this software.
+-->
+<project name="com.nxp.pack.gpio.gpio-testsuite.override" xmlns:ac="antlib:net.sf.antcontrib">
+        <!-- Load options from 'local.properties' beside this file -->
+        <ac:if>
+                <available file="local.properties" type="file"/>
+                <ac:then>
+                        <property file="local.properties"/>
+                </ac:then>
+        </ac:if>
+        <!-- Load options from 'config.properties' beside this file -->
+        <property file="config.properties"/>
+</project>

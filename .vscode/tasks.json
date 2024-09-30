@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "cmake",
+      "label": "CMake: build",
+      "command": "build",
+      "preset": "flexspi_nor_sdram_release_evkb",
+      "targets": [
+        "all"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "detail": "CMake template build task"
+    },
+    {
+      "type": "cmake",
+      "label": "CMake: clean",
+      "command": "clean",
+      "preset": "flexspi_nor_sdram_release_evkb",
+      "problemMatcher": [],
+      "detail": "CMake template clean task"
+    },
+    {
+      "type": "cmake",
+      "label": "CMake: configure",
+      "command": "configure",
+      "preset": "flexspi_nor_sdram_release_evkb",
+      "problemMatcher": [],
+      "detail": "CMake template configure task"
+    }
+  ]
+}

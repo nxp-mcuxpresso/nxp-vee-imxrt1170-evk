@@ -1,6 +1,23 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.2.0] - 2024-09-27
+
+### Added
+
+- Add AI Foundation Library with sample application.
+- Add MIMXRT1170-EVKB support (as default).
+- Add multi-Sandbox capability support.
+
+### Changed
+
+- Updated MEJ architecture to v8.1.1.
+- Updated PQT Core to 3.2.0.
+- Updated UI pack to v14.0.2.
+- Updated VG pack to v1.6.0.
+- Updated MCUXpresso SDK to v2.15.100.
+- Updated BSP build system to CMakePresets.
+
 ## [2.1.1] - 2024-02-16
 
 ### Changed

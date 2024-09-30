@@ -1,0 +1,1032 @@
+---
+container.freertos-kernel.armv8m:
+  section-type: container
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    files:
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/copy_files.py
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/non_secure/port.c
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/non_secure/portable/GCC/ARM_CM33/portasm.c
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/non_secure/portable/GCC/ARM_CM33/portmacro.h
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/non_secure/portable/GCC/ARM_CM33_NTZ/portasm.c
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/non_secure/portable/GCC/ARM_CM33_NTZ/portmacro.h
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/non_secure/portable/IAR/ARM_CM33/portasm.s
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/non_secure/portable/IAR/ARM_CM33/portmacro.h
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/non_secure/portable/IAR/ARM_CM33_NTZ/portasm.s
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/non_secure/portable/IAR/ARM_CM33_NTZ/portmacro.h
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/non_secure/portasm.h
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/non_secure/portmacrocommon.h
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/non_secure/ReadMe.txt
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/ReadMe.txt
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/secure/context/portable/GCC/ARM_CM33/secure_context_port.c
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/secure/context/portable/IAR/ARM_CM33/secure_context_port_asm.s
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/secure/context/secure_context.c
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/secure/context/secure_context.h
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/secure/heap/secure_heap.c
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/secure/heap/secure_heap.h
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/secure/init/secure_init.c
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/secure/init/secure_init.h
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/secure/macros/secure_port_macros.h
+    - source: rtos/freertos/freertos-kernel/portable/ARMv8M/secure/ReadMe.txt
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+container.freertos-kernel.doc:
+  section-type: container
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    files:
+    - source: rtos/freertos/freertos-kernel/ChangeLogKSDK.txt
+    - source: rtos/freertos/freertos-kernel/CMakeLists.txt
+    - source: rtos/freertos/freertos-kernel/GitHub-FreeRTOS-Kernel-Home.url
+    - source: rtos/freertos/freertos-kernel/History.txt
+    - source: rtos/freertos/freertos-kernel/LICENSE.md
+    - source: rtos/freertos/freertos-kernel/manifest.yml
+    - source: rtos/freertos/freertos-kernel/portable/CMakeLists.txt
+    - source: rtos/freertos/freertos-kernel/portable/ARMClang/Use-the-GCC-ports.txt
+    - source: rtos/freertos/freertos-kernel/Quick_Start_Guide.url
+    - source: rtos/freertos/freertos-kernel/README.md
+    - source: rtos/freertos/freertos-kernel/sbom.spdx
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+middleware.freertos-kernel.extension:
+  section-type: component
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    project_base_path: freertos/freertos-kernel
+    cc-include:
+    - repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+    files:
+    - source: rtos/freertos/freertos-kernel/include/freertos_tasks_c_additions.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/middleware_freertos-kernel_extension.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    type: other
+    full_name: FreeRTOS NXP extension
+    description: FreeRTOS NXP extension
+    version: 10.5.1
+    vendor: NXP
+    user_visible: never
+    taxonomy:
+      cclass: RTOS
+      cgroup: TAD extension
+      cbundle: FreeRTOS NXP
+      cbundle_version: 1.0.0
+    display_name: FreeRTOS NXP extension
+  meta-name: middleware.freertos-kernel.extension
+  cmake_module_name: middleware_freertos-kernel_extension
+middleware.freertos-kernel.template:
+  section-type: component
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    project_base_path: freertos/freertos-kernel
+    cc-include:
+    - repo_relative_path: template/ARM_CM0
+      cores: cm0p
+      project_relative_path: "../../source"
+      target_file:
+      - FreeRTOSConfig.h
+      package_relative_path: template/ARM_CM0
+    - repo_relative_path: template/ARM_CM33_3_priority_bits
+      cores: cm33
+      fpu: NO_FPU SP_FPU
+      device_ids: LPC5502 LPC5504 LPC5506 LPC5512 LPC5514 LPC5516 LPC5526 LPC5528
+        LPC5534 LPC5536 LPC55S04 LPC55S06 LPC55S14 LPC55S16 LPC55S26 LPC55S28 LPC55S36
+        LPC55S66 LPC55S69 MIMX8UD3xxx08 MIMX8UD5xxx08 MIMX8US3xxx08 MIMX8US5xxx08
+        MIMXRT533S MIMXRT555S MIMXRT595S MIMXRT633S MIMXRT685S
+      project_relative_path: "../../source"
+      target_file:
+      - FreeRTOSConfig.h
+      package_relative_path: template/ARM_CM33_3_priority_bits
+    - repo_relative_path: template/ARM_CM4F_3_priority_bits
+      cores: cm4f
+      device_ids: LPC54005 LPC54016 LPC54018 LPC54018J2M LPC54018J4M LPC54605J512
+        LPC54605J256 LPC54606J512 LPC54606J256 LPC54607J256 LPC54607J512 LPC54608J512
+        LPC54616J512 LPC54616J256 LPC54618J512 LPC54628J512 LPC54S005 LPC54S016 LPC54S018
+        LPC54S018J2M LPC54S018J4M
+      project_relative_path: "../../source"
+      target_file:
+      - FreeRTOSConfig.h
+      package_relative_path: template/ARM_CM4F_3_priority_bits
+    - repo_relative_path: template/ARM_CM4F_4_priority_bits
+      cores: cm4f cm7f
+      device_ids: K32L3A60xxx MCIMX7U3xxxxx MCIMX7U5xxxxx MIMX8MD6xxxJZ MIMX8MD6xxxHZ
+        MIMX8MD7xxxJZ MIMX8MD7xxxHZ MIMX8MM1xxxLZ MIMX8MM1xxxKZ MIMX8MM2xxxLZ MIMX8MM2xxxKZ
+        MIMX8MM3xxxLZ MIMX8MM3xxxKZ MIMX8MM4xxxLZ MIMX8MM4xxxKZ MIMX8MM5xxxLZ MIMX8MM5xxxKZ
+        MIMX8MM6xxxLZ MIMX8MM6xxxKZ MIMX8MQ5xxxJZ MIMX8MQ5xxxHZ MIMX8MQ6xxxJZ MIMX8MQ6xxxHZ
+        MIMX8MQ7xxxJZ MIMX8MQ7xxxHZ MIMXRT1165xxxxx MIMXRT1166xxxxx MIMXRT1173xxxxx
+        MIMXRT1175xxxxx MIMXRT1176xxxxx MK02FN128xxx10 MK02FN64xxx10 MK22FN128xxx12
+        MK22FN256xxx12 MK22FN512xxx12 MIMX8ML3xxxLZ MIMX8ML3xxxKZ MIMX8ML4xxxLZ MIMX8ML4xxxKZ
+        MIMX8ML6xxxLZ MIMX8ML6xxxKZ MIMX8ML8xxxLZ MIMX8ML8xxxKZ MIMX8MN1xxxJZ MIMX8MN1xxxIZ
+        MIMX8MN2xxxJZ MIMX8MN2xxxIZ MIMX8MN3xxxJZ MIMX8MN3xxxIZ MIMX8MN4xxxJZ MIMX8MN4xxxIZ
+        MIMX8MN5xxxJZ MIMX8MN5xxxIZ MIMX8MN6xxxJZ MIMX8MN6xxxIZ MIMXRT1011xxxxx MIMXRT1015xxxxx
+        MIMXRT1021xxxxx MIMXRT1024xxxxx MIMXRT1041xxxxB MIMXRT1042xxxxB MIMXRT1051xxxxB
+        MIMXRT1052xxxxB MIMXRT1061xxxxA MIMXRT1061xxxxB MIMXRT1062xxxxA MIMXRT1062xxxxB
+        MIMXRT1064xxxxA MIMXRT1171xxxxx MIMXRT1172xxxxx
+      project_relative_path: "../../source"
+      target_file:
+      - FreeRTOSConfig.h
+      package_relative_path: template/ARM_CM4F_4_priority_bits
+    files:
+    - source: rtos/freertos/freertos-kernel/template/ARM_CM0/FreeRTOSConfig.h
+      cores: cm0p
+      project_relative_path: "../../source"
+      repo_relative_path: template/ARM_CM0
+      package_relative_path: template/ARM_CM0
+      type: c_include
+      config: true
+    - source: rtos/freertos/freertos-kernel/template/ARM_CM33_3_priority_bits/FreeRTOSConfig.h
+      cores: cm33
+      fpu: NO_FPU SP_FPU
+      device_ids: LPC5502 LPC5504 LPC5506 LPC5512 LPC5514 LPC5516 LPC5526 LPC5528
+        LPC5534 LPC5536 LPC55S04 LPC55S06 LPC55S14 LPC55S16 LPC55S26 LPC55S28 LPC55S36
+        LPC55S66 LPC55S69 MIMX8UD3xxx08 MIMX8UD5xxx08 MIMX8US3xxx08 MIMX8US5xxx08
+        MIMXRT533S MIMXRT555S MIMXRT595S MIMXRT633S MIMXRT685S
+      project_relative_path: "../../source"
+      repo_relative_path: template/ARM_CM33_3_priority_bits
+      package_relative_path: template/ARM_CM33_3_priority_bits
+      type: c_include
+      config: true
+    - source: rtos/freertos/freertos-kernel/template/ARM_CM4F_3_priority_bits/FreeRTOSConfig.h
+      cores: cm4f
+      device_ids: LPC54005 LPC54016 LPC54018 LPC54018J2M LPC54018J4M LPC54605J512
+        LPC54605J256 LPC54606J512 LPC54606J256 LPC54607J256 LPC54607J512 LPC54608J512
+        LPC54616J512 LPC54616J256 LPC54618J512 LPC54628J512 LPC54S005 LPC54S016 LPC54S018
+        LPC54S018J2M LPC54S018J4M
+      project_relative_path: "../../source"
+      repo_relative_path: template/ARM_CM4F_3_priority_bits
+      package_relative_path: template/ARM_CM4F_3_priority_bits
+      type: c_include
+      config: true
+    - source: rtos/freertos/freertos-kernel/template/ARM_CM4F_4_priority_bits/FreeRTOSConfig.h
+      cores: cm4f cm7f
+      device_ids: K32L3A60xxx MCIMX7U3xxxxx MCIMX7U5xxxxx MIMX8MD6xxxJZ MIMX8MD6xxxHZ
+        MIMX8MD7xxxJZ MIMX8MD7xxxHZ MIMX8MM1xxxLZ MIMX8MM1xxxKZ MIMX8MM2xxxLZ MIMX8MM2xxxKZ
+        MIMX8MM3xxxLZ MIMX8MM3xxxKZ MIMX8MM4xxxLZ MIMX8MM4xxxKZ MIMX8MM5xxxLZ MIMX8MM5xxxKZ
+        MIMX8MM6xxxLZ MIMX8MM6xxxKZ MIMX8MQ5xxxJZ MIMX8MQ5xxxHZ MIMX8MQ6xxxJZ MIMX8MQ6xxxHZ
+        MIMX8MQ7xxxJZ MIMX8MQ7xxxHZ MIMXRT1165xxxxx MIMXRT1166xxxxx MIMXRT1173xxxxx
+        MIMXRT1175xxxxx MIMXRT1176xxxxx MK02FN128xxx10 MK02FN64xxx10 MK22FN128xxx12
+        MK22FN256xxx12 MK22FN512xxx12 MIMX8ML3xxxLZ MIMX8ML3xxxKZ MIMX8ML4xxxLZ MIMX8ML4xxxKZ
+        MIMX8ML6xxxLZ MIMX8ML6xxxKZ MIMX8ML8xxxLZ MIMX8ML8xxxKZ MIMX8MN1xxxJZ MIMX8MN1xxxIZ
+        MIMX8MN2xxxJZ MIMX8MN2xxxIZ MIMX8MN3xxxJZ MIMX8MN3xxxIZ MIMX8MN4xxxJZ MIMX8MN4xxxIZ
+        MIMX8MN5xxxJZ MIMX8MN5xxxIZ MIMX8MN6xxxJZ MIMX8MN6xxxIZ MIMXRT1011xxxxx MIMXRT1015xxxxx
+        MIMXRT1021xxxxx MIMXRT1024xxxxx MIMXRT1041xxxxB MIMXRT1042xxxxB MIMXRT1051xxxxB
+        MIMXRT1052xxxxB MIMXRT1061xxxxA MIMXRT1061xxxxB MIMXRT1062xxxxA MIMXRT1062xxxxB
+        MIMXRT1064xxxxA MIMXRT1171xxxxx MIMXRT1172xxxxx
+      project_relative_path: "../../source"
+      repo_relative_path: template/ARM_CM4F_4_priority_bits
+      package_relative_path: template/ARM_CM4F_4_priority_bits
+      type: c_include
+      config: true
+    - source: rtos/freertos/freertos-kernel/middleware_freertos-kernel_template.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    type: project_template
+    full_name: FreeRTOS configuration template
+    description: Template configuration file to be edited by user. Provides also memory
+      allocator (heap_x), change variant if needed.
+    version: 10.5.1
+    vendor: NXP
+    user_visible: never
+    taxonomy:
+      cclass: RTOS
+      cgroup: freertos template
+      cbundle: FreeRTOS NXP
+      cbundle_version: 1.0.0
+    display_name: FreeRTOS configuration template
+  meta-name: middleware.freertos-kernel.template
+  cmake_module_name: middleware_freertos-kernel_template
+set.middleware.freertos-kernel:
+  section-type: set
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    fixed_id: amazon_freertos_kernel
+    version: 10.5.1
+    display_name: FreeRTOS
+    description: Real-time operating system for microcontrollers from Amazon
+    set_location:
+      repo_base_path: rtos/freertos/freertos-kernel
+    type: middleware
+    vendor: NXP
+    product:
+      kex_package:
+        scr:
+        - scr.freertos-kernel
+        kex_web_ui:
+          ui_control: true
+          ui_release_specific: true
+          ui_control_default: false
+          ui_category: Operating System
+      cmsis_pack:
+        scr:
+        - scr.freertos-kernel
+        vendor: NXP
+        supported: true
+        pack_root:
+          pack_type: SWP
+          pack_name: FREERTOS-KERNEL
+          pack_version: 1.0.0
+scr.freertos-kernel:
+  section-type: scr
+  belong_to: set.middleware.freertos-kernel
+  contents:
+    Name: FreeRTOS kernel
+    Version: 10.5.1
+    license:
+    - license.amazon_mit
+    Format: source code
+    Description: Open source RTOS kernel for small devices
+    Location: rtos/freertos/freertos-kernel
+    Origin: Amazon (MIT)
+    Url: https://github.com/FreeRTOS/FreeRTOS-Kernel
+license.segger_sysview:
+  section-type: license
+  contents:
+    repo_base_path: boards/<board>/freertos_examples/visualization/freertos_segger_sysview
+    files:
+    - source: boards/<board>/freertos_examples/visualization/freertos_segger_sysview/LICENSE
+    package_base_path: boards/<board>/freertos_examples/visualization/freertos_segger_sysview
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    click_through: false
+    Outgoing License: BSD-1-Clause
+scr.segger_sysview:
+  section-type: scr
+  belong_to: set.middleware.freertos-kernel
+  contents:
+    Name: Segger SystemView Demo
+    Version: '3.30'
+    license:
+    - license.segger_sysview
+    Format: source code
+    Description: Segger SystemView demo
+    Location: boards/<board>/freertos_examples/visualization/freertos_segger_sysview
+    Origin: Segger (BSD-1-Clause)
+    Url: https://www.segger.com/products/development-tools/systemview/
+middleware.freertos-kernel:
+  section-type: component
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    project_base_path: freertos/freertos-kernel
+    cc-include:
+    - repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+    - compilers: gcc
+      cores: cm0p
+      repo_relative_path: portable/GCC/ARM_CM0
+      toolchains: armgcc mcux
+      project_relative_path: portable/GCC/ARM_CM0
+      package_relative_path: portable/GCC/ARM_CM0
+    - compilers: gcc
+      cores: cm4f cm7f
+      repo_relative_path: portable/GCC/ARM_CM4F
+      toolchains: armgcc mcux
+      project_relative_path: portable/GCC/ARM_CM4F
+      package_relative_path: portable/GCC/ARM_CM4F
+    files:
+    - source: rtos/freertos/freertos-kernel/croutine.c
+      repo_relative_path: "./"
+      project_relative_path: "./"
+      package_relative_path: "./"
+      type: src
+    - source: rtos/freertos/freertos-kernel/event_groups.c
+      repo_relative_path: "./"
+      project_relative_path: "./"
+      package_relative_path: "./"
+      type: src
+    - source: rtos/freertos/freertos-kernel/include/atomic.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/croutine.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/deprecated_definitions.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/event_groups.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/FreeRTOS.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/list.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/message_buffer.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/mpu_prototypes.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/mpu_wrappers.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/portable.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/projdefs.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/queue.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/semphr.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/stack_macros.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/StackMacros.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/stdint.readme
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: doc
+    - source: rtos/freertos/freertos-kernel/include/stream_buffer.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/task.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/include/timers.h
+      repo_relative_path: include
+      project_relative_path: include
+      package_relative_path: include
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/list.c
+      repo_relative_path: "./"
+      project_relative_path: "./"
+      package_relative_path: "./"
+      type: src
+    - compilers: gcc
+      cores: cm0p
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM0/port.c
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM0
+      project_relative_path: portable/GCC/ARM_CM0
+      package_relative_path: portable/GCC/ARM_CM0
+      type: src
+    - compilers: gcc
+      cores: cm0p
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM0/portmacro.h
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM0
+      project_relative_path: portable/GCC/ARM_CM0
+      package_relative_path: portable/GCC/ARM_CM0
+      type: c_include
+    - compilers: gcc
+      cores: cm4f cm7f
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM4F/port.c
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM4F
+      project_relative_path: portable/GCC/ARM_CM4F
+      package_relative_path: portable/GCC/ARM_CM4F
+      type: src
+    - compilers: gcc
+      cores: cm4f cm7f
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM4F/portmacro.h
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM4F
+      project_relative_path: portable/GCC/ARM_CM4F
+      package_relative_path: portable/GCC/ARM_CM4F
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/portable/MemMang/ReadMe.url
+      repo_relative_path: portable/MemMang
+      project_relative_path: portable/MemMang
+      package_relative_path: portable/MemMang
+      type: other
+    - source: rtos/freertos/freertos-kernel/portable/readme.txt
+      repo_relative_path: portable
+      project_relative_path: portable
+      package_relative_path: portable
+      type: doc
+    - source: rtos/freertos/freertos-kernel/queue.c
+      repo_relative_path: "./"
+      project_relative_path: "./"
+      package_relative_path: "./"
+      type: src
+    - source: rtos/freertos/freertos-kernel/stream_buffer.c
+      repo_relative_path: "./"
+      project_relative_path: "./"
+      package_relative_path: "./"
+      type: src
+    - source: rtos/freertos/freertos-kernel/tasks.c
+      repo_relative_path: "./"
+      project_relative_path: "./"
+      package_relative_path: "./"
+      type: src
+    - source: rtos/freertos/freertos-kernel/timers.c
+      repo_relative_path: "./"
+      project_relative_path: "./"
+      package_relative_path: "./"
+      type: src
+    - source: rtos/freertos/freertos-kernel/middleware_freertos-kernel.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    configuration:
+      cc-define:
+        SDK_OS_FREE_RTOS: 
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    type: OS
+    full_name: FreeRTOS kernel
+    description: FreeRTOS kernel
+    version: 10.5.1
+    vendor: NXP
+    user_visible: always
+    taxonomy:
+      cclass: RTOS
+      cgroup: Core
+      cbundle: FreeRTOS NXP
+      cbundle_version: 1.0.0
+    display_name: FreeRTOS kernel
+  dependency:
+    allOf:
+    - middleware.freertos-kernel.template
+    - middleware.freertos-kernel.extension
+  meta-name: middleware.freertos-kernel
+  cmake_module_name: middleware_freertos-kernel
+middleware.freertos-kernel.cm33_non_trustzone:
+  section-type: component
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    project_base_path: freertos/freertos-kernel
+    cc-include:
+    - cores: cm33
+      fpu: NO_FPU SP_FPU
+      repo_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      toolchains: armgcc mcux
+      project_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      package_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+    files:
+    - cores: cm33
+      fpu: NO_FPU SP_FPU
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      project_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      package_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      type: src
+    - cores: cm33
+      fpu: NO_FPU SP_FPU
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      project_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      package_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      type: src
+    - cores: cm33
+      fpu: NO_FPU SP_FPU
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.h
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      project_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      package_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      type: c_include
+    - cores: cm33
+      fpu: NO_FPU SP_FPU
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portmacro.h
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      project_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      package_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      type: c_include
+    - cores: cm33
+      fpu: NO_FPU SP_FPU
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portmacrocommon.h
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      project_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      package_relative_path: portable/GCC/ARM_CM33_NTZ/non_secure
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/middleware_freertos-kernel_cm33_non_trustzone.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    type: middleware
+    full_name: FreeRTOS cm33 non trustzone port
+    description: FreeRTOS cm33 non trustzone port
+    version: 10.5.1
+    vendor: NXP
+    user_visible: always
+    taxonomy:
+      cclass: RTOS
+      cgroup: cm33_non_trustzone_port
+      cbundle: FreeRTOS NXP
+      cbundle_version: 1.0.0
+    display_name: cm33 nontrustzone port
+  dependency:
+    allOf:
+    - middleware.freertos-kernel
+    - anyOf:
+      - middleware.freertos-kernel.template
+      - not: middleware.freertos-kernel.template
+    - core:
+      - cm33
+    - not: middleware.freertos-kernel.cm33_trustzone.non_secure
+    - not: middleware.freertos-kernel.cm33_trustzone.secure
+  meta-name: middleware.freertos-kernel.cm33_non_trustzone
+  cmake_module_name: middleware_freertos-kernel_cm33_non_trustzone
+middleware.freertos-kernel.cm33_trustzone.non_secure:
+  section-type: component
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    project_base_path: freertos/freertos-kernel
+    cc-include:
+    - cores: cm33
+      fpu: NO_FPU SP_FPU
+      repo_relative_path: portable/GCC/ARM_CM33/non_secure
+      toolchains: armgcc mcux
+      project_relative_path: portable/GCC/ARM_CM33/non_secure
+      package_relative_path: portable/GCC/ARM_CM33/non_secure
+    files:
+    - cores: cm33
+      fpu: NO_FPU SP_FPU
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33/non_secure/port.c
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33/non_secure
+      project_relative_path: portable/GCC/ARM_CM33/non_secure
+      package_relative_path: portable/GCC/ARM_CM33/non_secure
+      type: src
+    - cores: cm33
+      fpu: NO_FPU SP_FPU
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33/non_secure/portasm.c
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33/non_secure
+      project_relative_path: portable/GCC/ARM_CM33/non_secure
+      package_relative_path: portable/GCC/ARM_CM33/non_secure
+      type: src
+    - cores: cm33
+      fpu: NO_FPU SP_FPU
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33/non_secure/portasm.h
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33/non_secure
+      project_relative_path: portable/GCC/ARM_CM33/non_secure
+      package_relative_path: portable/GCC/ARM_CM33/non_secure
+      type: c_include
+    - cores: cm33
+      fpu: NO_FPU SP_FPU
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33/non_secure/portmacro.h
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33/non_secure
+      project_relative_path: portable/GCC/ARM_CM33/non_secure
+      package_relative_path: portable/GCC/ARM_CM33/non_secure
+      type: c_include
+    - cores: cm33
+      fpu: NO_FPU SP_FPU
+      source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33/non_secure/portmacrocommon.h
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33/non_secure
+      project_relative_path: portable/GCC/ARM_CM33/non_secure
+      package_relative_path: portable/GCC/ARM_CM33/non_secure
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/middleware_freertos-kernel_cm33_trustzone_non_secure.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    type: middleware
+    full_name: FreeRTOS cm33 secure port
+    description: FreeRTOS cm33 secure port
+    version: 10.5.1
+    vendor: NXP
+    user_visible: never
+    taxonomy:
+      cclass: RTOS
+      cgroup: cm33_secure_port
+      cbundle: FreeRTOS NXP
+      cbundle_version: 1.0.0
+    display_name: cm33 secure port
+  dependency:
+    allOf:
+    - middleware.freertos-kernel
+    - middleware.freertos-kernel.mpu_wrappers
+    - middleware.freertos-kernel.cm33_trustzone.secure.context
+    - core:
+      - cm33
+    - not: middleware.freertos-kernel.cm33_non_trustzone
+  meta-name: middleware.freertos-kernel.cm33_trustzone.non_secure
+  cmake_module_name: middleware_freertos-kernel_cm33_trustzone_non_secure
+middleware.freertos-kernel.heap_1:
+  section-type: component
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    project_base_path: freertos/freertos-kernel
+    files:
+    - source: rtos/freertos/freertos-kernel/portable/MemMang/heap_1.c
+      repo_relative_path: portable/MemMang
+      project_relative_path: portable/MemMang
+      package_relative_path: portable/MemMang
+      type: src
+    - source: rtos/freertos/freertos-kernel/middleware_freertos-kernel_heap_1.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    type: other
+    full_name: FreeRTOS heap 1
+    description: FreeRTOS heap 1
+    version: 10.5.1
+    vendor: NXP
+    user_visible: never
+    taxonomy:
+      cclass: RTOS
+      cgroup: Heap
+      cvariant: Heap_1
+      cbundle: FreeRTOS NXP
+      cbundle_version: 1.0.0
+    display_name: FreeRTOS heap 1
+  dependency:
+    allOf:
+    - middleware.freertos-kernel
+    - not: middleware.freertos-kernel.heap_2
+    - not: middleware.freertos-kernel.heap_3
+    - not: middleware.freertos-kernel.heap_4
+    - not: middleware.freertos-kernel.heap_5
+  meta-name: middleware.freertos-kernel.heap_1
+  cmake_module_name: middleware_freertos-kernel_heap_1
+middleware.freertos-kernel.heap_2:
+  section-type: component
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    project_base_path: freertos/freertos-kernel
+    files:
+    - source: rtos/freertos/freertos-kernel/portable/MemMang/heap_2.c
+      repo_relative_path: portable/MemMang
+      project_relative_path: portable/MemMang
+      package_relative_path: portable/MemMang
+      type: src
+    - source: rtos/freertos/freertos-kernel/middleware_freertos-kernel_heap_2.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    type: other
+    full_name: FreeRTOS heap 2
+    description: FreeRTOS heap 2
+    version: 10.5.1
+    vendor: NXP
+    user_visible: never
+    taxonomy:
+      cclass: RTOS
+      cgroup: Heap
+      cvariant: Heap_2
+      cbundle: FreeRTOS NXP
+      cbundle_version: 1.0.0
+    display_name: FreeRTOS heap 2
+  dependency:
+    allOf:
+    - middleware.freertos-kernel
+    - not: middleware.freertos-kernel.heap_1
+    - not: middleware.freertos-kernel.heap_3
+    - not: middleware.freertos-kernel.heap_4
+    - not: middleware.freertos-kernel.heap_5
+  meta-name: middleware.freertos-kernel.heap_2
+  cmake_module_name: middleware_freertos-kernel_heap_2
+middleware.freertos-kernel.heap_3:
+  section-type: component
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    project_base_path: freertos/freertos-kernel
+    files:
+    - source: rtos/freertos/freertos-kernel/portable/MemMang/heap_3.c
+      repo_relative_path: portable/MemMang
+      project_relative_path: portable/MemMang
+      package_relative_path: portable/MemMang
+      type: src
+    - source: rtos/freertos/freertos-kernel/middleware_freertos-kernel_heap_3.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    type: other
+    full_name: FreeRTOS heap_3
+    description: FreeRTOS heap 3
+    version: 10.5.1
+    vendor: NXP
+    user_visible: never
+    taxonomy:
+      cclass: RTOS
+      cgroup: Heap
+      cvariant: Heap_3
+      cbundle: FreeRTOS NXP
+      cbundle_version: 1.0.0
+    display_name: FreeRTOS heap 3
+  dependency:
+    allOf:
+    - middleware.freertos-kernel
+    - not: middleware.freertos-kernel.heap_1
+    - not: middleware.freertos-kernel.heap_2
+    - not: middleware.freertos-kernel.heap_4
+    - not: middleware.freertos-kernel.heap_5
+  meta-name: middleware.freertos-kernel.heap_3
+  cmake_module_name: middleware_freertos-kernel_heap_3
+middleware.freertos-kernel.heap_4:
+  section-type: component
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    project_base_path: freertos/freertos-kernel
+    files:
+    - source: rtos/freertos/freertos-kernel/portable/MemMang/heap_4.c
+      repo_relative_path: portable/MemMang
+      project_relative_path: portable/MemMang
+      package_relative_path: portable/MemMang
+      type: src
+    - source: rtos/freertos/freertos-kernel/middleware_freertos-kernel_heap_4.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    type: other
+    full_name: FreeRTOS heap 4
+    description: FreeRTOS heap 4
+    version: 10.5.1
+    vendor: NXP
+    user_visible: never
+    taxonomy:
+      cclass: RTOS
+      cgroup: Heap
+      cvariant: Heap_4
+      cbundle: FreeRTOS NXP
+      cbundle_version: 1.0.0
+      default_variant: true
+    display_name: FreeRTOS heap 4
+  dependency:
+    allOf:
+    - middleware.freertos-kernel
+    - not: middleware.freertos-kernel.heap_1
+    - not: middleware.freertos-kernel.heap_2
+    - not: middleware.freertos-kernel.heap_3
+    - not: middleware.freertos-kernel.heap_5
+  meta-name: middleware.freertos-kernel.heap_4
+  cmake_module_name: middleware_freertos-kernel_heap_4
+middleware.freertos-kernel.heap_5:
+  section-type: component
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    project_base_path: freertos/freertos-kernel
+    files:
+    - source: rtos/freertos/freertos-kernel/portable/MemMang/heap_5.c
+      repo_relative_path: portable/MemMang
+      project_relative_path: portable/MemMang
+      package_relative_path: portable/MemMang
+      type: src
+    - source: rtos/freertos/freertos-kernel/middleware_freertos-kernel_heap_5.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    type: other
+    full_name: FreeRTOS heap 5
+    description: FreeRTOS heap 5
+    version: 10.5.1
+    vendor: NXP
+    user_visible: never
+    taxonomy:
+      cclass: RTOS
+      cgroup: Heap
+      cvariant: Heap_5
+      cbundle: FreeRTOS NXP
+      cbundle_version: 1.0.0
+    display_name: FreeRTOS heap 5
+  dependency:
+    allOf:
+    - middleware.freertos-kernel
+    - not: middleware.freertos-kernel.heap_1
+    - not: middleware.freertos-kernel.heap_2
+    - not: middleware.freertos-kernel.heap_3
+    - not: middleware.freertos-kernel.heap_4
+  meta-name: middleware.freertos-kernel.heap_5
+  cmake_module_name: middleware_freertos-kernel_heap_5
+middleware.freertos-kernel.mpu_wrappers:
+  section-type: component
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    project_base_path: freertos/freertos-kernel
+    files:
+    - source: rtos/freertos/freertos-kernel/portable/Common/mpu_wrappers.c
+      repo_relative_path: portable/Common
+      project_relative_path: portable/Common
+      package_relative_path: portable/Common
+      type: src
+    - source: rtos/freertos/freertos-kernel/middleware_freertos-kernel_mpu_wrappers.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    type: other
+    full_name: FreeRTOS MPU wrappers
+    description: FreeRTOS MPU wrappers
+    version: 10.5.1
+    vendor: NXP
+    user_visible: never
+    taxonomy:
+      cclass: RTOS
+      cgroup: MPU wrappers
+      cbundle: FreeRTOS NXP
+      cbundle_version: 1.0.0
+    display_name: FreeRTOS MPU wrappers
+  dependency:
+    allOf:
+    - middleware.freertos-kernel
+  meta-name: middleware.freertos-kernel.mpu_wrappers
+  cmake_module_name: middleware_freertos-kernel_mpu_wrappers
+middleware.freertos-kernel.cm33_trustzone.secure.context:
+  section-type: component
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    project_base_path: freertos/freertos-kernel
+    cc-include:
+    - cores: cm33
+      toolchains: armgcc mcux
+      fpu: NO_FPU SP_FPU
+      repo_relative_path: portable/GCC/ARM_CM33/secure
+      project_relative_path: portable/GCC/ARM_CM33/secure
+      package_relative_path: portable/GCC/ARM_CM33/secure
+    files:
+    - source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33/secure/secure_context.h
+      toolchains: armgcc mcux
+      cores: cm33
+      fpu: NO_FPU SP_FPU
+      repo_relative_path: portable/GCC/ARM_CM33/secure
+      project_relative_path: portable/GCC/ARM_CM33/secure
+      package_relative_path: portable/GCC/ARM_CM33/secure
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33/secure/secure_init.h
+      toolchains: armgcc mcux
+      cores: cm33
+      fpu: NO_FPU SP_FPU
+      repo_relative_path: portable/GCC/ARM_CM33/secure
+      project_relative_path: portable/GCC/ARM_CM33/secure
+      package_relative_path: portable/GCC/ARM_CM33/secure
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/middleware_freertos-kernel_cm33_trustzone_secure_context.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    type: middleware
+    full_name: FreeRTOS cm33 TrustZone secure port
+    description: FreeRTOS cm33 TrustZone secure port
+    version: 10.5.1
+    vendor: NXP
+    user_visible: never
+    taxonomy:
+      cclass: RTOS
+      cgroup: cm33 trustzone secure context
+      cbundle: FreeRTOS NXP
+      cbundle_version: 1.0.0
+    display_name: cm33 trustzone secure context
+  dependency:
+    allOf:
+    - core:
+      - cm33
+  meta-name: middleware.freertos-kernel.cm33_trustzone.secure.context
+  cmake_module_name: middleware_freertos-kernel_cm33_trustzone_secure_context
+middleware.freertos-kernel.cm33_trustzone.secure:
+  section-type: component
+  contents:
+    repo_base_path: rtos/freertos/freertos-kernel
+    project_base_path: freertos/freertos-kernel
+    cc-include:
+    - repo_relative_path: portable/GCC/ARM_CM33/secure
+      toolchains: armgcc mcux
+      project_relative_path: portable/GCC/ARM_CM33/secure
+      package_relative_path: portable/GCC/ARM_CM33/secure
+    files:
+    - source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33/secure/secure_context.c
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33/secure
+      project_relative_path: portable/GCC/ARM_CM33/secure
+      package_relative_path: portable/GCC/ARM_CM33/secure
+      type: src
+    - source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33/secure/secure_context_port.c
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33/secure
+      project_relative_path: portable/GCC/ARM_CM33/secure
+      package_relative_path: portable/GCC/ARM_CM33/secure
+      type: src
+    - source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33/secure/secure_heap.c
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33/secure
+      project_relative_path: portable/GCC/ARM_CM33/secure
+      package_relative_path: portable/GCC/ARM_CM33/secure
+      type: src
+    - source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33/secure/secure_heap.h
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33/secure
+      project_relative_path: portable/GCC/ARM_CM33/secure
+      package_relative_path: portable/GCC/ARM_CM33/secure
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33/secure/secure_init.c
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33/secure
+      project_relative_path: portable/GCC/ARM_CM33/secure
+      package_relative_path: portable/GCC/ARM_CM33/secure
+      type: src
+    - source: rtos/freertos/freertos-kernel/portable/GCC/ARM_CM33/secure/secure_port_macros.h
+      toolchains: armgcc mcux
+      repo_relative_path: portable/GCC/ARM_CM33/secure
+      project_relative_path: portable/GCC/ARM_CM33/secure
+      package_relative_path: portable/GCC/ARM_CM33/secure
+      type: c_include
+    - source: rtos/freertos/freertos-kernel/middleware_freertos-kernel_cm33_trustzone_secure.cmake
+      type: workspace
+      toolchains: armgcc
+      hidden: true
+    package_base_path: rtos/freertos/freertos-kernel
+  belong_to: set.middleware.freertos-kernel
+  section_info:
+    type: middleware
+    full_name: FreeRTOS Secure Context
+    description: FreeRTOS Secure Context
+    version: 10.5.1
+    vendor: NXP
+    user_visible: always
+    taxonomy:
+      cclass: RTOS
+      cgroup: cm33 secure port
+      cbundle: FreeRTOS NXP
+      cbundle_version: 1.0.0
+    display_name: cm33 secure port
+  dependency:
+    allOf:
+    - middleware.freertos-kernel.cm33_trustzone.secure.context
+    - anyOf:
+      - middleware.freertos-kernel.template
+      - not: middleware.freertos-kernel.template
+    - core:
+      - cm33
+  meta-name: middleware.freertos-kernel.cm33_trustzone.secure
+  cmake_module_name: middleware_freertos-kernel_cm33_trustzone_secure

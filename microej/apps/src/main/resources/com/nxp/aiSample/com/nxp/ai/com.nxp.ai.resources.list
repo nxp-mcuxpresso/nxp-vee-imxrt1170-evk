@@ -1,0 +1,8 @@
+#
+#  Copyright 2023 NXP
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+
+/model/cifarnet_quant_int8.tflite
+/model/cifar_labels.txt

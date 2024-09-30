@@ -16,11 +16,11 @@
       ],
       "program": "",
       "miDebuggerServerAddress": "",
+      "miDebuggerPath": "",
       "variables": {
         "mcuxStopAtSymbol": "main",
-        "mcuxSerialNumber": "02280000082d27a600000000000000000000000097969905",
         "mcuxAttach": "false",
-        "mcuxRemoteProbeType": ""
+        "mcuxSerialNumber": "",
       },
       "logging": {
         "engineLogging": false
