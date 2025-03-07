@@ -21,24 +21,9 @@ tags
 **/rules.ninja
 **/.settings/*
 
-*.s
-*.i
-
-microej/MIMXRT1170-*-CM7hardfp_GCC48-*/build/
-microej/MIMXRT1170-*-CM7hardfp_GCC48-*/source/
-
-microej/vee-port-configuration/dropins/javaAPIs/
-microej/vee-port-configuration/dropins/resources/
-microej/apps/launchers/*.properties
-microej/apps/com.nxp.*/bsp/*
-microej/apps/com.nxp.*/soar/*
-
-BuildKit/bin/
-BuildKit/conf/
-BuildKit/lib/
-BuildKit/microej-build-repository/
-BuildKit/microej-module-repository/
-BuildKit/release.properties
+**/build/
+**/.gradle/
+**/.idea/
 
 .java.app
 .java.configuration
@@ -50,7 +35,8 @@ BuildKit/release.properties
 .*.java.mock
 javasec.prop
 
-bsp/projects/microej/platform/
+bsp/vee/inc/
+bsp/vee/lib/
 **/redlink.err
 **/redlink.log
 **/.gdb_history
@@ -59,13 +45,24 @@ gdb.cmd
 **/application.hex
 **/application.elf
 **/application.out
-**/build/*
 **/script.jlink
 **/bin
 test_results/*
 bsp/mcux-sdk
+bsp/vee/scripts/armgcc/compile_commands.json
+bsp/vee/scripts/sdk_makefile/jlink_flash.script
+
 bsp/projects/nxpvee-ui/armgcc/mcux_include.json
 bsp/projects/nxpvee-ui/armgcc/tree_version.c
-bsp/projects/nxpvee-ui/armgcc/.cmake/*
-bsp/projects/nxpvee-ui/armgcc/compile_commands.json
-bsp/projects/nxpvee-ui/sdk_makefile/jlink_flash.script
+
+.builder
+
+Makefile
+Makefile.inc
+CMakeLists.txt
+CMakePresets.json
+CMakePresets.json.inc
+**/__pycache__/
+bsp/vee/lib/
+bsp/vee/inc/
+.preset.gen

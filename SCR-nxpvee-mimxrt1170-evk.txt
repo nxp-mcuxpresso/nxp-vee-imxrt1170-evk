@@ -1,8 +1,8 @@
 Release Name: NXPVEE-MIMXRT1170-EVK
-Release Version: 2.2.0
-Date: September 2024
+Release Version: 3.0.0
+Date: March 2025
 Package License: LICENSE.txt
-Outgoing License: LA_OPT_NXP_Software_License v57 July 2024, Section 2.3 applies
+Outgoing License: LA_OPT_NXP_Software_License v60 February 2025, Section 2.3 applies
 
 SDK_Peripheral_Driver      Name: SDK Peripheral Driver
                            Version: 2.x.x
@@ -157,6 +157,8 @@ fatfs                      Name: FatFs
 
 freertos-kernel            Name: FreeRTOS kernel
                            Version: 10.5.1
+                           CVE:
+                             - https://nvd.nist.gov/vuln/detail/CVE-2024-28115
                            Outgoing License: MIT
                            License File: bsp/sdk_overlay/rtos/freertos/freertos-kernel/LICENSE.md
                            Format: source code
@@ -169,20 +171,20 @@ freertos-kernel            Name: FreeRTOS kernel
 FreeType                   Name: FreeType
                            Version: 2.11
                            Outgoing License: FTL
-                           License File: bsp/projects/microej/thirdparty/freetype/FTL.TXT
+                           License File: bsp/vee/thirdparty/freetype/FTL.TXT
                            Format: source code
                            Description: Software library to render fonts
-                           Location: bsp/projects/microej/thirdparty/freetype
+                           Location: bsp/vee/thirdparty/freetype
                            Origin: The FreeType Project (http://freetype.org/license.html)
                            Url: https://gitlab.freedesktop.org/freetype/freetype.git
 
 HarfBuzz                   Name: HarfBuzz
                            Version: 4.2.1
                            Outgoing License: Old MIT
-                           License File: bsp/projects/microej/thirdparty/harfbuzz/COPYING
+                           License File: bsp/vee/thirdparty/harfbuzz/COPYING
                            Format: source code
                            Description: Text shaping library
-                           Location: bsp/projects/microej/thirdparty/harfbuzz
+                           Location: bsp/vee/thirdparty/harfbuzz
                            Origin: HarfBuzz Project (https://harfbuzz.github.io/)
                            Url: https://github.com/harfbuzz/harfbuzz
 
@@ -277,25 +279,25 @@ MicroEJ BSP                Name: MicroEJ BSP
                            License File: Licenses/COPYING-BSD-3
                            Format: source code
                            Description: Board support package for i.MX RT1170
-                           Location: bsp/projects/microej (excluding subdirectory
+                           Location: bsp/vee/port (excluding subdirectory
                            thirdparty)
                            Origin: MicroEJ (https://www.microej.com/)
 
 MicroEJ ARCHITECTURE       Name: Microej Architecture
-                           Version: flopi7G26-8.1.1
+                           Version: flopi7G26-8.3.0
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: MicroEJ Architecture for GNU Tools for ARM Embedded Processors 4.8.
-                           Location: dependency of microej/vee-port-configuration/module.ivy
+                           Location: dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
-                           Url: https://repository.microej.com/architectures/com/microej/architecture/CM7/CM7hardfp_GCC48/flopi7G26/8.1.1/
+                           Url: https://repository.microej.com/architectures/com/microej/architecture/CM7/CM7hardfp_GCC48/flopi7G26/8.3.0/
 
 MicroEJ BASICTOOL          Name: Basic Tool
                            Version: 1.5.0
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Miscellaneous tools
-                           Location: transitive dependency of microej/apps/module.ivy
+                           Location: transitive dependency of apps/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://repository.microej.com/javadoc/microej_5.x/apis/ej/basictool/package-summary.html
 
@@ -304,7 +306,7 @@ MicroEJ BON                Name: Beyond Profile (BON)
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Control memory usage and start-up sequences
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/runtime.html?highlight=edc#beyond-profile-bon
 
@@ -313,7 +315,7 @@ MicroEJ COLLECTIONS        Name: Collections
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Static methods that operate on or return collections
-                           Location: transitive dependency of microej/apps/module.ivy
+                           Location: transitive dependency of apps/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://repository.microej.com/javadoc/microej_5.x/apis/index.html?java/util/Collections.html
 
@@ -322,7 +324,7 @@ MicroEJ DEVICE             Name: Device Pack
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: The Device Foundation Library provides access to the device information.
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/VEEPortingGuide/device.html
 
@@ -331,7 +333,7 @@ MicroEJ Device Pack        Name: Device Pack
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: The Device Foundation Library provides access to the device information.
-                           Location: dependency of microej/vee-port-configuration/module.ivy
+                           Location: dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/VEEPortingGuide/device.html
 
@@ -340,7 +342,7 @@ MicroEJ DRAWING            Name: Drawing
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Contains shapes rendering and image with transformation rendering algorithms
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://repository.microej.com/javadoc/microej_5.x/apis/ej/drawing/package-summary.html
 
@@ -350,7 +352,7 @@ MicroEJ EDC                Name: Embedded Device Configuration (EDC)
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Implementation of the minimal standard runtime environment for
                            embedded devices
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/runtime.html?highlight=edc#embedded-device-configuration-edc
 
@@ -359,7 +361,7 @@ MicroEJ FRAMEWORK          Name: Frontpanel Framework Library
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Frontpanel framework creation library
-                           Location: dependency of microej/front-panel/module.ivy
+                           Location: dependency of vee-port/extensions/front-panel/build/gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/PlatformDeveloperGuide/frontpanel.html
 
@@ -368,7 +370,7 @@ MicroEJ FRONTPANEL         Name: Frontpanel
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Frontpanel creation library
-                           Location: dependency of microej/front-panel/module.ivy
+                           Location: dependency of vee-port/extensions/front-panel/build/gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/PlatformDeveloperGuide/frontpanel.html
 
@@ -377,7 +379,7 @@ MicroEJ FS                 Name: File System
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: The FS Foundation Library defines a low-level File System framework for embedded devices.
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/VEEPortingGuide/fs.html
 
@@ -386,7 +388,7 @@ MicroEJ FS Pack            Name: File System Pack
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: The FS Foundation Library defines a low-level File System framework for embedded devices.
-                           Location: dependency of microej/vee-port-configuration/module.ivy
+                           Location: dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/VEEPortingGuide/fs.html
 
@@ -394,7 +396,7 @@ MicroEJ HILEngine          Name: Hardware In the Loop interface
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Simulates Java-to-C calls.
-                           Location: dependency of nxpvee-mimxrt1170-evk-mock/module.ivy
+                           Location: dependency of vee-port/mock/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/PlatformDeveloperGuide/simulation.html
 
@@ -403,16 +405,16 @@ MicroEJ IMAGEGENERATOR     Name: Image Generator
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Off-board tool in charge of generating image data
-                           Location: dependency of microej/front-panel/module.ivy
+                           Location: dependency of vee-port/extensions/front-panel/build/gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/PlatformDeveloperGuide/uiImageGenerator.html
 
 MicroEJ JUNIT              Name: Junit
-                           Version: 1.7.1
+                           Version: 1.10.3
                            Outgoing License: Eclipse Public License - v 1.0
                            License File: https://spdx.org/licenses/EPL-1.0.html
                            Description: Unit test framework
-                           Location: dependency of microej/apps/module.ivy
+                           Location: dependency of apps/build.gradle.kts
                            Origin: JUNIT
                            Url: https://junit.org/
 
@@ -421,7 +423,7 @@ MicroEJ KF                 Name: Kernel Features (KF)
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Java implementation of the Multi-Sandbox features
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/VEEPortingGuide/appendix/javalibs/kf.html
 
@@ -430,25 +432,25 @@ MicroEJ MicroUI            Name: MicroUI
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: MicroUI API module.
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/UI/MicroUI/index.html
 
 MicroEJ MicroUI Pack       Name: MicroUI Pack
-                           Version: 14.0.2
+                           Version: 14.3.2
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Enable the creation of user interface in Java
-                           Location: dependency of microej/vee-port-configuration/module.ivy
+                           Location: dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/VEEPortingGuide/ui.html
 
 MicroEJ MicroVG            Name: MicroVG
-                           Version: 1.4.0
+                           Version: 1.6.0
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: MicroVG API module.
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/UI/MicroVG/index.html
 
@@ -457,7 +459,7 @@ MicroEJ MicroVG Pack       Name: MicroVG
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Vector drawing library
-                           Location: dependency of microej/vee-port-configuration/module.ivy
+                           Location: dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/VEEPortingGuide/vg.html
 
@@ -466,7 +468,7 @@ MicroEJ MWT                Name: Micro Widget Toolkit
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Symplify the creation and use of graphical user interface widgets in Java
-                           Location: dependency of microej/apps/module.ivy
+                           Location: dependency of apps/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/UI/MWT/index.html
 
@@ -475,16 +477,16 @@ MicroEJ NET                Name: Networking
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: The Net module defines a low-level network framework for embedded devices.
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/VEEPortingGuide/networkCoreEngine.html
 
 MicroEJ NET Pack           Name: MicroEJ Pack NET
-                           Version: 11.0.2
+                           Version: 11.2.0
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: This pack contains the networking modules group: NET, SSL & Security.
-                           Location: dependency of microej/vee-port-configuration/module.ivy
+                           Location: dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/VEEPortingGuide/networkCoreEngine.html
 
@@ -493,7 +495,7 @@ MicroEJ PUMP               Name: Pump
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Used by MicroUI to manage events
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
 
 MicroEJ RESOURCE MANAGER   Name: Resource Manager
@@ -501,15 +503,15 @@ MicroEJ RESOURCE MANAGER   Name: Resource Manager
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Manage resources
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
 
 MicroEJ SECURITY           Name: Security
-                           Version: 1.4
+                           Version: 1.7
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: The Java module related to permission management.
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
 
 MicroEJ SNI                Name: Simple Native Interface (SNI)
@@ -517,7 +519,7 @@ MicroEJ SNI                Name: Simple Native Interface (SNI)
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Allow to call native method from managed code
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/VEEPortingGuide/sni.html
                            Origin: MicroEJ
@@ -527,7 +529,7 @@ MicroEJ SSL                Name: Secure Sockets Layer (SSL)
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Allow to create and establish an encrypted connection between a server and a client.
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/VEEPortingGuide/ssl.html
 
@@ -536,7 +538,7 @@ MicroEJ TRACE              Name: Trace
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Record integer based events for debugging and monitoring purposes
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/trace.html
 
@@ -545,5 +547,5 @@ MicroEJ WATCHDOG           Name: Watchdog
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Watchdog used by MicroUI
-                           Location: transitive dependency of microej/vee-port-configuration/module.ivy
+                           Location: transitive dependency of vee-port/build.gradle.kts
                            Origin: MicroEJ

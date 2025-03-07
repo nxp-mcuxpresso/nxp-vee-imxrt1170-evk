@@ -1,0 +1,92 @@
+diff -rupN org/VGLite/vg_lite.c new/VGLite/vg_lite.c
+--- org/VGLite/vg_lite.c	2023-09-10 07:22:58.000000000 +0200
++++ new/VGLite/vg_lite.c	2023-12-13 15:30:48.418000000 +0100
+@@ -25,6 +25,9 @@
+ *    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ *    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
++*    Copyright 2020-2023 MicroEJ Corp. This file has been modified by MicroEJ Corp.
++*    1. Add "vg_lite_get_scissor()"
++*
+ *****************************************************************************/
+ 
+ #include <stdio.h>
+@@ -6095,6 +6098,7 @@ vg_lite_error_t vg_lite_clear(vg_lite_bu
+         }
+         VG_LITE_RETURN_ERROR(push_state(ctx, 0x0A02, color32));
+         VG_LITE_RETURN_ERROR(push_rectangle(ctx, x, y, width, height));
++
+         VG_LITE_RETURN_ERROR(flush_target());
+     }
+ 
+@@ -6300,6 +6304,7 @@ vg_lite_error_t vg_lite_blit(vg_lite_buf
+     VG_LITE_RETURN_ERROR(push_state(ctx, 0x0A2F, source->width | (source->height << 16)));
+     VG_LITE_RETURN_ERROR(push_rectangle(ctx, bounding_box.x, bounding_box.y, bounding_box.width,
+                                         bounding_box.height));
++
+     error = flush_target();
+     vglitemDUMP_BUFFER("image", source->address, source->memory, 0, (source->stride)*(source->height));
+ 
+@@ -6546,6 +6551,7 @@ vg_lite_error_t vg_lite_blit_rect(vg_lit
+     VG_LITE_RETURN_ERROR(push_rectangle(ctx, bounding_box.x, bounding_box.y, bounding_box.width,
+                                         bounding_box.height));
+     error = flush_target();
++
+     vglitemDUMP_BUFFER("image", source->address, source->memory, 0, (source->stride)*(source->height));
+ #if DUMP_IMAGE
+     dump_img(source->memory, src_align_width, source->height, source->format);
+@@ -7087,6 +7093,7 @@ vg_lite_error_t vg_lite_draw(vg_lite_buf
+ 
+     /* Finialize command buffer. */
+     VG_LITE_RETURN_ERROR(push_state(ctx, 0x0A34, 0));
++
+     VG_LITE_RETURN_ERROR(flush_target());
+ #if !defined(VG_DRIVER_SINGLE_THREAD)
+     ctx->ts_init = 1;
+@@ -10633,6 +10640,13 @@ vg_lite_error_t vg_lite_draw_gradient(vg
+         &grad->image, &grad->matrix, blend, VG_LITE_PATTERN_PAD, 0, VG_LITE_FILTER_LINEAR);
+ }
+ 
++// added by MicroEJ
++uint32_t vg_lite_get_scissor(int32_t** scissor)
++{
++    *scissor = s_context.scissor;
++    return s_context.scissor_enabled;
++}
++
+ vg_lite_error_t vg_lite_set_command_buffer_size(uint32_t size)
+ {
+     vg_lite_error_t error = VG_LITE_SUCCESS;
+diff -rupN org/inc/vg_lite.h new/inc/vg_lite.h
+--- org/inc/vg_lite.h	2023-09-10 07:22:58.000000000 +0200
++++ new/inc/vg_lite.h	2023-09-14 12:00:21.556000000 +0200
+@@ -25,6 +25,9 @@
+ *    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ *    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
++*    Copyright 2022-2023 MicroEJ Corp. This file has been modified by MicroEJ Corp.
++*    1. Add "vg_lite_get_scissor()"
++*
+ *****************************************************************************/
+ 
+ #ifndef _vg_lite_h_
+@@ -1936,6 +1939,19 @@ extern "C" {
+     vg_lite_error_t vg_lite_set_scissor(int32_t x, int32_t y, int32_t width, int32_t height);
+ 
+     /*!
++     @abstract Get scissor used for render target's boundary.
++
++     @discussion
++      This function is used to get the scissor of render target.
++
++     @param scissor
++      A pointer to a scissor array where to store the scissor bounds.
++
++     @result
++      Returns the scissor status: "1" enabled and "0" disabled.*/
++    uint32_t vg_lite_get_scissor(int32_t** scissor); // added by MicroEJ
++
++    /*!
+       @abstract Enable scissor.
+ 
+       @result

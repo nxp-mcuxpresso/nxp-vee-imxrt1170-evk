@@ -1,7 +1,7 @@
 {
   "cmake.configureOnOpen": false,
   "C_Cpp.errorSquiggles": "disabled",
-  "cmake.sourceDirectory": "${workspaceFolder}/bsp/projects/nxpvee-ui/armgcc",
+  "cmake.sourceDirectory": "${workspaceFolder}/bsp/vee/scripts/armgcc",
   "cmake.useCMakePresets": "always",
   "cmake.buildTask": true
 }

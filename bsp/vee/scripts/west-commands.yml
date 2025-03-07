@@ -1,0 +1,7 @@
+# Keep the help strings in sync with the values in the .py files!
+west-commands:
+  - file: bsp/vee/scripts/west_commands/install_builder.py
+    commands:
+      - name: install-builder
+        class: InstallBuilder
+        help: install builder

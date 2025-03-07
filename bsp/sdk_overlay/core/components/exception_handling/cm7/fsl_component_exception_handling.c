@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 NXP
+ * Copyright 2019,2024 NXP
  * Copyright 2023 MicroEJ Corp. This file has been modified by MicroEJ Corp.
  *
  *
@@ -408,7 +408,7 @@ static void EXCEPTION_StackFramePrint(void)
 #endif
 }
 
-static void EXCEPTION_CopyToStack(void)
+static void __attribute__ ((noinline)) EXCEPTION_CopyToStack(void)
 {
     /* Push SP (when faulted) and IPSR to MSP and save MSP contain the exception Stack Struct to
      * g_exceptionStackStruct*/

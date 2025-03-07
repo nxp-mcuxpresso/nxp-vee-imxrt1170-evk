@@ -1,6 +1,29 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.0.0] - 2025-03-07
+
+### Changed
+
+- Update folder architecture to new VEE Port template.
+- Update to gradle build system for SDK6 compatibility and remove ivy scripts.
+- validation: Align properties with new PQT.
+- Add default values for VEE Port properties that didn't appear before.
+- Rename nxpvee_ui in npavee.
+- vee-port: extensions: Update frontpanel widget and UI pack version.
+- vee/scripts: Use standard ARM toolchain instead of NXP one.
+- core: Update architecture to 8.3.0.
+- net: Update to pack 11.2.0.
+- validation: Update security testsuite to 1.8.0 and net testsuite to 4.1.2.
+- ui: Update to pack 14.3.2.
+- Put VMCOREMicroJvm in ITCM for better performances.
+- Put images_heap in cacheable RAM for better UI performances.
+
+### Fixed
+
+- net: Workaround to get a unique MAC address.
+- net: lwip_util: Fix connectivity issues.
+
 ## [2.2.0] - 2024-09-27
 
 ### Added

@@ -54,6 +54,6 @@ manifest:
       remote: nxp-mcuxpresso
       revision: MCUX_2.15.100
       path: nxpvee-mimxrt1170-evk/bsp/mcux-sdk/middleware/eiq
-
   self:
     path: nxpvee-mimxrt1170-evk
+    west-commands: bsp/vee/scripts/west-commands.yml

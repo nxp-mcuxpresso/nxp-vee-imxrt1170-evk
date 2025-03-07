@@ -13,7 +13,9 @@
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": [],
+      "problemMatcher": [
+        "$gcc"
+      ],
       "detail": "CMake template build task"
     },
     {
@@ -21,7 +23,9 @@
       "label": "CMake: clean",
       "command": "clean",
       "preset": "flexspi_nor_sdram_release_evkb",
-      "problemMatcher": [],
+      "problemMatcher": [
+        "$gcc"
+      ],
       "detail": "CMake template clean task"
     },
     {
@@ -29,7 +33,9 @@
       "label": "CMake: configure",
       "command": "configure",
       "preset": "flexspi_nor_sdram_release_evkb",
-      "problemMatcher": [],
+      "problemMatcher": [
+        "$gcc"
+      ],
       "detail": "CMake template configure task"
     }
   ]

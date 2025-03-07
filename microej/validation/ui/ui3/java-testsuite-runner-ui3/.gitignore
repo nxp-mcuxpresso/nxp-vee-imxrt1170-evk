@@ -1,5 +1,0 @@
-target~/
-bin/
-src-adpgenerated/
-com.microej.ui.tests.*/
-local.properties

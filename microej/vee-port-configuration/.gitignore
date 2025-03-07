@@ -1,8 +1,0 @@
-/target~
-/dropins/*.jar
-/dropins/include
-/dropins/javaLibs
-/dropins/mocks
-/dropins/scripts
-/dropins/tools/*
-!/dropins/tools/imageGenerator-mimxrt1170.jar

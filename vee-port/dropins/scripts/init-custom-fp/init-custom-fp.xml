@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="initCustomFp">
+
+	<dirname file="${ant.file.initCustomFp}" property="initCustomFp.dir"/>
+	
+	<import file="${initCustomFp.dir}/../extension-init.xml" />
+	<import file="${initCustomFp.dir}/../init-frontpanel/fpinit.xml" />
+
+	<target name="init" depends="init/frontpanel" extensionOf="init/context" if="onS3">
+		<property name="ej.fp.zoom.fit.default" value="true"/>
+		<property name="ej.fp.zoom.interpolate.default" value="true"/>
+	</target>
+
+</project>

@@ -1,0 +1,13 @@
+<microui>
+	<display name="DISPLAY"/>
+
+	<fonts>
+		<font file="resources/fonts/microej_system_font.ejf"/>
+	</fonts>	
+
+	<eventgenerators>
+		<touch name="TOUCH" display="DISPLAY"/>
+		<buttons name="BUTTONS"/>
+		<command name="COMMANDS"/>
+	</eventgenerators>
+</microui>
