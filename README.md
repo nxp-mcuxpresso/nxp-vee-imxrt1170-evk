@@ -1,17 +1,44 @@
-# NXP Platform Accelerator for i.MX RT1170 Evaluation Kit v3.0.0
+# NXP Application Code Hub
+[<img src="https://mcuxpresso.nxp.com/static/icon/nxp-logo-color.svg" width="100"/>](https://www.nxp.com)
 
-This project is used to build NXP Platform Accelerator for the [i.MX RT1170 Evaluation Kit](https://www.nxp.com/design/design-center/development-boards-and-designs/i-mx-evaluation-and-development-boards/i-mx-rt1170-evaluation-kit:MIMXRT1170-EVKB) with a display panel [RK055HDMIPI4MA0](https://www.nxp.com/part/RK055HDMIPI4MA0#/).
-
-<p float="left">
-  <img src="Documentation/pictures/RT1170/evkbmimxrt1170.jpg" width="300" />
-  <img src="Documentation/pictures/RT1170/rk055hdmipi4ma0.jpg" width="300" /> 
-</p>
+## NXP Platform Accelerator for i.MX RT1170 Evaluation Kit
 
 NXP Platform Accelerator is a VEE (Virtual Execution Environment) that provides a hardware abstraction to develop applications in high-level programming languages such as Java.
 
 NXP Platform Accelerator is built upon [MicroEJ technology](https://www.microej.com/product/vee/).
 
-## Description
+#### Boards: MIMXRT1170-EVK, MIMXRT1170-EVKB
+#### Categories: RTOS
+#### Peripherals: DISPLAY
+
+## Table of Contents
+- [Software](#software)
+- [Hardware](#hardware)
+- [Setup](#setup)
+- [Troubleshooting](#troubleshooting)
+- [Support](#support)
+- [Release Notes](#release-notes)
+
+## Software
+
+* Linux (Ubuntu 22.04/Debian 11) or Windows 10
+* Java Development Kit (Oracle JDK 11 or OpenJDK 11)
+* MICROEJ SDK 6
+* MCUXpresso SDK Developer (installs CMake, Ninja, West, LinkServer and ARM GNU Toolchain)
+
+## Hardware
+
+This project uses the following:
+
+* [i.MX RT1170 Evaluation Kit](https://www.nxp.com/design/design-center/development-boards-and-designs/i-mx-evaluation-and-development-boards/i-mx-rt1170-evaluation-kit:MIMXRT1170-EVKB)
+* [RK055HDMIPI4MA0](https://www.nxp.com/part/RK055HDMIPI4MA0#/) 5.5" LCD Panel
+
+## Setup
+
+<p float="left">
+  <img src="Documentation/pictures/RT1170/evkbmimxrt1170.jpg" width="300" />
+  <img src="Documentation/pictures/RT1170/rk055hdmipi4ma0.jpg" width="300" /> 
+</p>
 
 ### Board Technical Specifications
 
@@ -29,13 +56,6 @@ NXP Platform Accelerator is built upon [MicroEJ technology](https://www.microej.
 |GPU                      |2D GPU with vector graphics acceleration|
 |Ethernet interface       |100Mbit / 1Gbit|
 |WiFi interface           |via extension board|
-
-### BSP (Board Support Package)
-
-The BSP is based on the following versions:
-
-* [MCUXpresso SDK](https://mcuxpresso.nxp.com/en/welcome) `2.15.100` for i.MX RT1170 Evaluation Kit
-* [FreeRTOS](https://www.freertos.org/index.html) version `10.5.1`
 
 ### VEE Port Specifications
 
@@ -70,7 +90,7 @@ This VEE Port is compatible with MicroEJ SDK6 or higher.
 * Optionally: a J-Link Debugger probe to flash the software.
 * Optionally: a MicroSD card to use the file system
 
-## Preliminary Steps
+## Steps
 
 ### Get MicroEJ SDK
 
@@ -137,7 +157,8 @@ west update
 The following repositories will be created:
 
 ```text
-.west nxpvee-mimxrt1170-evk
+nxpvee-mimxrt1170-evk
+.west
 ```
 
 > Note: On Windows, your path to the repository folder should be as short as possible
@@ -226,7 +247,7 @@ The MicroEJ VEE Port uses the virtual UART from the i.MX RT1170 EVKB USB port. A
 
 The COM port uses the following parameters:
 
-| Baudrate | Data bits bits | Parity bits | Stop bits | Flow control |
+| Baudrate | Data bits | Parity bits | Stop bits | Flow control |
 | -------- | -------- | -------- | -------- | -------- |
 | 115200     | 8     | None     | 1     | None     |
 
@@ -504,10 +525,44 @@ ninja: error: loading 'build.ninja': The system cannot find the file specified.
 make: *** [remake] Error 1
 ```
 
+### Known issues
 
-## Known issues
-
-### RSA key size limited to 2048 bits
+#### RSA key size limited to 2048 bits
 
 Due to a known bug, the RSA key size for the SECURITY Foundation Library is limited to 2048 bits, larger keys will cause errors.
 
+
+## Support
+
+### BSP (Board Support Package)
+
+The BSP is based on the following versions:
+
+* [MCUXpresso SDK](https://mcuxpresso.nxp.com/en/welcome) `2.15.100` for i.MX RT1170 Evaluation Kit
+* [FreeRTOS](https://www.freertos.org/index.html) version `10.5.1`
+ 
+### Project Metadata
+
+<!----- Boards ----->
+[![Board badge](https://img.shields.io/badge/Board-MIMXRT1170&ndash;EVK-blue)](https://github.com/search?q=org%3Anxp-appcodehub+MIMXRT1170-EVK+in%3Areadme&type=Repositories) [![Board badge](https://img.shields.io/badge/Board-MIMXRT1170&ndash;EVKB-blue)](https://github.com/search?q=org%3Anxp-appcodehub+MIMXRT1170-EVKB+in%3Areadme&type=Repositories)
+
+<!----- Categories ----->
+[![Category badge](https://img.shields.io/badge/Category-RTOS-yellowgreen)](https://github.com/search?q=org%3Anxp-appcodehub+rtos+in%3Areadme&type=Repositories)
+
+<!----- Peripherals ----->
+[![Peripheral badge](https://img.shields.io/badge/Peripheral-DISPLAY-yellow)](https://github.com/search?q=org%3Anxp-appcodehub+display+in%3Areadme&type=Repositories)
+
+Questions regarding the content/correctness of this example can be entered as Issues within this GitHub repository.
+
+>**Warning**: For more general technical questions regarding NXP Microcontrollers and the difference in expected functionality, enter your questions on the [NXP Community Forum](https://community.nxp.com/)
+
+[![Follow us on Youtube](https://img.shields.io/badge/Youtube-Follow%20us%20on%20Youtube-red.svg)](https://www.youtube.com/NXP_Semiconductors)
+[![Follow us on LinkedIn](https://img.shields.io/badge/LinkedIn-Follow%20us%20on%20LinkedIn-blue.svg)](https://www.linkedin.com/company/nxp-semiconductors)
+[![Follow us on Facebook](https://img.shields.io/badge/Facebook-Follow%20us%20on%20Facebook-blue.svg)](https://www.facebook.com/nxpsemi/)
+[![Follow us on Twitter](https://img.shields.io/badge/X-Follow%20us%20on%20X-black.svg)](https://x.com/NXP)
+
+## Release Notes
+
+| Version | Description / Update                                 | Date                        |
+|:-------:|------------------------------------------------------|----------------------------:|
+| 3.0.0     | This is NXP Platform Accelerator for i.MX RT1170 EVK with a RK055HDMIPI4MA0 display panel.        | Mar 7<sup>th</sup> 2025 |
