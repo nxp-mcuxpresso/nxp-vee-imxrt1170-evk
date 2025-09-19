@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2020-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2020-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -19,8 +19,6 @@
 extern "C" {
 #endif
 
-#include "ui_configuration.h"
-
 /**
  * @brief Compatibility sanity check value.
  * This define value is checked in the implementation to validate that the version of this configuration
@@ -30,7 +28,13 @@ extern "C" {
  * This value must be incremented by the implementor of the CCO when a configuration define is added, deleted or
  * modified.
  */
-#define MICROVG_CONFIGURATION_VERSION (3)
+#define MICROVG_CONFIGURATION_VERSION (4)
+
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
+#include "ui_configuration.h"
 
 // -----------------------------------------------------------------------------
 // MicroVG's Path Options
@@ -176,7 +180,7 @@ extern "C" {
  *
  * When not set, only the resources compiled with the application are used.
  */
-// #define VG_FEATURE_FONT_EXTERNAL
+//#define VG_FEATURE_FONT_EXTERNAL
 
 /*
  * @brief Configure this define to set the freetype heap size
@@ -184,7 +188,7 @@ extern "C" {
  * The freetype heap size depends on the font used by the application
  * @see MICROVG_MONITOR_HEAP in vg_helper.h to monitor the heap usage evolution.
  */
-#define VG_FEATURE_FREETYPE_HEAP_SIZE ( 80 * 1024 )
+#define VG_FEATURE_FREETYPE_HEAP_SIZE (80 * 1024)
 
 /*
  * @brief Configure this define to set the complex layouter heap size
@@ -195,7 +199,7 @@ extern "C" {
  * @see MICROVG_MONITOR_HEAP in vg_helper.h to monitor the heap usage evolution.
  */
 #ifdef VG_FEATURE_FONT_COMPLEX_LAYOUT
-#define VG_FEATURE_FONT_COMPLEX_LAYOUT_HEAP_SIZE ( 80 * 1024 )
+#define VG_FEATURE_FONT_COMPLEX_LAYOUT_HEAP_SIZE (80 * 1024)
 #endif
 
 /*

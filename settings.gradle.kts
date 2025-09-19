@@ -6,8 +6,10 @@ project(":vee-port:front-panel").projectDir = file("vee-port/extensions/front-pa
 project(":vee-port:mock").projectDir = file("vee-port/mock")
 project(":vee-port:image-generator").projectDir = file("vee-port/extensions/image-generator")
 
+include("vee-port:validation:ai")
 include("vee-port:validation:core")
 //include("vee-port:validation:ecom-wifi")
+include("vee-port:validation:event-queue")
 include("vee-port:validation:fs")
 include("vee-port:validation:gpio")
 include("vee-port:validation:net")

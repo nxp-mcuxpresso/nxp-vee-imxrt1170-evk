@@ -65,6 +65,9 @@ microej.testsuite.verbose=true
 # The testsuite timeout (in seconds)
 microej.testsuite.timeout=600
 
+# The testsuite trace timeout (in seconds)
+microej.testsuite.properties.testsuite.trace.timeout=75
+
 # The number of times we'll retry a test if it fails
 microej.testsuite.retry.count=1
 

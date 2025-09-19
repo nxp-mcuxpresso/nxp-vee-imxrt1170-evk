@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2020-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2020-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ MicroVG library low level API: implementation over FreeType.
  * @author MicroEJ Developer Team
- * @version 6.0.1
+ * @version 7.0.1
  */
 
 #if !defined VG_FREETYPE_H
@@ -91,12 +91,28 @@ typedef jint (* VG_FREETYPE_draw_glyph_t) (
 void VG_FREETYPE_initialize(void);
 
 /*
+ * @brief Measures the width of a text for the specified font and size.
+ *
+ * The text is measured from first pixel of the first glyph to last pixel of the last glyph.
+ *
+ * @param[in] text the array of characters to draw.
+ * @param[in] length the length of the array
+ * @param[in] face_handle the font reference handle
+ * @param[in] size the height of the font in pixels.
+ * @param[in] letter_spacing the extra letter spacing to use
+ *
+ * @return the width of the specified string, in pixels or a negative error code on error.
+ */
+jfloat VG_FREETYPE_string_width(jchar *text, jint length, jint face_handle, jfloat size, jfloat letter_spacing);
+
+/*
  * @brief Draws a string using the Freetype engine along a line or a circle, with a
  * color or a linear gradient. The implementation does not draw, it calls the
  * drawer function for each glyph: VG_FREETYPE_draw_glyph_t.
  *
  * @param[in] drawer the function to draw a glyph.
  * @param[in] text the array of characters to draw.
+ * @param[in] length the length of the array
  * @param[in] face_handle the font reference handle.
  * @param[in] size the height of the font in pixels.
  * @param[in] matrix the transformation to apply.
@@ -108,9 +124,9 @@ void VG_FREETYPE_initialize(void);
  *
  * @return LLVG_SUCCESS if something has been drawn, an different value otherwise
  */
-jint VG_FREETYPE_draw_string(VG_FREETYPE_draw_glyph_t drawer, const jchar *text, jint face_handle, jfloat size,
-                             const jfloat *matrix, uint32_t color, jfloat letter_spacing, jfloat radius, jint direction,
-                             void *user_data);
+jint VG_FREETYPE_draw_string(VG_FREETYPE_draw_glyph_t drawer, const jchar *text, jint length, jint face_handle,
+                             jfloat size, const jfloat *matrix, uint32_t color, jfloat letter_spacing, jfloat radius,
+                             jint direction, void *user_data);
 
 // -----------------------------------------------------------------------------
 // Implementation

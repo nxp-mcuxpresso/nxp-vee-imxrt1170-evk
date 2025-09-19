@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2021-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2021-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,14 +9,15 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 1.6.1
- * @date 16 January 2025
+ * @version 2.0.1
  */
 
-#include <LLSEC_ERRORS.h>
+// set to 1 to enable profiling
+#define LLSEC_PROFILE   0
+
 #include <LLSEC_RANDOM_impl.h>
+#include <LLSEC_CONSTANTS.h>
 #include <LLSEC_mbedtls.h>
-#include <LLSEC_configuration.h>
 
 #include <sni.h>
 #include <stdlib.h>
@@ -35,16 +36,11 @@ static int initialized = 0;
 // cppcheck-suppress misra-c2012-8.9 // Define here for code readability even if it called once in this file.
 static int32_t native_ids = 1;
 
-/**
- * @brief Initializes a Random resource.
- *
- * @return The native ID of the resource.
- *
- * @note Throws NativeException on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 int32_t LLSEC_RANDOM_IMPL_init(void) {
 	int32_t return_code = LLSEC_SUCCESS;
 	LLSEC_RANDOM_DEBUG_TRACE("%s\n", __func__);
+	LLSEC_PROFILE_START();
 	const char *pers = llsec_gen_random_str_internal(8);
 	int32_t native_id;
 
@@ -53,7 +49,8 @@ int32_t LLSEC_RANDOM_IMPL_init(void) {
 		mbedtls_entropy_init(&entropy);
 		int mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const uint8_t *)pers, 0);
 		if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
-			(void)SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_seed failed");
+			int32_t sni_rc = SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_seed failed");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			LLSEC_RANDOM_IMPL_close(0);
 			return_code = LLSEC_ERROR;
 		}
@@ -65,7 +62,8 @@ int32_t LLSEC_RANDOM_IMPL_init(void) {
 		native_ids++;
 		// cppcheck-suppress misra-c2012-11.6 // Cast for matching SNI_registerResource function signature
 		if (SNI_OK != SNI_registerResource((void *)native_id, (SNI_closeFunction)LLSEC_RANDOM_IMPL_close, NULL)) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "Can't register SNI native resource");
+			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Can't register SNI native resource");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			LLSEC_RANDOM_IMPL_close(native_id);
 			return_code = LLSEC_ERROR;
 		}
@@ -80,16 +78,11 @@ int32_t LLSEC_RANDOM_IMPL_init(void) {
 		return_code = native_id;
 	}
 
+	LLSEC_PROFILE_END();
 	return return_code;
 }
 
-/**
- * @brief Closes the resource related to the nativeId.
- *
- * @param[in] native_id                    The native ID.
- *
- * @note Throws NativeException on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 void LLSEC_RANDOM_IMPL_close(int32_t native_id) {
 	LLSEC_UNUSED_PARAM(native_id);
 	LLSEC_RANDOM_DEBUG_TRACE("%s native_id:%d\n", __func__, (int)native_id);
@@ -98,52 +91,42 @@ void LLSEC_RANDOM_IMPL_close(int32_t native_id) {
 	//mbedtls_entropy_free(&entropy);
 }
 
-/**
- * @brief Generates random bytes.
- *
- * @param[in]  native_id                   The native ID.
- * @param[out] rnd                         The buffer to fill with random bytes.
- * @param[in]  size                        The size of rnd.
- *
- * @note Throws NativeException on error.
- */
 // cppcheck-suppress misra-c2012-8.7 // External API which is called also internally, cannot be made static
 void LLSEC_RANDOM_IMPL_next_bytes(int32_t native_id, uint8_t *rnd, int32_t size) {
 	LLSEC_UNUSED_PARAM(native_id);
 
 	LLSEC_RANDOM_DEBUG_TRACE("%s rdn:0x%p, %d\n", __func__, rnd, (int)size);
+	LLSEC_PROFILE_START();
 	uint32_t bytes_left = size;
+	// use a local pointer to prevent modifying a function parameter (misra-c2012-17.8)
+	uint8_t *prnd = rnd;
 	while (bytes_left > (uint32_t)0) {
 		int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
 		if (bytes_left > (uint32_t)MBEDTLS_CTR_DRBG_MAX_REQUEST) {
-			mbedtls_rc = mbedtls_ctr_drbg_random(&ctr_drbg, rnd, MBEDTLS_CTR_DRBG_MAX_REQUEST);
+			mbedtls_rc = mbedtls_ctr_drbg_random(&ctr_drbg, prnd, MBEDTLS_CTR_DRBG_MAX_REQUEST);
 			bytes_left -= (uint32_t)MBEDTLS_CTR_DRBG_MAX_REQUEST;
-			// cppcheck-suppress misra-c2012-17.8 // Used as an output parameter
-			rnd = &rnd[MBEDTLS_CTR_DRBG_MAX_REQUEST];
+			prnd = &prnd[MBEDTLS_CTR_DRBG_MAX_REQUEST];
 		} else {
-			mbedtls_rc = mbedtls_ctr_drbg_random(&ctr_drbg, rnd, bytes_left);
+			mbedtls_rc = mbedtls_ctr_drbg_random(&ctr_drbg, prnd, bytes_left);
 			bytes_left = 0;
 		}
 		if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
-			(void)SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_random failed");
+			int32_t sni_rc = SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_random failed");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
+			// no need generating more if we throw a native
+			break;
 		}
 	}
+	LLSEC_PROFILE_END();
 }
 
-/**
- * @brief Sets the seed of the PRNG.
- *
- * @param[in] native_id                    The native ID.
- * @param[in] seed                         The array of bytes used as a seed.
- * @param[in] size                         The size of seed.
- *
- * @note Throws NativeException on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 void LLSEC_RANDOM_IMPL_set_seed(int32_t native_id, uint8_t *seed, int32_t size) {
 	LLSEC_UNUSED_PARAM(native_id);
 
 	LLSEC_RANDOM_DEBUG_TRACE("%s\n", __func__);
 	LLSEC_RANDOM_DEBUG_TRACE("LLSEC_RANDOM_IMPL_set_seed, Seeding the random number generator\n");
+	LLSEC_PROFILE_START();
 
 	int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
 
@@ -157,84 +140,28 @@ void LLSEC_RANDOM_IMPL_set_seed(int32_t native_id, uint8_t *seed, int32_t size) 
 	 */
 	mbedtls_rc = mbedtls_ctr_drbg_reseed(&ctr_drbg, NULL, 0);
 	if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
-		(void)SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_reseed failed");
+		int32_t sni_rc = SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_reseed failed");
+		LLSEC_ASSERT(sni_rc == SNI_OK);
 	}
 
 	mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)seed, size);
 	if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
-		(void)SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_seed failed");
+		int32_t sni_rc = SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_seed failed");
+		LLSEC_ASSERT(sni_rc == SNI_OK);
 	}
+	LLSEC_PROFILE_END();
 }
 
-/**
- * @brief Generates a new seed.
- *
- * @param[in]  native_id                   The native ID.
- * @param[out] seed                        The array to fill with the seed.
- * @param[in]  size                        The size of seed.
- *
- * @note Throws NativeException on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 void LLSEC_RANDOM_IMPL_generate_seed(int32_t native_id, uint8_t *seed, int32_t size) {
 	LLSEC_RANDOM_DEBUG_TRACE("%s\n", __func__);
+	LLSEC_PROFILE_START();
 	LLSEC_RANDOM_IMPL_next_bytes(native_id, seed, size);
+	LLSEC_PROFILE_END();
 }
 
-/**
- * @brief Gets the id of the native close function.
- *
- * @return the id of the static native close function.
- *
- * @note Throws NativeException on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 int32_t LLSEC_RANDOM_IMPL_get_close_id(void) {
 	LLSEC_RANDOM_DEBUG_TRACE("%s\n", __func__);
 	return (int32_t)LLSEC_RANDOM_IMPL_close;
-}
-
-/**
- * @brief generate random string function.
- * @param[in] length the string length
- *
- * @return pointer of random string.
- *
- * @note This function should only be used to provide a personalisation string
- *          when calling mbedtls_ctr_drbg_seed.
- */
-// cppcheck-suppress misra-c2012-8.7 // External API which is called also internally, cannot be made static
-char * llsec_gen_random_str_internal(int length) {
-	char *return_code = NULL;
-	char *str_ran;
-	str_ran = (char *)mbedtls_calloc(1, length);
-	if (NULL == str_ran) {
-		LLSEC_RANDOM_DEBUG_TRACE("Random string malloc failed");
-	} else {
-		srand((unsigned int)time(NULL));
-
-		int idx;
-		for (idx = 0; idx < (length - 1); idx++) {
-			int flag = rand() % 3;
-			switch (flag) {
-			case 0:
-				// cppcheck-suppress misra-c2012-10.8 // Number in [0, 25] range
-				str_ran[idx] = 'A' + (uint8_t)(rand() % 26);
-				break;
-			case 1:
-				// cppcheck-suppress misra-c2012-10.8 // Number in [0, 25] range
-				str_ran[idx] = 'a' + (uint8_t)(rand() % 26);
-				break;
-			case 2:
-				// cppcheck-suppress misra-c2012-10.8 // Number in [0, 10] range
-				str_ran[idx] = '0' + (uint8_t)(rand() % 10);
-				break;
-			default:
-				str_ran[idx] = 'x';
-				break;
-			}
-		}
-		str_ran[length - 1] = '\0';
-		return_code = str_ran;
-	}
-
-	return return_code;
 }

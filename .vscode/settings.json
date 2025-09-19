@@ -3,5 +3,6 @@
   "C_Cpp.errorSquiggles": "disabled",
   "cmake.sourceDirectory": "${workspaceFolder}/bsp/vee/scripts/armgcc",
   "cmake.useCMakePresets": "always",
-  "cmake.buildTask": true
+  "cmake.buildTask": true,
+  "cmake.buildBeforeRun": false
 }

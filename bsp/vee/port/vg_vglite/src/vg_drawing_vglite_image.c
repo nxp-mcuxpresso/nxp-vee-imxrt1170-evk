@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -10,7 +10,7 @@
  * @brief MicroEJ MicroVG library low level API: image management. This file draws an
  * image and can fill a BufferedVectorImage.
  * @author MicroEJ Developer Team
- * @version 8.0.1
+ * @version 9.0.1
  */
 
 // -----------------------------------------------------------------------------
@@ -37,6 +37,8 @@
 #include "vg_lite.h"
 #include "vg_lite_kernel.h"
 #include "fsl_debug_console.h"
+
+#include "mej_math.h"
 
 // -----------------------------------------------------------------------------
 // Macros and Defines
@@ -108,7 +110,9 @@ static inline void * MALLOC(size_t size) {
  *  footprint. By consequence the gradient data to copy from ROM to RAM is:
  *  sizeof(gradient) == sizeof(vg_gradient) - sizeof(vg_lite_buffer_t)
  */
+#ifndef GRADIENT_COPY_SIZE
 #define GRADIENT_COPY_SIZE (sizeof(vg_gradient) - sizeof(vg_lite_buffer_t))
+#endif
 #define GRADIENT_CMP_SIZE (GRADIENT_COPY_SIZE - sizeof(vg_transformation_matrix))
 
 /*
@@ -201,11 +205,8 @@ typedef struct {
  *
  * @return: nothing
  */
-typedef void (* VG_RAW_apply_animation_t) (const vg_animation_header_t *animation,
-                                           void *inout,
-                                           jlong elapsed_time,
-                                           size_t memory_offset,
-                                           bool last);
+typedef void (* VG_RAW_apply_animation_t) (const vg_animation_header_t *animation, void *inout, jlong elapsed_time,
+                                           size_t memory_offset, bool last);
 
 // -----------------------------------------------------------------------------
 // Enum
@@ -634,15 +635,15 @@ extern uint32_t vg_lite_get_scissor(int32_t **scissor);
 // -----------------------------------------------------------------------------
 
 /*
- * @brief Gradient used for all drawings with gradient (only one image allocation,
- * does not alterate the original gradient's matrix and colors, etc.).
+ * @brief Gradient used for all drawings with gradient (only one image allocation, * does not alterate the original
+ * gradient's matrix and colors, etc.).
  */
 static vg_gradient render_gradient;
 
 /*
  * @brief Path used for all drawings.
  */
-vg_lite_path_t render_path;
+static vg_lite_path_t render_path;
 
 /*
  * @brief Working data to draw an image (RAW or BVI)
@@ -707,13 +708,15 @@ static void _free_data(const void *data) {
 	if (NULL != data) {
 #ifdef DEBUG_ALLOCATOR
 		// cppcheck-suppress [misra-c2012-11.5] data is aligned on 32-bit for sure
-		uint32_t *addr = (uint32_t *)data;
+		const uint32_t *addr = (const uint32_t *)data;
 		--addr;
 		uint32_t size = *addr;
 		cumul -= size;
 		PRINTF("free %u\t0x%x\t(%u/%u)\n", size, addr, cumul, max);
+		// cppcheck-suppress [misra-c2012-11.8] allow cast to uint8_t*
 		FREE((uint8_t *)addr);
 #else
+		// cppcheck-suppress [misra-c2012-11.8] allow cast to uint8_t*
 		FREE((uint8_t *)data);
 #endif
 	}
@@ -728,6 +731,7 @@ static void _free_data(const void *data) {
  */
 static inline uint8_t * _alloc_data(uint32_t size) {
 #ifdef DEBUG_ALLOCATOR
+	// cppcheck-suppress [misra-c2012-17.8] modify parameter for greater convenience
 	size += 4u;
 	cumul += size;
 	max = (cumul > max) ? cumul : max;
@@ -741,7 +745,7 @@ static inline uint8_t * _alloc_data(uint32_t size) {
 #ifdef DEBUG_ALLOCATOR
 	MEJ_LOG_INFO_MICROVG("alloc %u\t0x%x\t(%u/%u)\n", size, ret, cumul, max);
 	*((uint32_t *)ret) = size;
-	ret += 4;
+	ret += 4u;
 #endif
 
 	return ret;
@@ -974,15 +978,13 @@ static void _apply_group_animation_rotate(const vg_animation_header_t *animation
 	// cppcheck-suppress [misra-c2012-11.5] data is a float array for sure
 	float *matrix = (float *)data;
 	float transformRatio = _get_transformation_ratio_at_time(animation, interpolator, atTime);
-	LLVG_MATRIX_IMPL_translate(matrix,
-	                           animation_rotate->start_rotation_center_x +
+	LLVG_MATRIX_IMPL_translate(matrix, animation_rotate->start_rotation_center_x +
 	                           (animation_rotate->rotation_translation_center_x * transformRatio),
 	                           animation_rotate->start_rotation_center_y +
 	                           (animation_rotate->rotation_translation_center_y * transformRatio));
 	LLVG_MATRIX_IMPL_rotate(matrix,
 	                        animation_rotate->start_angle + (animation_rotate->rotation_angle * transformRatio));
-	LLVG_MATRIX_IMPL_translate(matrix,
-	                           -animation_rotate->start_rotation_center_x -
+	LLVG_MATRIX_IMPL_translate(matrix, -animation_rotate->start_rotation_center_x -
 	                           (animation_rotate->rotation_translation_center_x * transformRatio),
 	                           -animation_rotate->start_rotation_center_y -
 	                           (animation_rotate->rotation_translation_center_y * transformRatio));
@@ -1189,8 +1191,7 @@ static void _apply_path_animation_path_data(const vg_animation_header_t *animati
 		_interpolate_paths(
 			dest,
 			get_path_addr(animation_path_data->from, memory_offset),
-			get_path_addr(animation_path_data->to, memory_offset),
-			transformRatio
+			get_path_addr(animation_path_data->to, memory_offset), transformRatio
 			);
 	} else {
 		// last path (== path "to")
@@ -1374,10 +1375,7 @@ static void _prepare_render_path(const vg_path_desc_t *path) {
 		path->format,
 		VG_LITE_HIGH,
 		path->length,
-		(void *)get_path_data_addr(path),
-		path->bounding_box[0],
-		path->bounding_box[1],
-		path->bounding_box[2],
+		(void *)get_path_data_addr(path), path->bounding_box[0], path->bounding_box[1], path->bounding_box[2],
 		path->bounding_box[3]
 		);
 	render_path.path_type = VG_LITE_DRAW_FILL_PATH;
@@ -1387,8 +1385,8 @@ static inline jint _draw_render_path(const vg_path_desc_t *desc, draw_image_elem
                                      const vg_transformation_matrix *matrix, const vg_block_path_t *op,
                                      uint32_t color) {
 	_prepare_render_path(desc);
-	return (*drawer)(&render_path, VG_VGLITE_HELPER_get_fill_rule(op->fill_rule), matrix, VG_LITE_BLEND_SRC_OVER,
-	                 color, NULL, false);
+	return (*drawer)(&render_path, VG_VGLITE_HELPER_get_fill_rule(op->fill_rule), matrix, VG_LITE_BLEND_SRC_OVER, color,
+	                 NULL, false);
 }
 
 static inline jint _draw_render_gradient(const vg_path_desc_t *desc, draw_image_element drawer,
@@ -1401,12 +1399,14 @@ static inline jint _draw_render_gradient(const vg_path_desc_t *desc, draw_image_
 
 static inline jint _draw_animated_path(const vg_path_desc_t *desc, draw_image_element drawer,
                                        vg_transformation_matrix *matrix, const vg_block_path_t *op, uint32_t color) {
-	return (*drawer)(&render_path, VG_VGLITE_HELPER_get_fill_rule(op->fill_rule), matrix, VG_LITE_BLEND_SRC_OVER,
-	                 color, NULL, false);
+	(void)desc;
+	return (*drawer)(&render_path, VG_VGLITE_HELPER_get_fill_rule(op->fill_rule), matrix, VG_LITE_BLEND_SRC_OVER, color,
+	                 NULL, false);
 }
 
 static inline jint _draw_animated_gradient(const vg_path_desc_t *desc, draw_image_element drawer,
                                            vg_transformation_matrix *matrix, uint8_t fill_rule, bool is_new_gradient) {
+	(void)desc;
 	return (*drawer)(&render_path, VG_VGLITE_HELPER_get_fill_rule(fill_rule), matrix, VG_LITE_BLEND_SRC_OVER, 0,
 	                 &render_gradient, is_new_gradient);
 }
@@ -1429,8 +1429,7 @@ static bool _prepare_render_gradient(const vg_drawing_t *drawing_data, const vg_
 
 	// update the gradient's matrix
 	LLVG_MATRIX_IMPL_multiply(
-		MAP_NATIVE_MATRIX(&(p_render_gradient->matrix)),
-		MAP_NATIVE_MATRIX(transformation),
+		MAP_NATIVE_MATRIX(&(p_render_gradient->matrix)), MAP_NATIVE_MATRIX(transformation),
 		MAP_NATIVE_MATRIX(&op_gradient->matrix)
 		);
 
@@ -1762,38 +1761,50 @@ static bool _bvi_apply_scissor(const int32_t *scissor, const vg_transformation_m
 	bool draw = true;
 
 	if (scissor[0] >= 0) {
-		vg_lite_point_t top_left;
-		vg_lite_point_t bottom_right;
+		vg_lite_point_t x0y0;
+		vg_lite_point_t x0y1;
+		vg_lite_point_t x1y0;
+		vg_lite_point_t x1y1;
 
-		// get the top-left and bottom-right scissor points adjusted with the given matrix.
-		_bvi_transform_point(&top_left, (vg_lite_float_t)scissor[0], (vg_lite_float_t)scissor[1], matrix);
-		_bvi_transform_point(&bottom_right, (vg_lite_float_t)(scissor[0] + scissor[2] - 1),
-		                     (vg_lite_float_t)(scissor[1] + scissor[3] - 1), matrix);
+		int32_t x0 = scissor[0];
+		int32_t y0 = scissor[1];
+		int32_t x1 = scissor[0] + scissor[2] - 1;
+		int32_t y1 = scissor[1] + scissor[3] - 1;
+
+		// get the scissor points adjusted with the given matrix.
+		_bvi_transform_point(&x0y0, (vg_lite_float_t)(x0 + 0.5f), (vg_lite_float_t)(y0 + 0.5f), matrix);
+		_bvi_transform_point(&x1y0, (vg_lite_float_t)(x1 + 0.5f), (vg_lite_float_t)(y0 + 0.5f), matrix);
+		_bvi_transform_point(&x0y1, (vg_lite_float_t)(x0 + 0.5f), (vg_lite_float_t)(y1 + 0.5f), matrix);
+		_bvi_transform_point(&x1y1, (vg_lite_float_t)(x1 + 0.5f), (vg_lite_float_t)(y1 + 0.5f), matrix);
+
+		x0 = (int32_t)MEJ_MIN(x0y0.x, MEJ_MIN(x1y0.x, MEJ_MIN(x0y1.x, x1y1.x)));
+		y0 = (int32_t)MEJ_MIN(x0y0.y, MEJ_MIN(x1y0.y, MEJ_MIN(x0y1.y, x1y1.y)));
+		x1 = (int32_t)MEJ_MAX(x0y0.x, MEJ_MAX(x1y0.x, MEJ_MAX(x0y1.x, x1y1.x)));
+		y1 = (int32_t)MEJ_MAX(x0y0.y, MEJ_MAX(x1y0.y, MEJ_MAX(x0y1.y, x1y1.y)));
 
 		if ((*current_scissor) != NULL) {
-			int32_t cx1 = (*current_scissor)[0];
-			int32_t cy1 = (*current_scissor)[1];
-			int32_t cx2 = cx1 + (*current_scissor)[2] - 1;
-			int32_t cy2 = cy1 + (*current_scissor)[3] - 1;
+			int32_t cx0 = (*current_scissor)[0];
+			int32_t cy0 = (*current_scissor)[1];
+			int32_t cx1 = cx0 + (*current_scissor)[2] - 1;
+			int32_t cy1 = cy0 + (*current_scissor)[3] - 1;
 
-			if (top_left.x < cx1) {
-				top_left.x = cx1;
+			if (x0 < cx0) {
+				x0 = cx0;
 			}
-			if (top_left.y < cy1) {
-				top_left.y = cy1;
+			if (y0 < cy0) {
+				y0 = cy0;
 			}
-			if (bottom_right.x >= cx2) {
-				bottom_right.x = cx2;
+			if (x1 >= cx1) {
+				x1 = cx1;
 			}
-			if (bottom_right.y >= cy2) {
-				bottom_right.y = cy2;
+			if (y1 >= cy1) {
+				y1 = cy1;
 			}
 		}
 
-		if ((top_left.x <= bottom_right.x) && (top_left.y <= bottom_right.y)) {
+		if ((x0 <= x1) && (y0 <= y1)) {
 			vg_lite_enable_scissor();
-			vg_lite_set_scissor(top_left.x, top_left.y, bottom_right.x - top_left.x + 1,
-			                    bottom_right.y - top_left.y + 1);
+			vg_lite_set_scissor(x0, y0, x1 - x0 + 1, y1 - y0 + 1);
 			*current_scissor = NULL; // have to restore the clip
 		} else {
 			// empty clip: nothing to restore and nothing to draw
@@ -2271,6 +2282,9 @@ static jint _draw_raw_image(vg_drawing_t *drawing_data, draw_image_element targe
 					ret = error;
 				}
 				drawing_data->drawing_running |= raw_in_bvi_drawing_data.drawing_running;
+
+				// the clip may have been modified: restore the original one
+				p_current_scissor = _bvi_restore_scissor(p_original_scissor, p_current_scissor);
 			}
 
 			block = op->next;
@@ -2614,8 +2628,8 @@ jint VG_BVI_VGLITE_add_draw_gradient(
 	return ret;
 }
 
-jint VG_BVI_VGLITE_add_draw_image(void *target, const MICROVG_Image *res, const jfloat *drawing_matrix,
-                                  jint alpha, jlong elapsed, const float color_matrix[]) {
+jint VG_BVI_VGLITE_add_draw_image(void *target, const MICROVG_Image *res, const jfloat *drawing_matrix, jint alpha,
+                                  jlong elapsed, const float color_matrix[]) {
 	// cppcheck-suppress [misra-c2012-11.5] res is a vector image for sure
 	const vector_image_t *image = (const vector_image_t *)res->data;
 	jint ret;

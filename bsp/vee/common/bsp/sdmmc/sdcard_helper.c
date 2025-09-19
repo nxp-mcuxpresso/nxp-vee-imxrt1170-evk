@@ -33,6 +33,7 @@ extern sd_card_t g_sd; /* sd card descriptor */
 #define SD_CARD_LOG_ERROR PRINTF("[SD Card][ERROR] ");PRINTF
 
 #define SDCARD_TASK_STACK_SIZE    (512)
+#define MAX_LOOP_WAIT_SD_CARD_READY (2)
 
 /* SD card management */
 static FATFS fileSystem;
@@ -46,11 +47,20 @@ bool SDCARD_isCardReady()
 
 bool SDCARD_waitCardReady()
 {
-    while (SDCARD_isCardReady() == 0)
+    for (int loop_count = 0; loop_count < MAX_LOOP_WAIT_SD_CARD_READY; loop_count++)
     {
-        vTaskDelay( pdMS_TO_TICKS( 1000 ) );
+        if (SDCARD_isCardReady())
+        {
+            return true; // SD Card is ready
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
-    return true;
+
+    // If we reach here, the SD card is not ready after waiting
+    PRINTF("[FS Initialization] MicroEJ application requires the file system. Initialization is not possible because the SD card is missing.\n");
+    PRINTF("[FS Initialization] Please insert an SD card so that the application could start.\n");
+
+    return false; // SD Card not ready
 }
 
 static void SDCARD_detect_callback(bool is_inserted, void *user_data) {

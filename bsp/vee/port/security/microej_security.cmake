@@ -4,6 +4,7 @@ message("microej/security component is included.")
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/src/LLSEC_CIPHER_impl.c
     ${CMAKE_CURRENT_LIST_DIR}/src/LLSEC_DIGEST_impl.c
+    ${CMAKE_CURRENT_LIST_DIR}/src/LLSEC_impl.c
     ${CMAKE_CURRENT_LIST_DIR}/src/LLSEC_KEY_FACTORY_impl.c
     ${CMAKE_CURRENT_LIST_DIR}/src/LLSEC_KEY_PAIR_GENERATOR_impl.c
     ${CMAKE_CURRENT_LIST_DIR}/src/LLSEC_MAC_impl.c
@@ -17,5 +18,7 @@ target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/src/LLSEC_X509_CERT_impl.c
 
 )
+
+target_compile_definitions(${MCUX_SDK_PROJECT_NAME} PRIVATE LLSEC_PROFILE=0)
 
 target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE    ${CMAKE_CURRENT_LIST_DIR}/inc)

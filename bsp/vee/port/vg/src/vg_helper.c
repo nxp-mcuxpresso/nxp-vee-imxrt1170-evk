@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -10,7 +10,7 @@
  * @brief MicroEJ MicroVG library low level API: helper to implement library natives
  * methods.
  * @author MicroEJ Developer Team
- * @version 6.0.1
+ * @version 7.0.1
  */
 
 #include "vg_configuration.h"
@@ -30,8 +30,8 @@
  */
 
 #if (defined(LLVG_MAJOR_VERSION) && (LLVG_MAJOR_VERSION != 1)) || (defined(LLVG_MINOR_VERSION) && \
-	(LLVG_MINOR_VERSION < 3))
-#error "This CCO is only compatible with VG Pack [1.3.0,2.0.0["
+	(LLVG_MINOR_VERSION < 5))
+#error "This CCO is only compatible with VG Pack [1.5.0,2.0.0["
 #endif
 
 // -----------------------------------------------------------------------------
@@ -51,7 +51,7 @@
 	#error "Undefined MICROVG_CONFIGURATION_VERSION, it must be defined in vg_configuration.h"
 #endif
 
-#if defined MICROVG_CONFIGURATION_VERSION && MICROVG_CONFIGURATION_VERSION != 3
+#if defined MICROVG_CONFIGURATION_VERSION && MICROVG_CONFIGURATION_VERSION != 4
 	#error "Version of the configuration file vg_configuration.h is not compatible with this implementation."
 #endif
 

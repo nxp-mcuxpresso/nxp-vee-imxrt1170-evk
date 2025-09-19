@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -16,7 +16,7 @@ extern "C" {
  * is the BufferedVectorImage format. When the drawing cannot be performed for any reason,
  * the stub implementation is used insted.
  * @author MicroEJ Developer Team
- * @version 6.0.1
+ * @version 7.0.1
  * @see ui_drawing_bvi.h
  */
 
@@ -69,28 +69,29 @@ DRAWING_Status VG_DRAWING_BVI_drawGradient(MICROUI_GraphicsContext *gc, const jb
 /*
  * @brief Implementation of drawString over a BufferedVectorImage. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_BVI_drawString(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle, jfloat size,
-                                         const jfloat *matrix, jint alpha, jint blend, jfloat letterSpacing);
+DRAWING_Status VG_DRAWING_BVI_drawString(MICROUI_GraphicsContext *gc, const jchar *text, jint length, jint faceHandle,
+                                         jfloat size, const jfloat *matrix, jint alpha, jint blend,
+                                         jfloat letterSpacing);
 
 /*
  * @brief Implementation of drawStringGradient over a BufferedVectorImage. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_BVI_drawStringGradient(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle,
-                                                 jfloat size, const jfloat *matrix, jint alpha, jint blend,
-                                                 jfloat letterSpacing, const jint *gradientData,
+DRAWING_Status VG_DRAWING_BVI_drawStringGradient(MICROUI_GraphicsContext *gc, const jchar *text, jint length,
+                                                 jint faceHandle, jfloat size, const jfloat *matrix, jint alpha,
+                                                 jint blend, jfloat letterSpacing, const jint *gradientData,
                                                  const jfloat *gradientMatrix);
 
 /*
  * @brief Implementation of drawStringOnCircle over a BufferedVectorImage. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_BVI_drawStringOnCircle(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle,
-                                                 jfloat size, const jfloat *matrix, jint alpha, jint blend,
-                                                 jfloat letterSpacing, jfloat radius, jint direction);
+DRAWING_Status VG_DRAWING_BVI_drawStringOnCircle(MICROUI_GraphicsContext *gc, const jchar *text, jint length,
+                                                 jint faceHandle, jfloat size, const jfloat *matrix, jint alpha,
+                                                 jint blend, jfloat letterSpacing, jfloat radius, jint direction);
 
 /*
  * @brief Implementation of drawStringOnCircleGradient over a BufferedVectorImage. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_BVI_drawStringOnCircleGradient(MICROUI_GraphicsContext *gc, const jchar *text,
+DRAWING_Status VG_DRAWING_BVI_drawStringOnCircleGradient(MICROUI_GraphicsContext *gc, const jchar *text, jint length,
                                                          jint faceHandle, jfloat size, const jfloat *matrix, jint alpha,
                                                          jint blend, jfloat letterSpacing, jfloat radius,
                                                          jint direction, const jint *gradientData,

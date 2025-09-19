@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -10,7 +10,7 @@
  * @brief This file implements all MicroVG drawing native functions.
  * @see LLVG_PAINTER_impl.h file comment
  * @author MicroEJ Developer Team
- * @version 6.0.1
+ * @version 7.0.1
  */
 
 // -----------------------------------------------------------------------------
@@ -85,8 +85,9 @@ jint LLVG_PAINTER_IMPL_drawString(MICROUI_GraphicsContext *gc, jchar *text, jint
 			LOG_MICROVG_DRAWING_START(string);
 			jfloat translated_matrix[LLVG_MATRIX_SIZE];
 			VG_HELPER_prepare_matrix(translated_matrix, x, y, matrix);
-			LLUI_DISPLAY_setDrawingStatus(VG_DRAWING_drawString(gc, text, faceHandle, size, translated_matrix, alpha,
-			                                                    blend, letterSpacing));
+			int length = (int)SNI_getArrayLength(text);
+			LLUI_DISPLAY_setDrawingStatus(VG_DRAWING_drawString(gc, text, length, faceHandle, size, translated_matrix,
+			                                                    alpha, blend, letterSpacing));
 			LOG_MICROVG_DRAWING_END(string);
 		}
 		ret = (jint)LLVG_SUCCESS;
@@ -107,9 +108,10 @@ jint LLVG_PAINTER_IMPL_drawStringGradient(MICROUI_GraphicsContext *gc, jchar *te
 			LOG_MICROVG_DRAWING_START(stringGradient);
 			jfloat translated_matrix[LLVG_MATRIX_SIZE];
 			VG_HELPER_prepare_matrix(translated_matrix, x, y, matrix);
-			LLUI_DISPLAY_setDrawingStatus(VG_DRAWING_drawStringGradient(gc, text, faceHandle, size, translated_matrix,
-			                                                            alpha, blend, letterSpacing, gradientData,
-			                                                            gradientMatrix));
+			int length = (int)SNI_getArrayLength(text);
+			LLUI_DISPLAY_setDrawingStatus(VG_DRAWING_drawStringGradient(gc, text, length, faceHandle, size,
+			                                                            translated_matrix, alpha, blend, letterSpacing,
+			                                                            gradientData, gradientMatrix));
 			LOG_MICROVG_DRAWING_END(stringGradient);
 		}
 		ret = (jint)LLVG_SUCCESS;
@@ -131,9 +133,10 @@ jint LLVG_PAINTER_IMPL_drawStringOnCircle(MICROUI_GraphicsContext *gc, jchar *te
 			LOG_MICROVG_DRAWING_START(stringOnCircle);
 			jfloat translated_matrix[LLVG_MATRIX_SIZE];
 			VG_HELPER_prepare_matrix(translated_matrix, x, y, matrix);
-			LLUI_DISPLAY_setDrawingStatus(VG_DRAWING_drawStringOnCircle(gc, text, faceHandle, size, translated_matrix,
-			                                                            alpha, blend, letterSpacing, radius,
-			                                                            direction));
+			int length = (int)SNI_getArrayLength(text);
+			LLUI_DISPLAY_setDrawingStatus(VG_DRAWING_drawStringOnCircle(gc, text, length, faceHandle, size,
+			                                                            translated_matrix, alpha, blend, letterSpacing,
+			                                                            radius, direction));
 			LOG_MICROVG_DRAWING_END(stringOnCircle);
 		}
 		ret = (jint)LLVG_SUCCESS;
@@ -156,7 +159,8 @@ jint LLVG_PAINTER_IMPL_drawStringOnCircleGradient(MICROUI_GraphicsContext *gc, j
 			LOG_MICROVG_DRAWING_START(stringOnCircleGradient);
 			jfloat translated_matrix[LLVG_MATRIX_SIZE];
 			VG_HELPER_prepare_matrix(translated_matrix, x, y, matrix);
-			LLUI_DISPLAY_setDrawingStatus(VG_DRAWING_drawStringOnCircleGradient(gc, text, faceHandle, size,
+			int length = (int)SNI_getArrayLength(text);
+			LLUI_DISPLAY_setDrawingStatus(VG_DRAWING_drawStringOnCircleGradient(gc, text, length, faceHandle, size,
 			                                                                    translated_matrix, alpha, blend,
 			                                                                    letterSpacing, radius, direction,
 			                                                                    gradientData, gradientMatrix));
@@ -176,7 +180,7 @@ jint LLVG_PAINTER_IMPL_drawImage(MICROUI_GraphicsContext *gc, MICROVG_Image *ima
 	if (LLUI_DISPLAY_requestDrawing(gc, (SNI_callback) & LLVG_PAINTER_IMPL_drawImage)) {
 		DRAWING_Status status;
 		LOG_MICROVG_DRAWING_START(image);
-		if (!VG_DRAWING_image_is_closed(image) && alpha > (uint32_t)0) {
+		if (!VG_DRAWING_image_is_closed(image) && (alpha > (jint)0)) {
 			// cppcheck-suppress [misra-c2012-18.8] LLVG_MATRIX_SIZE is a fixed size
 			jfloat translated_matrix[LLVG_MATRIX_SIZE];
 			VG_HELPER_prepare_matrix(translated_matrix, x, y, matrix);

@@ -1,5 +1,5 @@
 plugins {
-    id("com.microej.gradle.j2se-library")
+    id("com.microej.gradle.jse-library")
 }
 
 microej {

@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2021-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2021-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,17 +9,19 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 1.6.1
- * @date 16 January 2025
+ * @version 2.0.1
  */
 
+// set to 1 to enable profiling
+#define LLSEC_PROFILE   0
+
 #include <LLSEC_X509_CERT_impl.h>
-#include <LLSEC_configuration.h>
+#include <LLSEC_CONSTANTS.h>
+#include <LLSEC_mbedtls.h>
 #include <sni.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "LLSEC_mbedtls.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/ssl.h"
 
@@ -109,8 +111,10 @@ static int32_t LLSEC_X509_CERT_mbedtls_close_key(int32_t native_id) {
 	return return_code;
 }
 
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 int32_t LLSEC_X509_CERT_IMPL_parse(int8_t *cert, int32_t off, int32_t len) {
 	LLSEC_X509_DEBUG_TRACE("%s(cert=%p, off=%d, len=%d)\n", __func__, cert, (int)off, (int)len);
+	LLSEC_PROFILE_START();
 
 	int32_t format = LLSEC_X509_UNKNOWN_FORMAT;
 	int8_t *cert_data = &cert[off];
@@ -122,32 +126,23 @@ int32_t LLSEC_X509_CERT_IMPL_parse(int8_t *cert, int32_t off, int32_t len) {
 		mbedtls_free(tmp_cert);
 	}
 
+	LLSEC_PROFILE_END();
 	return format;
 }
 
-/**
- *
- * @param cert
- * @param certLen
- * @param keyData
- * @param keyDataLength inparameter. Contains the length of keyData.
- * @return the number of bytes copied into keyData
- *
- ** Warning: cert_data must not be used outside of the VM task or saved
- ** Warning: key must not be used outside of the VM task or saved
- *
- * @throws NativeException on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 int32_t LLSEC_X509_CERT_IMPL_get_x500_principal_data(int8_t *cert_data, int32_t cert_data_length,
                                                      uint8_t *principal_data, int32_t principal_data_length,
                                                      uint8_t get_issuer) {
 	int32_t return_code = LLSEC_SUCCESS;
 	LLSEC_X509_DEBUG_TRACE("%s(cert=%p, Cert_len=%d,prin_len=%d,get_issuer=%d)\n", __func__, cert_data,
 	                       (int)cert_data_length, (int)principal_data_length, (int)get_issuer);
+	LLSEC_PROFILE_START();
 
 	mbedtls_x509_crt *x509 = get_x509_certificate(cert_data, cert_data_length, NULL);
 	if (NULL == x509) {
-		(void)SNI_throwNativeException(LLSEC_ERROR, "Bad x509 certificate");
+		int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Bad x509 certificate");
+		LLSEC_ASSERT(sni_rc == SNI_OK);
 		return_code = LLSEC_ERROR;
 	}
 
@@ -161,7 +156,8 @@ int32_t LLSEC_X509_CERT_IMPL_get_x500_principal_data(int8_t *cert_data, int32_t 
 		}
 
 		if (len > principal_data_length) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "Principal data buffer is too small");
+			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Principal data buffer is too small");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			return_code = LLSEC_ERROR;
 		} else {
 			(void)memcpy(principal_data, &buf[0], len);
@@ -174,38 +170,30 @@ int32_t LLSEC_X509_CERT_IMPL_get_x500_principal_data(int8_t *cert_data, int32_t 
 		}
 	}
 
+	LLSEC_PROFILE_END();
 	return return_code;
 }
 
-/**
- *
- * @param cert
- * @param certLen
- * @param keyData
- * @param keyDataLength inparameter. Contains the length of keyData.
- * @return the number of bytes copied into keyData
- *
- ** Warning: cert_data must not be used outside of the VM task or saved
- ** Warning: key must not be used outside of the VM task or saved
- *
- * @throws NativeException on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 int32_t LLSEC_X509_CERT_IMPL_get_key(int8_t *cert_data, int32_t cert_data_length) {
 	int32_t return_code = LLSEC_SUCCESS;
 	LLSEC_X509_DEBUG_TRACE("%s(cert=%p, len=%d)\n", __func__, cert_data, (int)cert_data_length);
+	LLSEC_PROFILE_START();
 	LLSEC_pub_key *pub_key = (LLSEC_pub_key *)mbedtls_calloc(1, sizeof(LLSEC_pub_key));
 	mbedtls_x509_crt *x509 = NULL;
 	void *native_id = NULL;
 
 	if (NULL == pub_key) {
-		(void)SNI_throwNativeException(LLSEC_ERROR, "Can't allocate LLSEC_pub_key structure");
+		int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Can't allocate LLSEC_pub_key structure");
+		LLSEC_ASSERT(sni_rc == SNI_OK);
 		return_code = LLSEC_ERROR;
 	}
 
 	if (LLSEC_SUCCESS == return_code) {
 		x509 = get_x509_certificate(cert_data, cert_data_length, NULL);
 		if (NULL == x509) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "Bad x509 certificate");
+			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Bad x509 certificate");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			return_code = LLSEC_ERROR;
 		}
 	}
@@ -221,7 +209,8 @@ int32_t LLSEC_X509_CERT_IMPL_get_key(int8_t *cert_data, int32_t cert_data_length
 		}
 
 		if (NULL == pub_key->key) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "Invalid public key from x509 certificate");
+			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Invalid public key from x509 certificate");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			return_code = LLSEC_ERROR;
 		}
 	}
@@ -229,7 +218,8 @@ int32_t LLSEC_X509_CERT_IMPL_get_key(int8_t *cert_data, int32_t cert_data_length
 	if (LLSEC_SUCCESS == return_code) {
 		native_id = (void *)pub_key;
 		if (SNI_OK != SNI_registerResource(native_id, (SNI_closeFunction)LLSEC_X509_CERT_mbedtls_close_key, NULL)) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "Can't register SNI native resource");
+			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Can't register SNI native resource");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			if (TYPE_RSA == pub_key->type) {
 				mbedtls_rsa_free((mbedtls_rsa_context *)pub_key->key);
 			} else {
@@ -252,18 +242,22 @@ int32_t LLSEC_X509_CERT_IMPL_get_key(int8_t *cert_data, int32_t cert_data_length
 		}
 	}
 
+	LLSEC_PROFILE_END();
 	return return_code;
 }
 
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 int32_t LLSEC_X509_CERT_IMPL_verify(int8_t *cert_data, int32_t cert_data_length, int32_t public_key_id) {
 	LLSEC_UNUSED_PARAM(public_key_id);
 
 	LLSEC_X509_DEBUG_TRACE("%s \n", __func__);
+	LLSEC_PROFILE_START();
 	int return_code = LLSEC_SUCCESS;
 
 	mbedtls_x509_crt *x509 = get_x509_certificate(cert_data, cert_data_length, NULL);
 	if (NULL == x509) {
-		(void)SNI_throwNativeException(LLSEC_ERROR, "Bad x509 certificate");
+		int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Bad x509 certificate");
+		LLSEC_ASSERT(sni_rc == SNI_OK);
 		return_code = LLSEC_ERROR;
 	}
 
@@ -272,7 +266,8 @@ int32_t LLSEC_X509_CERT_IMPL_verify(int8_t *cert_data, int32_t cert_data_length,
 		int mbedtls_rc = mbedtls_x509_crt_verify(x509, NULL, NULL, NULL, &flags, NULL, NULL);
 		if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
 			LLSEC_X509_DEBUG_TRACE("LLSEC_X509 > verify error");
-			(void)SNI_throwNativeException(LLSEC_ERROR, "Error x509 verify failed");
+			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Error x509 verify failed");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			return_code = LLSEC_ERROR;
 		}
 	}
@@ -282,27 +277,20 @@ int32_t LLSEC_X509_CERT_IMPL_verify(int8_t *cert_data, int32_t cert_data_length,
 		mbedtls_free(x509);
 	}
 
+	LLSEC_PROFILE_END();
 	return return_code;
 }
 
-/**
- * @brief Checks that the certificate is currently valid, i.e. the current time is within the specified validity period.
- *
- * @param[in] cert_data						The X509 certificate.
- * @param[in] cert_data_length				The certificate length.
- *
- * @return {@link J_SEC_NO_ERROR} on success, {@link J_X509_CERT_EXPIRED_ERROR} if certificate expired,
- * {@link J_X509_CERT_NOT_YET_VALID_ERROR} if certificate is not yet valid.
- *
- * @throws NativeException on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 int32_t LLSEC_X509_CERT_IMPL_check_validity(int8_t *cert_data, int32_t cert_data_length) {
 	LLSEC_X509_DEBUG_TRACE("%s \n", __func__);
+	LLSEC_PROFILE_START();
 	int return_code = LLSEC_SUCCESS;
 
 	mbedtls_x509_crt *x509 = get_x509_certificate(cert_data, cert_data_length, NULL);
 	if (NULL == x509) {
-		(void)SNI_throwNativeException(LLSEC_ERROR, "Bad x509 certificate");
+		int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Bad x509 certificate");
+		LLSEC_ASSERT(sni_rc == SNI_OK);
 		return_code = LLSEC_ERROR;
 	}
 
@@ -325,16 +313,11 @@ int32_t LLSEC_X509_CERT_IMPL_check_validity(int8_t *cert_data, int32_t cert_data
 		mbedtls_free(x509);
 	}
 
+	LLSEC_PROFILE_END();
 	return return_code;
 }
 
-/**
- * @brief Get the pointer for the close key  method to be used as a close resource callback with SNI.
- *
- * @return the pointer for the close method.
- *
- * @note Throws NativeException on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 int32_t LLSEC_X509_CERT_IMPL_get_close_key(void) {
 	LLSEC_X509_DEBUG_TRACE("%s \n", __func__);
 	return (int32_t)LLSEC_X509_CERT_mbedtls_close_key;

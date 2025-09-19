@@ -17,7 +17,16 @@
       "stopAtSymbol": "main",
       "probeSerialNumber": "",
       "isAttach": false,
-      "showDevDebugOutput": "none"
+      "showDevDebugOutput": "none",
+      "gdbServerConfigs": {
+        "linkserver": {
+          "device": "MIMXRT1176xxxxx:MIMXRT1170-EVK",
+          "core": "cm7"
+        },
+        "segger": {
+          "device": "MIMXRT1176xxxA_M7"
+        }
+      }
     }
   ]
 }

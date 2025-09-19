@@ -18,8 +18,8 @@ The following table shows the relationship between the different versions of the
 
 The table indicates:
 
-* the version of the test suite project,
-* the version of the test suite library fetched by the project,
+* the version of the project `java-testsuite-runner-vg`,
+* the version of the test suite library fetched by the project `java-testsuite-runner-vg`,
 * the compatible VG Packs to run the tests of the test suite,
 * the minimum version of the MicroVG API required by the test suite.
 

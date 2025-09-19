@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2021-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2021-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,13 +9,14 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 1.6.1
- * @date 16 January 2025
+ * @version 2.0.1
  */
 
-#include <LLSEC_ERRORS.h>
+// set to 1 to enable profiling
+#define LLSEC_PROFILE   0
+
 #include <LLSEC_KEY_FACTORY_impl.h>
-#include <LLSEC_configuration.h>
+#include <LLSEC_CONSTANTS.h>
 #include <LLSEC_mbedtls.h>
 #include <sni.h>
 #include <stdint.h>
@@ -23,7 +24,6 @@
 #include <string.h>
 #include "mbedtls/platform.h"
 #include "mbedtls/pk.h"
-#include "mbedtls/version.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
 
@@ -59,7 +59,7 @@ static void LLSEC_KEY_FACTORY_mbedtls_private_key_close(void *native_id);
 static void LLSEC_KEY_FACTORY_mbedtls_public_key_close(void *native_id);
 
 // cppcheck-suppress misra-c2012-8.9 // Define here for code readability even if it called once in this file.
-static LLSEC_KEY_FACTORY_algorithm available_key_algorithms[2] = {
+static const LLSEC_KEY_FACTORY_algorithm available_key_algorithms[2] = {
 	{
 		.name = "RSA",
 		.get_private_key_data = LLSEC_KEY_FACTORY_RSA_mbedtls_get_private_key_data,
@@ -101,7 +101,8 @@ static int32_t LLSEC_KEY_FACTORY_RSA_mbedtls_get_private_key_data(LLSEC_priv_key
 	mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers,
 	                                   strlen(pers));
 	if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
-		(void)SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_seed failed");
+		int sni_rc = SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_seed failed");
+		LLSEC_ASSERT(sni_rc == SNI_OK);
 		return_code = LLSEC_ERROR;
 	}
 #endif
@@ -124,7 +125,8 @@ static int32_t LLSEC_KEY_FACTORY_RSA_mbedtls_get_private_key_data(LLSEC_priv_key
 	if (LLSEC_SUCCESS == return_code) {
 		priv_key->key = (char *)mbedtls_pk_rsa(pk);
 		if (NULL == priv_key->key) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "RSA context extraction failed");
+			int sni_rc = SNI_throwNativeException(LLSEC_ERROR, "RSA context extraction failed");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			return_code = LLSEC_ERROR;
 		}
 	}
@@ -133,7 +135,8 @@ static int32_t LLSEC_KEY_FACTORY_RSA_mbedtls_get_private_key_data(LLSEC_priv_key
 		void *native_id = (void *)priv_key;
 		if (SNI_OK != SNI_registerResource(native_id, (SNI_closeFunction)LLSEC_KEY_FACTORY_mbedtls_private_key_close,
 		                                   NULL)) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "Can't register SNI native resource");
+			int sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Can't register SNI native resource");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			mbedtls_rsa_free((mbedtls_rsa_context *)priv_key->key);
 			return_code = LLSEC_ERROR;
 		} else {
@@ -173,7 +176,8 @@ static int32_t LLSEC_KEY_FACTORY_RSA_mbedtls_get_public_key_data(LLSEC_pub_key *
 	if (LLSEC_SUCCESS == return_code) {
 		pub_key->key = (char *)mbedtls_pk_rsa(pk);
 		if (NULL == pub_key->key) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "RSA public key extraction failed");
+			int sni_rc = SNI_throwNativeException(LLSEC_ERROR, "RSA public key extraction failed");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			return_code = LLSEC_ERROR;
 		}
 	}
@@ -182,7 +186,8 @@ static int32_t LLSEC_KEY_FACTORY_RSA_mbedtls_get_public_key_data(LLSEC_pub_key *
 		void *native_id = (void *)pub_key;
 		if (SNI_OK != SNI_registerResource(native_id, (SNI_closeFunction)LLSEC_KEY_FACTORY_mbedtls_public_key_close,
 		                                   NULL)) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "Can't register SNI native resource");
+			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Can't register SNI native resource");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			mbedtls_rsa_free((mbedtls_rsa_context *)pub_key->key);
 			return_code = LLSEC_ERROR;
 		} else {
@@ -220,7 +225,8 @@ static int32_t LLSEC_KEY_FACTORY_EC_mbedtls_get_private_key_data(LLSEC_priv_key 
 	mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers,
 	                                   strlen(pers));
 	if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
-		(void)SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_seed failed");
+		int32_t sni_rc = SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_seed failed");
+		LLSEC_ASSERT(sni_rc == SNI_OK);
 		return_code = LLSEC_ERROR;
 	}
 #endif
@@ -243,7 +249,8 @@ static int32_t LLSEC_KEY_FACTORY_EC_mbedtls_get_private_key_data(LLSEC_priv_key 
 	if (LLSEC_SUCCESS == return_code) {
 		priv_key->key = (char *)mbedtls_pk_ec(pk);
 		if (NULL == priv_key->key) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "EC context extraction failed");
+			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "EC context extraction failed");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			return_code = LLSEC_ERROR;
 		}
 	}
@@ -252,7 +259,8 @@ static int32_t LLSEC_KEY_FACTORY_EC_mbedtls_get_private_key_data(LLSEC_priv_key 
 		void *native_id = (void *)priv_key;
 		if (SNI_OK != SNI_registerResource(native_id, (SNI_closeFunction)LLSEC_KEY_FACTORY_mbedtls_private_key_close,
 		                                   NULL)) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "Can't register SNI native resource");
+			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Can't register SNI native resource");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			mbedtls_ecdsa_free((mbedtls_ecdsa_context *)priv_key->key);
 			return_code = LLSEC_ERROR;
 		} else {
@@ -292,7 +300,8 @@ static int32_t LLSEC_KEY_FACTORY_EC_mbedtls_get_public_key_data(LLSEC_pub_key *p
 	if (LLSEC_SUCCESS == return_code) {
 		pub_key->key = (char *)mbedtls_pk_ec(pk);
 		if (NULL == pub_key->key) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "EC public key extraction failed");
+			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "EC public key extraction failed");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			return_code = LLSEC_ERROR;
 		}
 	}
@@ -301,7 +310,8 @@ static int32_t LLSEC_KEY_FACTORY_EC_mbedtls_get_public_key_data(LLSEC_pub_key *p
 		void *native_id = (void *)pub_key;
 		if (SNI_registerResource(native_id, (SNI_closeFunction)LLSEC_KEY_FACTORY_mbedtls_public_key_close,
 		                         NULL) != SNI_OK) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "Can't register SNI native resource");
+			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Can't register SNI native resource");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			mbedtls_ecdsa_free((mbedtls_ecdsa_context *)pub_key->key);
 			return_code = LLSEC_ERROR;
 		} else {
@@ -340,21 +350,13 @@ static void LLSEC_KEY_FACTORY_mbedtls_public_key_close(void *native_id) {
 	}
 }
 
-/*------------------------------------------Above is internal
- * implementation--------------------------------------------------------*/
-
-/**
- * @brief Gets for the given algorithm the key factory description.
- *
- * @param[in] algorithm_name               Null terminated string that describes the algorithm.
- *
- * @return The algorithm ID on success or -1 on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 int32_t LLSEC_KEY_FACTORY_IMPL_get_algorithm_description(uint8_t *algorithm_name) {
 	int32_t return_code = LLSEC_ERROR;
 	LLSEC_KEY_FACTORY_DEBUG_TRACE("%s \n", __func__);
+	LLSEC_PROFILE_START();
 	int32_t nb_algorithms = sizeof(available_key_algorithms) / sizeof(LLSEC_KEY_FACTORY_algorithm);
-	LLSEC_KEY_FACTORY_algorithm *algorithm = &available_key_algorithms[0];
+	const LLSEC_KEY_FACTORY_algorithm *algorithm = &available_key_algorithms[0];
 
 	while (--nb_algorithms >= 0) {
 		if (strcmp((char *)algorithm_name, algorithm->name) == 0) {
@@ -366,42 +368,35 @@ int32_t LLSEC_KEY_FACTORY_IMPL_get_algorithm_description(uint8_t *algorithm_name
 	if (0 <= nb_algorithms) {
 		return_code = (int32_t)algorithm;
 	}
+	LLSEC_PROFILE_END();
 	return return_code;
 }
 
-/**
- * @brief Gets the native public key corresponding to the encoded data.
- *
- * @param[in] algorithm_id                 The algorithm ID.
- * @param[in] format_name                  Null terminated string that describes the key format.
- * @param[in] encoded_key                  The public key in its encoded form.
- * @param[in] encoded_key_length           The encoded key length.
- *
- * @return pointer on the C structure holding the key information.
- *
- * @note Throws NativeException on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 int32_t LLSEC_KEY_FACTORY_IMPL_get_public_key_data(int32_t algorithm_id, uint8_t *format_name, uint8_t *encoded_key,
                                                    int32_t encoded_key_length) {
 	int32_t return_code = LLSEC_SUCCESS;
 	LLSEC_KEY_FACTORY_DEBUG_TRACE("%s \n", __func__);
+	LLSEC_PROFILE_START();
 	LLSEC_pub_key *public_key = NULL;
 
 	if (0 != strcmp((char *)format_name, x509_format)) {
-		(void)SNI_throwNativeException(LLSEC_ERROR, "Invalid format name");
+		int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Invalid format name");
+		LLSEC_ASSERT(sni_rc == SNI_OK);
 		return_code = LLSEC_ERROR;
 	}
 
 	if (LLSEC_SUCCESS == return_code) {
 		public_key = (LLSEC_pub_key *)mbedtls_calloc(1, sizeof(LLSEC_pub_key));
 		if (public_key == NULL) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "Can't allocate LLSEC_pub_key structure");
+			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Can't allocate LLSEC_pub_key structure");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			return_code = LLSEC_ERROR;
 		}
 	}
 
 	if (LLSEC_SUCCESS == return_code) {
-		LLSEC_KEY_FACTORY_algorithm *algorithm = (LLSEC_KEY_FACTORY_algorithm *)algorithm_id;
+		const LLSEC_KEY_FACTORY_algorithm *algorithm = (const LLSEC_KEY_FACTORY_algorithm *)algorithm_id;
 		return_code = algorithm->get_public_key_data(public_key, encoded_key, encoded_key_length);
 		if ((LLSEC_ERROR == return_code) && (NULL != public_key)) {
 			mbedtls_free(public_key);
@@ -409,42 +404,35 @@ int32_t LLSEC_KEY_FACTORY_IMPL_get_public_key_data(int32_t algorithm_id, uint8_t
 	}
 
 	LLSEC_KEY_FACTORY_DEBUG_TRACE("%s (rc = %d)\n", __func__, (int)return_code);
+	LLSEC_PROFILE_END();
 	return return_code;
 }
 
-/**
- * @brief Gets the native private key corresponding to the encoded data.
- *
- * @param[in] algorithm_id                 The algorithm ID.
- * @param[in] format_name                  Null terminated string that describes the key format.
- * @param[out] key_data                    The private key in the native format.
- * @param[out] key_data_length             The private key length.
- * @param[in] encoded_key                  The private key in its encoded form.
- * @param[in] encoded_key_length           The encoded key length.
- *
- * @note Throws NativeException on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 int32_t LLSEC_KEY_FACTORY_IMPL_get_private_key_data(int32_t algorithm_id, uint8_t *format_name, uint8_t *encoded_key,
                                                     int32_t encoded_key_length) {
 	int32_t return_code = LLSEC_SUCCESS;
 	LLSEC_KEY_FACTORY_DEBUG_TRACE("%s \n", __func__);
+	LLSEC_PROFILE_START();
 	LLSEC_priv_key *private_key = NULL;
 
 	if (0 != strcmp((char *)format_name, pkcs8_format)) {
-		(void)SNI_throwNativeException(LLSEC_ERROR, "Invalid format name");
+		int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Invalid format name");
+		LLSEC_ASSERT(sni_rc == SNI_OK);
 		return_code = LLSEC_ERROR;
 	}
 
 	if (LLSEC_SUCCESS == return_code) {
 		private_key = (LLSEC_priv_key *)mbedtls_calloc(1, sizeof(LLSEC_priv_key));
 		if (NULL == private_key) {
-			(void)SNI_throwNativeException(LLSEC_ERROR, "Can't allocate LLSEC_priv_key structure");
+			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Can't allocate LLSEC_priv_key structure");
+			LLSEC_ASSERT(sni_rc == SNI_OK);
 			return_code = LLSEC_ERROR;
 		}
 	}
 
 	if (LLSEC_SUCCESS == return_code) {
-		LLSEC_KEY_FACTORY_algorithm *algorithm = (LLSEC_KEY_FACTORY_algorithm *)algorithm_id;
+		const LLSEC_KEY_FACTORY_algorithm *algorithm = (const LLSEC_KEY_FACTORY_algorithm *)algorithm_id;
 		return_code = algorithm->get_private_key_data(private_key, encoded_key, encoded_key_length);
 		if ((LLSEC_ERROR == return_code) && (NULL != private_key)) {
 			mbedtls_free(private_key);
@@ -452,39 +440,24 @@ int32_t LLSEC_KEY_FACTORY_IMPL_get_private_key_data(int32_t algorithm_id, uint8_
 	}
 
 	LLSEC_KEY_FACTORY_DEBUG_TRACE("%s (rc = %d)\n", __func__, (int)return_code);
+	LLSEC_PROFILE_END();
 	return return_code;
 }
 
-/**
- * @brief Get the pointer for the close private key method to be used as a close resource callback with SNI.
- *
- * @param[in] algorithm_id                 algorithm pointer
- *
- * @return the pointer for the close method.
- *
- * @note Throws NativeException on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 int32_t LLSEC_KEY_FACTORY_IMPL_get_private_key_close_id(int32_t algorithm_id) {
 	LLSEC_KEY_FACTORY_DEBUG_TRACE("%s \n", __func__);
 
-	LLSEC_KEY_FACTORY_algorithm *algorithm = (LLSEC_KEY_FACTORY_algorithm *)algorithm_id;
-	// cppcheck-suppress misra-c2012-11.1 // Abstract data type for SNI usage
+	const LLSEC_KEY_FACTORY_algorithm *algorithm = (const LLSEC_KEY_FACTORY_algorithm *)algorithm_id;
+	// cppcheck-suppress [misra-c2012-11.1, misra-c2012-11.6] // Abstract data type for SNI usage
 	return (int32_t)algorithm->private_key_close;
 }
 
-/**
- * @brief Get the pointer for the close public key method to be used as a close resource callback with SNI.
- *
- * @param[in] algorithm_id                 algorithm pointer
- *
- * @return the pointer for the close method.
- *
- * @note Throws NativeException on error.
- */
+// cppcheck-suppress misra-c2012-8.7; external linkage is required as this function is part of the API
 int32_t LLSEC_KEY_FACTORY_IMPL_get_public_key_close_id(int32_t algorithm_id) {
 	LLSEC_KEY_FACTORY_DEBUG_TRACE("%s \n", __func__);
 
-	LLSEC_KEY_FACTORY_algorithm *algorithm = (LLSEC_KEY_FACTORY_algorithm *)algorithm_id;
-	// cppcheck-suppress misra-c2012-11.1 // Abstract data type for SNI usage
+	const LLSEC_KEY_FACTORY_algorithm *algorithm = (const LLSEC_KEY_FACTORY_algorithm *)algorithm_id;
+	// cppcheck-suppress [misra-c2012-11.1, misra-c2012-11.6] // Abstract data type for SNI usage
 	return (int32_t)algorithm->public_key_close;
 }

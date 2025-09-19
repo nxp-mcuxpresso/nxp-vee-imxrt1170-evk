@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -11,7 +11,7 @@
  * (in VGLite internal format).
  *
  * @author MicroEJ Developer Team
- * @version 8.0.1
+ * @version 9.0.1
  */
 
 #if !defined VG_BVI_VGLITE_H
@@ -73,12 +73,8 @@ void VG_BVI_VGLITE_free_resources(MICROUI_Image *image);
  *
  * @see vg_lite_draw()
  */
-jint VG_BVI_VGLITE_add_draw_path(void *target,
-                                 const vg_lite_path_t *path,
-                                 vg_lite_fill_t fill_rule,
-                                 const vg_lite_matrix_t *matrix,
-                                 vg_lite_blend_t blend,
-                                 vg_lite_color_t color);
+jint VG_BVI_VGLITE_add_draw_path(void *target, const vg_lite_path_t *path, vg_lite_fill_t fill_rule,
+                                 const vg_lite_matrix_t *matrix, vg_lite_blend_t blend, vg_lite_color_t color);
 
 /*
  * @brief Adds an operation "draw path with a gradient" in the BufferedVectorImage.
@@ -89,11 +85,8 @@ jint VG_BVI_VGLITE_add_draw_path(void *target,
  *
  * @see vg_lite_draw_gradient()
  */
-jint VG_BVI_VGLITE_add_draw_gradient(void *target,
-                                     const vg_lite_path_t *path,
-                                     vg_lite_fill_t fill_rule,
-                                     const vg_lite_matrix_t *matrix,
-                                     const vg_lite_linear_gradient_t *grad,
+jint VG_BVI_VGLITE_add_draw_gradient(void *target, const vg_lite_path_t *path, vg_lite_fill_t fill_rule,
+                                     const vg_lite_matrix_t *matrix, const vg_lite_linear_gradient_t *grad,
                                      vg_lite_blend_t blend);
 
 /*
@@ -107,12 +100,8 @@ jint VG_BVI_VGLITE_add_draw_gradient(void *target,
  *
  * @see vg_drawing.h
  */
-jint VG_BVI_VGLITE_add_draw_image(void *target,
-                                  const MICROVG_Image *image,
-                                  const jfloat *drawing_matrix,
-                                  jint alpha,
-                                  jlong elapsed,
-                                  const float color_matrix[]);
+jint VG_BVI_VGLITE_add_draw_image(void *target, const MICROVG_Image *image, const jfloat *drawing_matrix, jint alpha,
+                                  jlong elapsed, const float color_matrix[]);
 
 // -----------------------------------------------------------------------------
 // EOF

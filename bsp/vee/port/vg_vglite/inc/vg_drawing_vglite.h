@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -15,7 +15,7 @@ extern "C" {
  * These are implementations over VGLite and the destination buffer format is the
  * format specified in the VEE port.
  * @author MicroEJ Developer Team
- * @version 8.0.1
+ * @version 9.0.1
  * @see ui_drawing_vglite.h
  */
 
@@ -26,6 +26,7 @@ extern "C" {
 #include "vg_drawing.h"
 #include "vg_path.h"
 #include "vg_freetype.h"
+#include "ui_configuration.h"
 
 #include "vg_lite.h"
 
@@ -87,22 +88,11 @@ extern "C" {
  *
  * @return: the MicroVG error code
  */
-typedef jint (* VG_DRAWING_VGLITE_draw_image_element_t) (const vg_lite_path_t *path,
-                                                         vg_lite_fill_t fill_rule,
-                                                         const vg_lite_matrix_t *matrix,
-                                                         vg_lite_blend_t blend,
+typedef jint (* VG_DRAWING_VGLITE_draw_image_element_t) (const vg_lite_path_t *path, vg_lite_fill_t fill_rule,
+                                                         const vg_lite_matrix_t *matrix, vg_lite_blend_t blend,
                                                          vg_lite_color_t color,
                                                          vg_lite_linear_gradient_t *shared_gradient,
                                                          bool is_new_gradient);
-
-// --------------------------------------------------------------------------------
-// Global variables
-// --------------------------------------------------------------------------------
-
-/*
- * @brief Working variable used to render paths
- */
-extern vg_lite_path_t render_path;
 
 // --------------------------------------------------------------------------------
 // Public API
@@ -179,29 +169,29 @@ DRAWING_Status VG_DRAWING_VGLITE_drawGradient(MICROUI_GraphicsContext *gc, const
 /*
  * @brief Implementation of drawString over VGLite. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_VGLITE_drawString(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle,
-                                            jfloat size, const jfloat *matrix, jint alpha, jint blend,
+DRAWING_Status VG_DRAWING_VGLITE_drawString(MICROUI_GraphicsContext *gc, const jchar *text, jint length,
+                                            jint faceHandle, jfloat size, const jfloat *matrix, jint alpha, jint blend,
                                             jfloat letterSpacing);
 
 /*
  * @brief Implementation of drawStringGradient over VGLite. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_VGLITE_drawStringGradient(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle,
-                                                    jfloat size, const jfloat *matrix, jint alpha, jint blend,
-                                                    jfloat letterSpacing, const jint *gradientData,
+DRAWING_Status VG_DRAWING_VGLITE_drawStringGradient(MICROUI_GraphicsContext *gc, const jchar *text, jint length,
+                                                    jint faceHandle, jfloat size, const jfloat *matrix, jint alpha,
+                                                    jint blend, jfloat letterSpacing, const jint *gradientData,
                                                     const jfloat *gradientMatrix);
 
 /*
  * @brief Implementation of drawStringOnCircle over VGLite. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircle(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle,
-                                                    jfloat size, const jfloat *matrix, jint alpha, jint blend,
-                                                    jfloat letterSpacing, jfloat radius, jint direction);
+DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircle(MICROUI_GraphicsContext *gc, const jchar *text, jint length,
+                                                    jint faceHandle, jfloat size, const jfloat *matrix, jint alpha,
+                                                    jint blend, jfloat letterSpacing, jfloat radius, jint direction);
 
 /*
  * @brief Implementation of drawStringOnCircleGradient over VGLite. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircleGradient(MICROUI_GraphicsContext *gc, const jchar *text,
+DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircleGradient(MICROUI_GraphicsContext *gc, const jchar *text, jint length,
                                                             jint faceHandle, jfloat size, const jfloat *matrix,
                                                             jint alpha, jint blend, jfloat letterSpacing, jfloat radius,
                                                             jint direction, const jint *gradientData,

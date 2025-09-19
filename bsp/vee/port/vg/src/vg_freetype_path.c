@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2020-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2020-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ MicroVG library low level API: implementation over Freetype.
  * @author MicroEJ Developer Team
- * @version 6.0.1
+ * @version 7.0.1
  */
 
 // -----------------------------------------------------------------------------
@@ -32,6 +32,7 @@
 #include <LLVG_MATRIX_impl.h>
 #include <sni.h>
 
+#include "vg_freetype.h"
 #include "vg_helper.h"
 #include "bsp_util.h"
 
@@ -154,11 +155,10 @@ static FT_Error __render_glyph(FT_Face face, FT_UInt glyph_index, FT_Color *pale
 // -----------------------------------------------------------------------------
 
 // See the header file for the function documentation
-jint VG_FREETYPE_draw_string(VG_FREETYPE_draw_glyph_t drawer, const jchar *text, jint faceHandle, jfloat size,
-                             const jfloat *matrix, uint32_t color, jfloat letterSpacing, jfloat radius, jint direction,
-                             void *user_data) {
+jint VG_FREETYPE_draw_string(VG_FREETYPE_draw_glyph_t drawer, const jchar *text, jint length, jint faceHandle,
+                             jfloat size, const jfloat *matrix, uint32_t color, jfloat letterSpacing, jfloat radius,
+                             jint direction, void *user_data) {
 	jint result = LLVG_SUCCESS;
-	int length = (int)SNI_getArrayLength(text);
 
 	if (0 < length) {
 		FT_Face face = (FT_Face)faceHandle;

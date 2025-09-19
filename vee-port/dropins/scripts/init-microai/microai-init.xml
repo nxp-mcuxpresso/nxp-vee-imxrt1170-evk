@@ -1,0 +1,30 @@
+<!--
+	Copyright 2025 MicroEJ Corp. All rights reserved.
+	Use of this source code is governed by a BSD-style license that can be found with this software.
+-->
+<project name="microai-init">
+	<import file="${scripts.dir}/extension-init.xml"/>
+
+	<target name="init/microai-options" extensionOf="init/context">
+		<property name="microai.heap.size" value="0"/>
+	</target>
+
+	<target name="init/microai-board" extensionOf="init/execution" if="onBoard">
+		<microejtempfile deleteonexit="true" prefix="linkmicroai" property="microai.link.dir"/>
+		<mkdir dir="${microai.link.dir}"/>
+		<property name="microai.link.file" location="${microai.link.dir}/microai.lscf"/>
+
+		<echoxml file="${microai.link.file}" append="false">
+			<lscFragment>
+				<defSymbol name="_microai_heap_size" value="${microai.heap.size}" rootSymbol="true"/>
+				<defSection name=".bss.microai.heap" size="_microai_heap_size" align="4"/>
+				<defSymbol name="_microai_heap_start" value="START(.bss.microai.heap)" rootSymbol="true"/>
+				<defSymbol name="_microai_heap_end" value="END(.bss.microai.heap)" rootSymbol="true"/>
+			</lscFragment>
+		</echoxml>
+
+		<augment id="partialLink.lscf.path">
+			<path location="${microai.link.dir}"/>
+		</augment>
+	</target>
+</project>

@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2020-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2020-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -10,7 +10,7 @@
  * @brief MicroEJ MicroVG library low level API: helper to implement library natives
  * methods.
  * @author MicroEJ Developer Team
- * @version 6.0.1
+ * @version 7.0.1
  */
 
 #if !defined VG_HELPER_H

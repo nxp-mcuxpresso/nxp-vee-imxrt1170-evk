@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2024-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief MicroVG library low level API over VGLite.
  * @author MicroEJ Developer Team
- * @version 8.0.1
+ * @version 9.0.1
  */
 
 // -----------------------------------------------------------------------------
@@ -22,6 +22,7 @@
 #include "mej_math.h"
 #include "vg_helper.h"
 #include "vg_vglite_helper.h"
+#include "ui_util.h"
 
 // -----------------------------------------------------------------------------
 // Configuration check
@@ -44,9 +45,10 @@
 jint LLVG_GRADIENT_IMPL_initializeGradient(jint *jgradient, jint length, const jint *colors, jint count,
                                            const jfloat *positions, jfloat xStart, jfloat yStart, jfloat xEnd,
                                            jfloat yEnd) {
-	MICROVG_GRADIENT_HEADER_t *gradient = (MICROVG_GRADIENT_HEADER_t *)jgradient;
-	uint32_t expectedLength = MICROVG_GRADIENT_HEADER_SIZE + (count * 2 /* colors and positions */);
 	jint ret;
+	MICROVG_GRADIENT_HEADER_t *gradient = (MICROVG_GRADIENT_HEADER_t *)jgradient;
+	uint32_t expectedLength = MICROVG_GRADIENT_HEADER_SIZE + (MAX(count, 2) * 2 /* colors and positions */);
+
 	if (length >= expectedLength) {
 		// fill header
 		float angle = RAD_TO_DEG(atan2f(yEnd - yStart, xEnd - xStart));
@@ -55,21 +57,31 @@ jint LLVG_GRADIENT_IMPL_initializeGradient(jint *jgradient, jint length, const j
 		gradient->x = xStart;
 		gradient->y = yStart;
 		gradient->angle = angle;
-
-		gradient->count = (uint32_t)count;
 		gradient->length = l;
 
+		gradient->count = (uint32_t)MAX(count, 2);
 		gradient->colors_offset = MICROVG_GRADIENT_HEADER_SIZE;
-		gradient->positions_offset = MICROVG_GRADIENT_HEADER_SIZE + count;
+		gradient->positions_offset = MICROVG_GRADIENT_HEADER_SIZE + gradient->count;
 
-		// fill colors
-		void *colors_addr = (void *)&((uint32_t *)gradient)[gradient->colors_offset];
-		(void)memcpy(colors_addr, colors, count * sizeof(uint32_t));
-
-		// fill positions
+		jint *colors_addr = &((jint *)gradient)[gradient->colors_offset];
 		uint32_t *positions_addr = &((uint32_t *)gradient)[gradient->positions_offset];
-		for (uint32_t p = 0; p < gradient->count; p++) {
-			positions_addr[p] = (uint32_t)(positions[p] * (VGLITE_GRADIENT_SIZE - 1));
+
+		if (count < 2) {
+			// missing some colors: create a gradient to prevent unknown behavior at drawing time
+			// use same spec than image generator: use the same color for positions 0 and 1
+			jint color = count < 1 ? 0 /* fully transparent */ : colors[0];
+			colors_addr[0] = color;
+			colors_addr[1] = color;
+			positions_addr[0] = 0u;
+			positions_addr[1] = (uint32_t)(VGLITE_GRADIENT_SIZE - 1);
+		} else {
+			// fill colors
+			(void)memcpy(colors_addr, colors, count * sizeof(jint));
+
+			// fill positions
+			for (uint32_t p = 0; p < gradient->count; p++) {
+				positions_addr[p] = (uint32_t)(positions[p] * (VGLITE_GRADIENT_SIZE - 1));
+			}
 		}
 
 		ret = LLVG_SUCCESS;

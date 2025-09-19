@@ -248,7 +248,7 @@ extern "C" {
  * support one or several custom formats.
  * @see ui_font_drawing.c for more information.
  */
-//#define UI_FEATURE_FONT_CUSTOM_FORMATS
+#define UI_FEATURE_FONT_CUSTOM_FORMATS
 
 // --------------------------------------------------------------------------------
 // EOF

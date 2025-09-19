@@ -24,7 +24,7 @@ public class AiMain {
 
     private static final String MODEL_PATH = "/model/cifarnet_quant_int8.tflite";
     private static final String LABELS_PATH = "/model/cifar_labels.txt";
-    private static final int ARENA_SIZE = 180 * 1024;
+    private static final int ARENA_SIZE = 45 * 1024; // must fit into microai.heap.size
     private static final int AI_WIDGET_X = 60;
     private static final int AI_WIDGET_Y = 60;
     private static final int AI_WIDGET_WIDTH = 200;

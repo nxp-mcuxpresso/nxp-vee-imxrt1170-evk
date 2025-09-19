@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -11,7 +11,7 @@
  * and LLVG_PATH_PAINTER_impl.h.
  *
  * @author MicroEJ Developer Team
- * @version 6.0.1
+ * @version 7.0.1
  */
 
 #include "vg_configuration.h"
@@ -59,8 +59,8 @@ jint LLVG_PATH_IMPL_appendPathCommand2(jbyte *jpath, jint length, jint cmd, jflo
 }
 
 // See the header file for the function documentation
-jint LLVG_PATH_IMPL_appendPathCommand3(jbyte *jpath, jint length, jint cmd, jfloat x1, jfloat y1, jfloat x2,
-                                       jfloat y2, jfloat x3, jfloat y3) {
+jint LLVG_PATH_IMPL_appendPathCommand3(jbyte *jpath, jint length, jint cmd, jfloat x1, jfloat y1, jfloat x2, jfloat y2,
+                                       jfloat x3, jfloat y3) {
 	(void)jpath;
 	(void)length;
 	(void)cmd;

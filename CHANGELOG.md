@@ -1,6 +1,25 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.1.0] - 2025-09-12
+
+### Added
+
+- Add MicroAI support.
+- Add Event Queue support.
+
+### Changed
+
+- Update MicroEJ SDK to 1.3.1 version.
+- Update LLKERNEL Abstraction Layer to 3.0.1 version.
+- Updated VG pack to v1.7.1.
+- Update Net pack to v12.0.0.
+
+### Fixed
+
+- ui: Draw transparent images using GPU.
+- ssl: Remove ciphersuites limitation.
+
 ## [3.0.0] - 2025-03-07
 
 ### Changed

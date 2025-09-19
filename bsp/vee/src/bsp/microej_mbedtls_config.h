@@ -1,8 +1,9 @@
 /*
  * C
  *
- *  Copyright 2022-2023 MicroEJ Corp. All rights reserved.
+ *  Copyright 2022-2025 MicroEJ Corp. All rights reserved.
  *  Use of this source code is governed by a BSD-style license that can be found with this software.
+ *  Modified by NXP on 2025
  */
 #ifndef KSDK_MBEDTLS_CONFIG_H
 #define KSDK_MBEDTLS_CONFIG_H
@@ -27,6 +28,14 @@ extern time_t LLNET_SSL_utils_custom_mbedtls_time(time_t *time);
 
 #define MBEDTLS_ENTROPY_C
 #define MBEDTLS_CTR_DRBG_C
+
+#ifndef USE_RTOS
+#ifdef SDK_OS_FREE_RTOS
+#define USE_RTOS 1
+#else
+#define USE_RTOS 0
+#endif /* SDK_OS_FREE_RTOS */
+#endif /* USE_RTOS */
 
 /**************************** KSDK ********************************************/
 
@@ -191,21 +200,11 @@ extern time_t LLNET_SSL_utils_custom_mbedtls_time(time_t *time);
 
 #endif
 
-/**
- * \def MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT
- *
- * Enable implementation for FreeRTOS's pvPortCalloc() in ksdk_mbedtls.c module.
- * You can comment this macro if you provide your own alternate implementation.
- *
- */
-#if defined(USE_RTOS) && defined(SDK_OS_FREE_RTOS)
-#define MBEDTLS_FREESCALE_FREERTOS_CALLOC_ALT
-#endif
-
 /* Define ALT functions. */
 #define MBEDTLS_ECP_ALT
 
-#if defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || defined(MBEDTLS_FREESCALE_CAU3_DES)
+#if defined(MBEDTLS_FREESCALE_MMCAU_DES) || defined(MBEDTLS_FREESCALE_LTC_DES) || defined(MBEDTLS_FREESCALE_CAAM_DES) || \
+	defined(MBEDTLS_FREESCALE_CAU3_DES)
 #define MBEDTLS_DES_ALT
 #define MBEDTLS_DES3_SETKEY_ENC_ALT
 #define MBEDTLS_DES3_SETKEY_DEC_ALT
@@ -236,21 +235,22 @@ extern time_t LLNET_SSL_utils_custom_mbedtls_time(time_t *time);
 //#define MBEDTLS_AES_CBC_ALT_SW
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_MMCAU_AES) || \
-    defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES) || \
-    defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
+	defined(MBEDTLS_FREESCALE_LPC_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES) ||  \
+	defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
 #define MBEDTLS_AES_ALT
 #define MBEDTLS_AES_SETKEY_ENC_ALT
 #define MBEDTLS_AES_SETKEY_DEC_ALT
 #define MBEDTLS_AES_ENCRYPT_ALT
 #define MBEDTLS_AES_DECRYPT_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES) || defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
+#if defined(MBEDTLS_FREESCALE_LTC_AES) || defined(MBEDTLS_FREESCALE_CAAM_AES) || \
+	defined(MBEDTLS_FREESCALE_HASHCRYPT_AES)
 #define MBEDTLS_AES_CRYPT_CBC_ALT
 #define MBEDTLS_AES_CRYPT_CTR_ALT
 #define MBEDTLS_CCM_CRYPT_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_AES_GCM) || defined(MBEDTLS_FREESCALE_LPC_AES_GCM) || \
-    defined(MBEDTLS_FREESCALE_CAAM_AES_GCM)
+	defined(MBEDTLS_FREESCALE_CAAM_AES_GCM)
 #define MBEDTLS_GCM_CRYPT_ALT
 #endif
 #if defined(MBEDTLS_FREESCALE_LTC_PKHA) || defined(MBEDTLS_FREESCALE_CAU3_PKHA) || defined(MBEDTLS_FREESCALE_CAAM_PKHA)
@@ -271,14 +271,16 @@ extern time_t LLNET_SSL_utils_custom_mbedtls_time(time_t *time);
 #if defined(MBEDTLS_FREESCALE_CASPER_PKHA)
 #define MBEDTLS_RSA_PUBLIC_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_SHA1) || defined(MBEDTLS_FREESCALE_LPC_SHA1) || \
-    defined(MBEDTLS_FREESCALE_CAAM_SHA1) || defined(MBEDTLS_FREESCALE_CAU3_SHA1) || defined(MBEDTLS_FREESCALE_DCP_SHA1) || \
-    defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA1)
+#if defined(MBEDTLS_FREESCALE_LTC_SHA1) || defined(MBEDTLS_FREESCALE_LPC_SHA1) ||   \
+	defined(MBEDTLS_FREESCALE_CAAM_SHA1) || defined(MBEDTLS_FREESCALE_CAU3_SHA1) || \
+	defined(MBEDTLS_FREESCALE_DCP_SHA1) ||                                          \
+	defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA1)
 #define MBEDTLS_SHA1_ALT
 #endif
-#if defined(MBEDTLS_FREESCALE_LTC_SHA256) || defined(MBEDTLS_FREESCALE_LPC_SHA256) || \
-    defined(MBEDTLS_FREESCALE_CAAM_SHA256) || defined(MBEDTLS_FREESCALE_CAU3_SHA256) || defined(MBEDTLS_FREESCALE_DCP_SHA256) || \
-    defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256)
+#if defined(MBEDTLS_FREESCALE_LTC_SHA256) || defined(MBEDTLS_FREESCALE_LPC_SHA256) ||   \
+	defined(MBEDTLS_FREESCALE_CAAM_SHA256) || defined(MBEDTLS_FREESCALE_CAU3_SHA256) || \
+	defined(MBEDTLS_FREESCALE_DCP_SHA256) ||                                            \
+	defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256)
 #define MBEDTLS_SHA256_ALT
 /*
  * LPC SHA module does not support SHA-224.
@@ -290,7 +292,8 @@ extern time_t LLNET_SSL_utils_custom_mbedtls_time(time_t *time);
  * To use SHA-224 on LPC, do not define MBEDTLS_SHA256_ALT and both SHA-224 and SHA-256 will use
  * original mbed TLS software implementation.
  */
-#if defined(MBEDTLS_FREESCALE_LPC_SHA256) || defined(MBEDTLS_FREESCALE_DCP_SHA256) || defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256)
+#if defined(MBEDTLS_FREESCALE_LPC_SHA256) || defined(MBEDTLS_FREESCALE_DCP_SHA256) || \
+	defined(MBEDTLS_FREESCALE_HASHCRYPT_SHA256)
 #define MBEDTLS_SHA256_ALT_NO_224
 #endif
 #endif
@@ -342,10 +345,8 @@ extern time_t LLNET_SSL_utils_custom_mbedtls_time(time_t *time);
 #define FSL_MD_COOKIE_USE_SHA256
 #endif
 
-#if defined(USE_RTOS) && defined(SDK_OS_FREE_RTOS)
+#if USE_RTOS && defined(SDK_OS_FREE_RTOS)
 #include "FreeRTOS.h"
-
-void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 
 #define MBEDTLS_PLATFORM_MEMORY
 #define MBEDTLS_PLATFORM_STD_CALLOC pvPortCalloc
@@ -1208,7 +1209,7 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  * defined in `ecdh.h`). For most applications, the choice of format makes
  * no difference, since all library functions can work with either format,
  * except that the new format is incompatible with MBEDTLS_ECP_RESTARTABLE.
-
+ *
  * The new format used when this option is disabled is smaller
  * (56 bytes on a 32-bit platform). In future versions of the library, it
  * will support alternative implementations of ECDH operations.
@@ -3963,7 +3964,8 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 //#define MBEDTLS_MPI_MAX_SIZE            1024 /**< Maximum number of bytes for usable MPIs. */
 
 /* CTR_DRBG options */
-//#define MBEDTLS_CTR_DRBG_ENTROPY_LEN               48 /**< Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */
+//#define MBEDTLS_CTR_DRBG_ENTROPY_LEN               48 /**< Amount of entropy used per seed by default (48 with
+// SHA-512, 32 with SHA-256) */
 //#define MBEDTLS_CTR_DRBG_RESEED_INTERVAL        10000 /**< Interval before reseed is performed by default */
 //#define MBEDTLS_CTR_DRBG_MAX_INPUT                256 /**< Maximum number of additional input bytes */
 //#define MBEDTLS_CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
@@ -3983,25 +3985,30 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 /* Entropy options */
 //#define MBEDTLS_ENTROPY_MAX_SOURCES                20 /**< Maximum number of sources supported */
 //#define MBEDTLS_ENTROPY_MAX_GATHER                128 /**< Maximum amount requested from entropy sources */
-//#define MBEDTLS_ENTROPY_MIN_HARDWARE               32 /**< Default minimum number of bytes required for the hardware entropy source mbedtls_hardware_poll() before entropy is released */
+//#define MBEDTLS_ENTROPY_MIN_HARDWARE               32 /**< Default minimum number of bytes required for the hardware
+// entropy source mbedtls_hardware_poll() before entropy is released */
 
 /* Memory buffer allocator options */
 //#define MBEDTLS_MEMORY_ALIGN_MULTIPLE      4 /**< Align on multiples of this value */
 
 /* Platform options */
-//#define MBEDTLS_PLATFORM_STD_MEM_HDR   <stdlib.h> /**< Header to include if MBEDTLS_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is needed. */
+//#define MBEDTLS_PLATFORM_STD_MEM_HDR   <stdlib.h> /**< Header to include if MBEDTLS_PLATFORM_NO_STD_FUNCTIONS is
+// defined. Don't define if no header is needed. */
 //#define MBEDTLS_PLATFORM_STD_CALLOC        calloc /**< Default allocator to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_FREE            free /**< Default free to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_EXIT            exit /**< Default exit to use, can be undefined */
-//#define MBEDTLS_PLATFORM_STD_TIME            time /**< Default time to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
+//#define MBEDTLS_PLATFORM_STD_TIME            time /**< Default time to use, can be undefined. MBEDTLS_HAVE_TIME must
+// be enabled */
 //#define MBEDTLS_PLATFORM_STD_FPRINTF      fprintf /**< Default fprintf to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_PRINTF        printf /**< Default printf to use, can be undefined */
 /* Note: your snprintf must correctly zero-terminate the buffer! */
 //#define MBEDTLS_PLATFORM_STD_SNPRINTF    snprintf /**< Default snprintf to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_EXIT_SUCCESS       0 /**< Default exit value to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_EXIT_FAILURE       1 /**< Default exit value to use, can be undefined */
-//#define MBEDTLS_PLATFORM_STD_NV_SEED_READ   mbedtls_platform_std_nv_seed_read /**< Default nv_seed_read function to use, can be undefined */
-//#define MBEDTLS_PLATFORM_STD_NV_SEED_WRITE  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
+//#define MBEDTLS_PLATFORM_STD_NV_SEED_READ   mbedtls_platform_std_nv_seed_read /**< Default nv_seed_read function to
+// use, can be undefined */
+//#define MBEDTLS_PLATFORM_STD_NV_SEED_WRITE  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to
+// use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_NV_SEED_FILE  "seedfile" /**< Seed file to read/write with default implementation */
 
 /* To Use Function Macros MBEDTLS_PLATFORM_C must be enabled */
@@ -4009,15 +4016,19 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 //#define MBEDTLS_PLATFORM_CALLOC_MACRO        calloc /**< Default allocator macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_FREE_MACRO            free /**< Default free macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_EXIT_MACRO            exit /**< Default exit macro to use, can be undefined */
-//#define MBEDTLS_PLATFORM_TIME_MACRO            time /**< Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
-//#define MBEDTLS_PLATFORM_TIME_TYPE_MACRO       time_t /**< Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
+//#define MBEDTLS_PLATFORM_TIME_MACRO            time /**< Default time macro to use, can be undefined.
+// MBEDTLS_HAVE_TIME must be enabled */
+//#define MBEDTLS_PLATFORM_TIME_TYPE_MACRO       time_t /**< Default time macro to use, can be undefined.
+// MBEDTLS_HAVE_TIME must be enabled */
 //#define MBEDTLS_PLATFORM_FPRINTF_MACRO      fprintf /**< Default fprintf macro to use, can be undefined */
 #define MBEDTLS_PLATFORM_PRINTF_MACRO        PRINTF /**< Default printf macro to use, can be undefined */
 /* Note: your snprintf must correctly zero-terminate the buffer! */
 //#define MBEDTLS_PLATFORM_SNPRINTF_MACRO    snprintf /**< Default snprintf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_VSNPRINTF_MACRO    vsnprintf /**< Default vsnprintf macro to use, can be undefined */
-//#define MBEDTLS_PLATFORM_NV_SEED_READ_MACRO   mbedtls_platform_std_nv_seed_read /**< Default nv_seed_read function to use, can be undefined */
-//#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
+//#define MBEDTLS_PLATFORM_NV_SEED_READ_MACRO   mbedtls_platform_std_nv_seed_read /**< Default nv_seed_read function to
+// use, can be undefined */
+//#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function
+// to use, can be undefined */
 
 /**
  * \brief       This macro is invoked by the library when an invalid parameter
@@ -4249,7 +4260,8 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
 
 //#define MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 //#define MBEDTLS_PSK_MAX_LEN               32 /**< Max size of TLS pre-shared keys, in bytes (default 256 bits) */
-//#define MBEDTLS_SSL_COOKIE_TIMEOUT        60 /**< Default expiration delay of DTLS cookies, in seconds if HAVE_TIME, or in number of cookies issued */
+//#define MBEDTLS_SSL_COOKIE_TIMEOUT        60 /**< Default expiration delay of DTLS cookies, in seconds if HAVE_TIME,
+// or in number of cookies issued */
 
 /** \def MBEDTLS_TLS_EXT_CID
  *
@@ -4274,11 +4286,15 @@ void *pvPortCalloc(size_t num, size_t size); /*Calloc for HEAP3.*/
  *
  * The value below is only an example, not the default.
  */
-#define MBEDTLS_SSL_CIPHERSUITES  MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, MBEDTLS_TLS_DHE_RSA_WITH_AES_128_CBC_SHA, MBEDTLS_TLS_RSA_WITH_3DES_EDE_CBC_SHA, MBEDTLS_TLS_DHE_RSA_WITH_AES_256_CBC_SHA, MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA
+#define MBEDTLS_SSL_CIPHERSUITES  MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,                   \
+		MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, \
+		MBEDTLS_TLS_DHE_RSA_WITH_AES_128_CBC_SHA, MBEDTLS_TLS_RSA_WITH_3DES_EDE_CBC_SHA,           \
+		MBEDTLS_TLS_DHE_RSA_WITH_AES_256_CBC_SHA, MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA
 
 /* X509 options */
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */
-//#define MBEDTLS_X509_MAX_FILE_PATH_LEN     512 /**< Maximum length of a path/filename string in bytes including the null terminator character ('\0'). */
+//#define MBEDTLS_X509_MAX_FILE_PATH_LEN     512 /**< Maximum length of a path/filename string in bytes including the
+// null terminator character ('\0'). */
 
 /**
  * Allow SHA-1 in the default TLS configuration for TLS 1.2 handshake

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -62,7 +62,7 @@ void VG_DRAWING_get_image_size(const MICROVG_Image *image, float *width, float *
  *
  * @param[in] gc: the destination
  * @param[in] path: the path's data
- * @param[in] matrix: the deformation to apply
+ * @param[in] matrix the deformation to apply
  * @param[in] fillRule: the fill type
  * @param[in] blend: the blend mode
  * @param[in] color: the color to apply (with an opacity)
@@ -77,7 +77,7 @@ DRAWING_Status VG_DRAWING_drawPath(MICROUI_GraphicsContext *gc, jbyte *path, jfl
  *
  * @param[in] gc: the destination
  * @param[in] path: the path's data
- * @param[in] matrix: the deformation to apply
+ * @param[in] matrix the deformation to apply
  * @param[in] fillRule: the fill type
  * @param[in] alpha: the global opacity to apply
  * @param[in] blend: the blend mode
@@ -97,26 +97,28 @@ DRAWING_Status VG_DRAWING_drawGradient(MICROUI_GraphicsContext *gc, jbyte *path,
  *
  * @param[in] gc the MicroUI GraphicsContext target.
  * @param[in] text the array of characters to draw.
+ * @param[in] length the length of the array
  * @param[in] faceHandle the font reference handle.
  * @param[in] size the height of the font in pixels.
- * @param[in] matrix: deformation matrix, may be null (means identity)
+ * @param[in] matrix deformation matrix, may be null (means identity)
  * @param[in] alpha the opacity level to apply to the character.
  * @param[in] blend the blend mode to use
  * @param[in] letterSpacing the extra letter spacing to use
  *
  * @return the drawing status.
  */
-DRAWING_Status VG_DRAWING_drawString(MICROUI_GraphicsContext *gc, jchar *text, jint faceHandle, jfloat size,
-                                     jfloat *matrix, jint alpha, jint blend, jfloat letterSpacing);
+DRAWING_Status VG_DRAWING_drawString(MICROUI_GraphicsContext *gc, jchar *text, jint length, jint faceHandle,
+                                     jfloat size, jfloat *matrix, jint alpha, jint blend, jfloat letterSpacing);
 
 /*
  * @brief Draws a string with a linear gradient.
  *
  * @param[in] gc the MicroUI GraphicsContext target.
  * @param[in] text the array of characters to draw.
+ * @param[in] length the length of the array
  * @param[in] faceHandle the font reference handle.
  * @param[in] size the height of the font in pixels.
- * @param[in] matrix: deformation matrix, may be null (means identity)
+ * @param[in] matrix deformation matrix, may be null (means identity)
  * @param[in] alpha the opacity level to apply to the character.
  * @param[in] blend the blend mode to use
  * @param[in] letterSpacing the extra letter spacing to use
@@ -125,8 +127,8 @@ DRAWING_Status VG_DRAWING_drawString(MICROUI_GraphicsContext *gc, jchar *text, j
  *
  * @return the drawing status.
  */
-DRAWING_Status VG_DRAWING_drawStringGradient(MICROUI_GraphicsContext *gc, jchar *text, jint faceHandle, jfloat size,
-                                             jfloat *matrix, jint alpha, jint blend, jfloat letterSpacing,
+DRAWING_Status VG_DRAWING_drawStringGradient(MICROUI_GraphicsContext *gc, jchar *text, jint length, jint faceHandle,
+                                             jfloat size, jfloat *matrix, jint alpha, jint blend, jfloat letterSpacing,
                                              jint *gradientData, jfloat *gradientMatrix);
 
 /*
@@ -134,9 +136,10 @@ DRAWING_Status VG_DRAWING_drawStringGradient(MICROUI_GraphicsContext *gc, jchar 
  *
  * @param[in] gc the MicroUI GraphicsContext target.
  * @param[in] text the array of characters to draw.
+ * @param[in] length the length of the array
  * @param[in] faceHandle the font reference handle.
  * @param[in] size the height of the font in pixels.
- * @param[in] matrix: deformation matrix, may be null (means identity)
+ * @param[in] matrix deformation matrix, may be null (means identity)
  * @param[in] alpha the opacity level to apply to the character.
  * @param[in] blend the blend mode to use
  * @param[in] letterSpacing the extra letter spacing to use
@@ -145,8 +148,8 @@ DRAWING_Status VG_DRAWING_drawStringGradient(MICROUI_GraphicsContext *gc, jchar 
  *
  * @return the drawing status.
  */
-DRAWING_Status VG_DRAWING_drawStringOnCircle(MICROUI_GraphicsContext *gc, jchar *text, jint faceHandle, jfloat size,
-                                             jfloat *matrix, jint alpha, jint blend, jfloat letterSpacing,
+DRAWING_Status VG_DRAWING_drawStringOnCircle(MICROUI_GraphicsContext *gc, jchar *text, jint length, jint faceHandle,
+                                             jfloat size, jfloat *matrix, jint alpha, jint blend, jfloat letterSpacing,
                                              jfloat radius, jint direction);
 
 /*
@@ -154,9 +157,10 @@ DRAWING_Status VG_DRAWING_drawStringOnCircle(MICROUI_GraphicsContext *gc, jchar 
  *
  * @param[in] gc the MicroUI GraphicsContext target.
  * @param[in] text the array of characters to draw.
+ * @param[in] length the length of the array
  * @param[in] faceHandle the font reference handle.
  * @param[in] size the height of the font in pixels.
- * @param[in] matrix: deformation matrix, may be null (means identity)
+ * @param[in] matrix deformation matrix, may be null (means identity)
  * @param[in] alpha the opacity level to apply to the character.
  * @param[in] blend the blend mode to use
  * @param[in] letterSpacing the extra letter spacing to use
@@ -167,9 +171,9 @@ DRAWING_Status VG_DRAWING_drawStringOnCircle(MICROUI_GraphicsContext *gc, jchar 
  *
  * @return the drawing status.
  */
-DRAWING_Status VG_DRAWING_drawStringOnCircleGradient(MICROUI_GraphicsContext *gc, jchar *text, jint faceHandle,
-                                                     jfloat size, jfloat *matrix, jint alpha, jint blend,
-                                                     jfloat letterSpacing, jfloat radius, jint direction,
+DRAWING_Status VG_DRAWING_drawStringOnCircleGradient(MICROUI_GraphicsContext *gc, jchar *text, jint length,
+                                                     jint faceHandle, jfloat size, jfloat *matrix, jint alpha,
+                                                     jint blend, jfloat letterSpacing, jfloat radius, jint direction,
                                                      jint *gradientData, jfloat *gradientMatrix);
 
 /*

@@ -11,9 +11,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
-import com.nxp.api.ai.AI;
+import ej.microai.InputTensor;
+import ej.microai.OutputTensor;
+import ej.microai.MLInferenceEngine;
 
-import ej.bon.Constants;
 import ej.microui.display.Image;
 
 /**
@@ -26,9 +27,10 @@ import ej.microui.display.Image;
  */
 public class CifarModel {
     private static final Logger LOGGER = Logger.getLogger("[CifarModel]");
-    private static final String MICROUI_PROPERTY_RUN_ON_S3 = "com.microej.library.microui.onS3"; //$NON-NLS-1$
 
-    private final int modelHandle;
+    private MLInferenceEngine model;
+    private InputTensor inputTensor;
+    private OutputTensor outputTensor;
     private ArrayList<String> labels;
 
     private int modelInputLength = 1;
@@ -45,22 +47,18 @@ public class CifarModel {
      *
      * @param modelPath the cifar model path.
      * @param labelsPath the label list path.
-     * @param arenaSize the arena size.
      * @throws IOException if the model initialization failed or if label list can not be processed.
      */
     public CifarModel(String modelPath, String labelsPath, int arenaSize) throws IOException {
         // Initialize the model.
-        if (Constants.getBoolean(MICROUI_PROPERTY_RUN_ON_S3)) {
-            // If the model runs on the Simulator, initialize it with mocked tensors.
-            this.modelHandle = AI.TfLiteMicroSetUpSimu(CifarTestVectors.MOCK_INPUT_TENSOR_DIMENSIONS, AI.kTfLiteMicroInt8,
-                    CifarTestVectors.MOCK_OUTPUT_TENSOR_DIMENSIONS, AI.kTfLiteMicroFloat32, null, null, CifarTestVectors.MOCK_RESULTS_VALUES);
-        } else {
-            this.modelHandle = AI.TfLiteMicroSetUp(modelPath.getBytes(), modelPath.getBytes().length, arenaSize);
-        }
-        if (this.modelHandle == -1) {
+        this.model = new MLInferenceEngine(modelPath, arenaSize);
+        if (this.model == null) {
             LOGGER.info("Failed to initialize model");
             throw new IOException();
         }
+
+        this.inputTensor = this.model.getInputTensor(0);
+        this.outputTensor = this.model.getOutputTensor(0);
 
         // Process the label list.
         populateLabels(labelsPath);
@@ -80,16 +78,16 @@ public class CifarModel {
         // Load input data tensor.
         LOGGER.info("Image path : " + imagePath);
         processImage(imagePath);
-        AI.SetInputData_Int8(this.modelHandle, 0, this.modelInputData, this.modelInputLength);
+        this.inputTensor.setInputData(this.modelInputData);
 
         // Run the inference on the model.
         long startTime = System.currentTimeMillis();
-        AI.RunInference(this.modelHandle);
+        this.model.run();
         long stopTime = System.currentTimeMillis();
         LOGGER.info("Inference took: " + (stopTime - startTime) + " ms");
 
         // Get output data tensor.
-        AI.GetOutputData_Float32(this.modelHandle, 0, this.modelOutputData, this.modelOutputLength);
+        this.outputTensor.getOutputData(this.modelOutputData);
 
         // Process output data to get the image label and the confidence.
         processOutputTensor();
@@ -142,19 +140,15 @@ public class CifarModel {
      * Gets, stores and logs the model characteristics.
      */
     private void getModelCharacteristics() {
-        int index = 0;
-
         /* Get input tensor data */
-        int inputSize = AI.GetInputTensorSize(this.modelHandle, index);
+        int inputSize = this.inputTensor.getNumberDimensions();
         int[] inputDims = new int[inputSize];
 
-        AI.GetInputTensorDims(this.modelHandle, index, inputDims);
+        this.inputTensor.getShape(inputDims);
 
-        int inputType = AI.GetInputTensorType(this.modelHandle, index);
+        int inputType = this.inputTensor.getDataType();
 
-        for (int i = 0; i < inputSize; i++) {
-            this.modelInputLength *= inputDims[i];
-        }
+        this.modelInputLength = this.inputTensor.getNumberElements();
 
         LOGGER.info("Input size: " + inputSize);
         StringBuilder inputDimensions = new StringBuilder("Input dimensions: ");
@@ -162,21 +156,17 @@ public class CifarModel {
             inputDimensions.append(inputDims[i]).append(" ");
         }
         LOGGER.info(inputDimensions.toString());
-        LOGGER.info("Input type: " + AI.GetTfTypeName(inputType) + "\r\n");
+        LOGGER.info("Input type: " + inputType + "\r\n");
 
         /* Get output tensor data */
-        int outputSize = AI.GetOutputTensorSize(this.modelHandle, index);
+        int outputSize = this.outputTensor.getNumberDimensions();
         int[] outputDims = new int[outputSize];
 
-        AI.GetOutputTensorDims(this.modelHandle, index, outputDims);
+        this.outputTensor.getShape(outputDims);
 
-        int outputType = AI.GetOutputTensorType(this.modelHandle, index);
+        int outputType = this.outputTensor.getDataType();
 
-        for (int i = 0; i < outputSize; i++) {
-            this.modelOutputLength *= outputDims[i];
-        }
-        LOGGER.info(inputDimensions.toString());
-        LOGGER.info("Input type: " + AI.GetTfTypeName(inputType) + "\r\n");
+        this.modelOutputLength = this.outputTensor.getNumberElements();
 
         LOGGER.info("Output size: " + outputSize);
         StringBuilder outputDimensions = new StringBuilder("Output dimensions: ");
@@ -184,7 +174,7 @@ public class CifarModel {
             outputDimensions.append(outputDims[i]).append(" ");
         }
         LOGGER.info(outputDimensions.toString());
-        LOGGER.info("Output type: " + AI.GetTfTypeName(outputType) + "\r\n");
+        LOGGER.info("Output type: " + outputType + "\r\n");
     }
 
     /**

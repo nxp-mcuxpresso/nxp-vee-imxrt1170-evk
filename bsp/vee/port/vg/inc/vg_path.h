@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ MicroVG library low level API: implementation of Path.
  * @author MicroEJ Developer Team
- * @version 6.0.1
+ * @version 7.0.1
  */
 
 #if !defined VG_PATH_H
@@ -190,8 +190,7 @@ uint32_t VG_PATH_append_path_command2(jbyte *path, jint array_length, jint cmd, 
  * @see #VG_PATH_append_path_command0(jbyte*, uint32_t, jint)
  */
 uint32_t VG_PATH_append_path_command3(jbyte *path, jint array_length, jint cmd, jfloat x1, jfloat y1, jfloat x2,
-                                      jfloat y2,
-                                      jfloat x3, jfloat y3);
+                                      jfloat y2, jfloat x3, jfloat y3);
 
 /*
  * @brief Gets the number of parameters for a specific command.
@@ -211,6 +210,7 @@ uint32_t VG_PATH_get_command_parameter_number(jint command);
  * @return a pointer to the first parameter
  */
 static inline VG_path_param_t * VG_PATH_get_path_param_begin(VG_PATH_HEADER_t *path) {
+	// cppcheck-suppress [misra-c2012-11.3,invalidPointerCast] cast is valid
 	return (VG_path_param_t *)(((uint8_t *)path) + VG_PATH_get_path_header_size());
 }
 

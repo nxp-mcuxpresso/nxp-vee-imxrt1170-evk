@@ -91,6 +91,7 @@ add_executable(${MCUX_SDK_PROJECT_NAME}
     "${MicroEjRootDirPath}/src/bsp/dcd.h"
     "${MicroEjRootDirPath}/src/bsp/display_support.c"
     "${MicroEjRootDirPath}/src/bsp/display_support.h"
+    "${MicroEjRootDirPath}/src/bsp/event_queue_test_natives.c"
     "${MicroEjRootDirPath}/src/bsp/FreeRTOSConfig.h"
     "${MicroEjRootDirPath}/src/bsp/gettimeofday_impl.c"
     "${MicroEjRootDirPath}/src/bsp/pin_mux.c"
@@ -122,6 +123,7 @@ target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
     ${MicroEjRootDirPath}/port/core/inc
     ${MicroEjRootDirPath}/port/cpuload/inc
     ${MicroEjRootDirPath}/port/ecom-wifi/inc
+    ${MicroEjRootDirPath}/port/event-queue/inc
     ${MicroEjRootDirPath}/port/fs/inc
     ${MicroEjRootDirPath}/port/net/inc
     ${MicroEjRootDirPath}/port/inc
@@ -152,6 +154,7 @@ set_source_files_properties("${MicroEjRootDirPath}/common/bsp/sdmmc/sdmmc_config
 set(CMAKE_MODULE_PATH
     ${MicroEjRootDirPath}/port/core
     ${MicroEjRootDirPath}/port/cpuload
+    ${MicroEjRootDirPath}/port/event-queue
     ${MicroEjRootDirPath}/port/fs
     ${MicroEjRootDirPath}/port/gpio
     ${MicroEjRootDirPath}/port/kf
@@ -182,6 +185,7 @@ include(component_exception_handling_cm7)
 include(httpFilePaths)
 include(microej_core)
 include(microej_cpuload)
+include(microej_event_queue)
 include(microej_fs)
 include(microej_kf)
 include(microej_net)

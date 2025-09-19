@@ -11,7 +11,17 @@ microej {
 }
 
 dependencies {
+    // Use a VEE Port included in the same multi-project as this validation application
     microejVee(project(":vee-port"))
+
+    // Use a published version of a VEE Port
+    // or a local VEE Port project with includeBuild directive
+    // microejVee("com.mycompany:vee-port:1.0.0")
+
+    // Use a built VEE Port (can be used for SDK5 compatibility)
+    // In this case, architectureUsage is determined by the VEE Port
+    // Use double "\" on Windows
+    // microejVee(files("/path/to/vee-port/build/veePort/source"))
 }
 
 testing {
@@ -21,7 +31,7 @@ testing {
 
             dependencies {
                 implementation(project())
-                implementation("ej.library.test:junit:1.10.0")
+                implementation(libs.junit)
                 implementation(libs.junit.platform)
 
                 implementation(libs.api.edc)

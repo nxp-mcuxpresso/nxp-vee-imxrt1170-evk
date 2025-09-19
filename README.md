@@ -278,11 +278,11 @@ Once your setup is done, you can continue this Readme at the [Build and Deploy u
 
 The USB connection is used as a serial console for the SoC, as a CMSIS-DAP debugger, and as a power input for the board.
 
-The MicroEJ VEE Port uses the virtual UART from the i.MX RT1170 EVKB USB port. A COM port is automatically mounted when the board is plugged into a computer using a USB cable. All board logs are available through this COM port.
+The MicroEJ VEE Port uses the virtual UART from the i.MX RT1170 EVK USB port. A COM port is automatically mounted when the board is plugged into a computer using a USB cable. All board logs are available through this COM port.
 
 The COM port uses the following parameters:
 
-| Baudrate | Data bits bits | Parity bits | Stop bits | Flow control |
+| Baudrate | Data bits | Parity bits | Stop bits | Flow control |
 | -------- | -------- | -------- | -------- | -------- |
 | 115200     | 8     | None     | 1     | None     |
 
@@ -330,7 +330,7 @@ To configure the debug probe, change the `CHOSEN_PROBE` variable in [set_project
 
 ##### Configure the BSP Features
 
-Compilation flags are located in [CMakePresets.json](bsp\vee\scripts\armgcc\CMakePresets.json).
+Compilation flags are located in [CMakePresets.json](bsp/vee/scripts/armgcc/CMakePresets.json).
 To enable any desired features, please edit the file.
 
 For changes in this file to take effect, the script [clean.bat](bsp/vee/scripts/clean.bat) or [clean.sh](bsp/vee/scripts/clean.sh) must be called.
@@ -398,7 +398,7 @@ Open the Command Palette (`CTRL + SHIFT + p`) and run `CMake: Configure`.
 
 ##### Configure the BSP Features
 
-Compilation flags are located in [CMakePresets.json](bsp\vee\scripts\armgcc\CMakePresets.json).
+Compilation flags are located in [CMakePresets.json](bsp/vee/scripts/armgcc/CMakePresets.json).
 To enable any desired features, please edit the file (and reload preset & re-configure if needed).
 
 After a change in this file, a Pristine build must be made (see [Build the Project](#build-the-project) step).
@@ -450,7 +450,7 @@ By default, the VEE Port is built in mono-sandbox. Multi-sandbox can be enabled 
 
 ### AI
 
-AI can be enabled or disabled by changing `ENABLE_AI` value in [CMakePresets.json](bsp\vee\scripts\armgcc\CMakePresets.json).
+AI can be enabled or disabled by changing `ENABLE_AI` value in [CMakePresets.json](bsp/vee/scripts/armgcc/CMakePresets.json).
 Set it to 1 to enable it and 0 to disable it.
 Call [clean.bat](bsp/vee/scripts/clean.bat) or [clean.sh](bsp/vee/scripts/clean.sh) after changing this value.
 
@@ -460,7 +460,7 @@ For information about System View, please visit [SEGGER website](https://www.seg
 
 Follow these steps to run a System View live analysis:
 
-* Set `ENABLE_SYSTEM_VIEW` CMake variable to 1 in [CMakePresets.json](bsp\vee\scripts\armgcc\CMakePresets.json).
+* Set `ENABLE_SYSTEM_VIEW` CMake variable to 1 in [CMakePresets.json](bsp/vee/scripts/armgcc/CMakePresets.json).
 * Call [clean.bat](bsp/vee/scripts/clean.bat) or [clean.sh](bsp/vee/scripts/clean.sh).
 * Set `FLASH_CMD` to `flash` in [set_project_env.bat](bsp/vee/scripts/set_project_env.bat) or [set_project_env.sh](bsp/vee/scripts/set_project_env.sh).
 * Execute `runOnDevice` gradle task. Use a J-Link probe to flash your target.
@@ -482,7 +482,7 @@ By default, this VEE Port uses the 1G ethernet port.
 
 It can also be configured to use the second 100M port instead. To do this, follow these instructions:
 
-* Set `BOARD_NETWORK_USE_100M_ENET_PORT` to 1 in [board.h](bsp\vee\src\bsp\board.h)
+* Set `BOARD_NETWORK_USE_100M_ENET_PORT` to 1 in [board.h](bsp/vee/src/bsp/board.h)
 * If you are using a `MIMXRT1170-EVKB`, remove the resistor `R136`. This is done to avoid issues with the MDC pin of the port.
 
 ## Troubleshooting
@@ -517,7 +517,7 @@ west update
 
 #### Ninja: error: loading 'build.ninja': The system cannot find the file specified
 
-If you get the following error during the BSP build, please remove the cmake cache by running the script [clean.bat](bsp/vee/scripts/clean.bat) or [clean.sh](bsp/vee/scripts/clean.sh).
+If you get the following error during the BSP build:
 
 ```text
 "Failed to build the firmware"
@@ -525,11 +525,33 @@ ninja: error: loading 'build.ninja': The system cannot find the file specified.
 make: *** [remake] Error 1
 ```
 
+There are two common reasons for this issue:
+
+- **CMake cache problem**
+  The build system may be using outdated or corrupted cache files.
+  Fix: please remove the cmake cache by running [clean.bat](bsp/vee/scripts/clean.bat) or [clean.sh](bsp/vee/scripts/clean.sh).
+
+- **Path length limitation on Windows**
+  If the Git project is cloned into a directory with a very long path, the `mcux-sdk` dependency might not clone properly.
+  Fix: move or clone the project into a directory with a path as short as possible.
+
+### Flash issue
+
+Flash may not work out of the box.
+If this is the case, please:
+ - Check if correct probe is chosen based on effective flash method
+ - Update firmware of the on-board debugger (that may not be up-to-date)
+
+
 ### Known issues
 
 #### RSA key size limited to 2048 bits
 
 Due to a known bug, the RSA key size for the SECURITY Foundation Library is limited to 2048 bits, larger keys will cause errors.
+
+#### secp256k1 curve not supported by KeyPairGenerator
+
+The secp256k1 elliptic curve is not supported by the [KeyPairGenerator](https://repository.microej.com/javadoc/microej_5.x/apis/java/security/KeyPairGenerator.html) and causes a crash when MBEDTLS_FREESCALE_CAAM_PKHA flag is defined.
 
 
 ## Support
@@ -565,4 +587,4 @@ Questions regarding the content/correctness of this example can be entered as Is
 
 | Version | Description / Update                                 | Date                        |
 |:-------:|------------------------------------------------------|----------------------------:|
-| 3.0.0     | This is NXP Platform Accelerator for i.MX RT1170 EVK with a RK055HDMIPI4MA0 display panel.        | Mar 7<sup>th</sup> 2025 |
+| 3.1.0     | This is NXP Platform Accelerator for i.MX RT1170 EVK with a RK055HDMIPI4MA0 display panel.        | Sep 12<sup>th</sup> 2025 |

@@ -17,9 +17,7 @@
  * MicroUI BufferedImage).
  *
  * @author MicroEJ Developer Team
- * @version 8.0.1
- * 
- * MicroEJ : added gc parameter to UI_VGLITE_IMPL_notify_gpu_start and UI_VGLITE_IMPL_notify_gpu_stop functions
+ * @version 9.0.1
  */
 
 // -----------------------------------------------------------------------------
@@ -54,7 +52,7 @@
 // Private global variables
 // -----------------------------------------------------------------------------
 
-vg_lite_path_t render_path;
+static vg_lite_path_t render_path;
 static vg_lite_buffer_t *render_buffer;
 static bool draw_gradient_flushed;
 
@@ -191,6 +189,7 @@ static jint _draw_glyph_color(VG_PATH_HEADER_t *path, jfloat *matrix, uint32_t c
 // VG_FREETYPE_draw_glyph_t
 static jint _draw_glyph_gradient(VG_PATH_HEADER_t *path, jfloat *matrix, uint32_t color, bool fill_rule_even_odd,
                                  void *user_data) {
+	(void)color;
 	MICROVG_VGLITE_draw_glyph_data_t *data = (MICROVG_VGLITE_draw_glyph_data_t *)user_data;
 	data->rendered = true;
 	return _convert_vglite_error_to_llvg_error(vg_lite_draw_gradient(render_buffer,
@@ -200,8 +199,8 @@ static jint _draw_glyph_gradient(VG_PATH_HEADER_t *path, jfloat *matrix, uint32_
 	                                                                 data->gradient, data->blend));
 }
 
-static DRAWING_Status _draw_string_on_circle(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle,
-                                             jfloat size, const jfloat *matrix, jint alpha, jint blend,
+static DRAWING_Status _draw_string_on_circle(MICROUI_GraphicsContext *gc, const jchar *text, jint length,
+                                             jint faceHandle, jfloat size, const jfloat *matrix, jint alpha, jint blend,
                                              jfloat letterSpacing, jfloat radius, jint direction) {
 	DRAWING_Status ret = DRAWING_DONE;
 
@@ -219,7 +218,7 @@ static DRAWING_Status _draw_string_on_circle(MICROUI_GraphicsContext *gc, const 
 
 		// draw
 		render_buffer = UI_VGLITE_configure_destination(gc);
-		jint error = VG_FREETYPE_draw_string(&_draw_glyph_color, text, faceHandle, size, matrix, vglite_color,
+		jint error = VG_FREETYPE_draw_string(&_draw_glyph_color, text, length, faceHandle, size, matrix, vglite_color,
 		                                     letterSpacing, radius, direction, &data);
 		ret = _post_operation(gc, error, data.rendered);
 	}
@@ -228,9 +227,9 @@ static DRAWING_Status _draw_string_on_circle(MICROUI_GraphicsContext *gc, const 
 	return ret;
 }
 
-static DRAWING_Status _draw_string_on_circle_gradient(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle,
-                                                      jfloat size, const jfloat *matrix, jint alpha, jint blend,
-                                                      jfloat letterSpacing, jfloat radius, jint direction,
+static DRAWING_Status _draw_string_on_circle_gradient(MICROUI_GraphicsContext *gc, const jchar *text, jint length,
+                                                      jint faceHandle, jfloat size, const jfloat *matrix, jint alpha,
+                                                      jint blend, jfloat letterSpacing, jfloat radius, jint direction,
                                                       const jint *gradientData, const jfloat *gradientMatrix) {
 	DRAWING_Status ret = DRAWING_DONE;
 
@@ -253,7 +252,7 @@ static DRAWING_Status _draw_string_on_circle_gradient(MICROUI_GraphicsContext *g
 
 			// draw
 			render_buffer = UI_VGLITE_configure_destination(gc);
-			jint error = VG_FREETYPE_draw_string(&_draw_glyph_gradient, text, faceHandle, size, matrix, 0,
+			jint error = VG_FREETYPE_draw_string(&_draw_glyph_gradient, text, length, faceHandle, size, matrix, 0,
 			                                     letterSpacing, radius, direction, &data);
 			ret = _post_operation(gc, error, data.rendered);
 
@@ -272,7 +271,7 @@ static DRAWING_Status _draw_string_on_circle_gradient(MICROUI_GraphicsContext *g
 // --------------------------------------------------------------------------------
 
 // See the header file for the function documentation
-void VG_DRAWING_initialize() {
+void VG_DRAWING_initialize(void) {
 	vg_lite_init_path(
 		&render_path,
 		(vg_lite_format_t)VG_PATH_get_path_encoder_format(),     // default value
@@ -296,8 +295,7 @@ vg_lite_error_t VG_DRAWING_VGLITE_prepare_gradient(vg_lite_linear_gradient_t *gr
                                                    const jfloat *gradient_matrix, const jfloat *global_matrix,
                                                    int alpha) {
 	const jfloat *local_gradient_matrix = VG_HELPER_check_matrix(gradient_matrix);
-	return VG_VGLITE_HELPER_to_vg_lite_gradient(gradient, gradient_data, local_gradient_matrix, global_matrix,
-	                                            alpha);
+	return VG_VGLITE_HELPER_to_vg_lite_gradient(gradient, gradient_data, local_gradient_matrix, global_matrix, alpha);
 }
 
 /*
@@ -395,33 +393,34 @@ DRAWING_Status VG_DRAWING_VGLITE_drawGradient(MICROUI_GraphicsContext *gc, const
 	return ret;
 }
 
-DRAWING_Status VG_DRAWING_VGLITE_drawString(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle,
-                                            jfloat size, const jfloat *matrix, jint alpha, jint blend,
+DRAWING_Status VG_DRAWING_VGLITE_drawString(MICROUI_GraphicsContext *gc, const jchar *text, jint length,
+                                            jint faceHandle, jfloat size, const jfloat *matrix, jint alpha, jint blend,
                                             jfloat letterSpacing) {
-	return _draw_string_on_circle(gc, text, faceHandle, size, matrix, alpha, blend, letterSpacing, 0.0f, 0);
+	return _draw_string_on_circle(gc, text, length, faceHandle, size, matrix, alpha, blend, letterSpacing, 0.0f, 0);
 }
 
-DRAWING_Status VG_DRAWING_VGLITE_drawStringGradient(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle,
-                                                    jfloat size, const float *matrix, jint alpha, jint blend,
-                                                    jfloat letterSpacing, const jint *gradientData,
+DRAWING_Status VG_DRAWING_VGLITE_drawStringGradient(MICROUI_GraphicsContext *gc, const jchar *text, jint length,
+                                                    jint faceHandle, jfloat size, const float *matrix, jint alpha,
+                                                    jint blend, jfloat letterSpacing, const jint *gradientData,
                                                     const jfloat *gradientMatrix) {
-	return _draw_string_on_circle_gradient(gc, text, faceHandle, size, matrix, alpha, blend, letterSpacing, 0.0f, 0,
-	                                       gradientData, gradientMatrix);
+	return _draw_string_on_circle_gradient(gc, text, length, faceHandle, size, matrix, alpha, blend, letterSpacing,
+	                                       0.0f, 0, gradientData, gradientMatrix);
 }
 
-DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircle(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle,
-                                                    jfloat size, const jfloat *matrix, jint alpha, jint blend,
-                                                    jfloat letterSpacing, jfloat radius, jint direction) {
-	return _draw_string_on_circle(gc, text, faceHandle, size, matrix, alpha, blend, letterSpacing, radius, direction);
+DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircle(MICROUI_GraphicsContext *gc, const jchar *text, jint length,
+                                                    jint faceHandle, jfloat size, const jfloat *matrix, jint alpha,
+                                                    jint blend, jfloat letterSpacing, jfloat radius, jint direction) {
+	return _draw_string_on_circle(gc, text, length, faceHandle, size, matrix, alpha, blend, letterSpacing, radius,
+	                              direction);
 }
 
-DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircleGradient(MICROUI_GraphicsContext *gc, const jchar *text,
+DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircleGradient(MICROUI_GraphicsContext *gc, const jchar *text, jint length,
                                                             jint faceHandle, jfloat size, const jfloat *matrix,
                                                             jint alpha, jint blend, jfloat letterSpacing, jfloat radius,
                                                             jint direction, const jint *gradientData,
                                                             const jfloat *gradientMatrix) {
-	return _draw_string_on_circle_gradient(gc, text, faceHandle, size, matrix, alpha, blend, letterSpacing, radius,
-	                                       direction, gradientData, gradientMatrix);
+	return _draw_string_on_circle_gradient(gc, text, length, faceHandle, size, matrix, alpha, blend, letterSpacing,
+	                                       radius, direction, gradientData, gradientMatrix);
 }
 
 DRAWING_Status VG_DRAWING_VGLITE_drawImage(MICROUI_GraphicsContext *gc, const void *image, const jfloat *matrix,

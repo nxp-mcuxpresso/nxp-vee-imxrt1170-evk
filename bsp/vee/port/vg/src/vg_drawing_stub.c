@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -10,7 +10,7 @@
  * @brief
  * @brief Implementation of all drawing functions of vg_drawing_stub.h.
  * @author MicroEJ Developer Team
- * @version 6.0.1
+ * @version 7.0.1
  * @see vg_drawing_stub.h
  */
 
@@ -58,10 +58,11 @@ DRAWING_Status VG_DRAWING_STUB_drawGradient(MICROUI_GraphicsContext *gc, jbyte *
 	return not_implemented(gc);
 }
 
-DRAWING_Status VG_DRAWING_STUB_drawString(MICROUI_GraphicsContext *gc, jchar *text, jint faceHandle, jfloat size,
-                                          jfloat *matrix, jint alpha, jint blend, jfloat letterSpacing) {
+DRAWING_Status VG_DRAWING_STUB_drawString(MICROUI_GraphicsContext *gc, jchar *text, jint length, jint faceHandle,
+                                          jfloat size, jfloat *matrix, jint alpha, jint blend, jfloat letterSpacing) {
 	(void)gc;
 	(void)text;
+	(void)length;
 	(void)faceHandle;
 	(void)size;
 	(void)matrix;
@@ -71,11 +72,12 @@ DRAWING_Status VG_DRAWING_STUB_drawString(MICROUI_GraphicsContext *gc, jchar *te
 	return not_implemented(gc);
 }
 
-DRAWING_Status VG_DRAWING_STUB_drawStringGradient(MICROUI_GraphicsContext *gc, jchar *text, jint faceHandle,
-                                                  jfloat size, jfloat *matrix, jint alpha, jint blend,
+DRAWING_Status VG_DRAWING_STUB_drawStringGradient(MICROUI_GraphicsContext *gc, jchar *text, jint length,
+                                                  jint faceHandle, jfloat size, jfloat *matrix, jint alpha, jint blend,
                                                   jfloat letterSpacing, jint *gradientData, jfloat *gradientMatrix) {
 	(void)gc;
 	(void)text;
+	(void)length;
 	(void)faceHandle;
 	(void)size;
 	(void)matrix;
@@ -87,11 +89,12 @@ DRAWING_Status VG_DRAWING_STUB_drawStringGradient(MICROUI_GraphicsContext *gc, j
 	return not_implemented(gc);
 }
 
-DRAWING_Status VG_DRAWING_STUB_drawStringOnCircle(MICROUI_GraphicsContext *gc, jchar *text, jint faceHandle,
-                                                  jfloat size, jfloat *matrix, jint alpha, jint blend,
+DRAWING_Status VG_DRAWING_STUB_drawStringOnCircle(MICROUI_GraphicsContext *gc, jchar *text, jint length,
+                                                  jint faceHandle, jfloat size, jfloat *matrix, jint alpha, jint blend,
                                                   jfloat letterSpacing, jfloat radius, jint direction) {
 	(void)gc;
 	(void)text;
+	(void)length;
 	(void)faceHandle;
 	(void)size;
 	(void)matrix;
@@ -103,12 +106,13 @@ DRAWING_Status VG_DRAWING_STUB_drawStringOnCircle(MICROUI_GraphicsContext *gc, j
 	return not_implemented(gc);
 }
 
-DRAWING_Status VG_DRAWING_STUB_drawStringOnCircleGradient(MICROUI_GraphicsContext *gc, jchar *text, jint faceHandle,
-                                                          jfloat size, float *matrix, jint alpha, jint blend,
-                                                          jfloat letterSpacing, jfloat radius, jint direction,
-                                                          jint *gradientData, jfloat *gradientMatrix) {
+DRAWING_Status VG_DRAWING_STUB_drawStringOnCircleGradient(MICROUI_GraphicsContext *gc, jchar *text, jint length,
+                                                          jint faceHandle, jfloat size, float *matrix, jint alpha,
+                                                          jint blend, jfloat letterSpacing, jfloat radius,
+                                                          jint direction, jint *gradientData, jfloat *gradientMatrix) {
 	(void)gc;
 	(void)text;
+	(void)length;
 	(void)faceHandle;
 	(void)size;
 	(void)matrix;

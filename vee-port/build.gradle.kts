@@ -14,7 +14,7 @@ dependencies {
     // If the UI pack is removed, do not forget to remove the related
     // dependencies and configuration in the Front Panel project.
     microejPack(libs.pack.ui.architecture)
-    microejPack(libs.pack.ai)
+    microejPack(libs.pack.event)
     microejPack(libs.pack.fs)
     microejPack(libs.pack.gpio)
     microejPack(libs.pack.gpio.properties)
@@ -22,6 +22,7 @@ dependencies {
     microejPack(libs.pack.device)
     microejPack(libs.pack.ecom.wifi)
     microejPack(libs.pack.vg)
+    microejPack(libs.api.microai)
 
     microejFrontPanel(project(":vee-port:front-panel"))
 

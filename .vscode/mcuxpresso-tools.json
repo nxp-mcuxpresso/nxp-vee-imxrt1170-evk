@@ -1,17 +1,8 @@
 {
-  "version": "1.4",
+  "version": "25.3",
   "toolchainPath": "${env:ARMGCC_DIR}",
   "linkedProjects": [],
   "trustZoneType": "none",
   "multicoreType": "none",
-  "debug": {
-    "linkserver": {
-      "device": "MIMXRT1176xxxxx:MIMXRT1170-EVK",
-      "core": "cm7"
-    },
-    "segger": {
-      "device": "MIMXRT1176xxxA_M7"
-    }
-  },
   "projectType": "cmake-freestanding"
 }

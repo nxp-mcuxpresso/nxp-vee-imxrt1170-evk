@@ -1,15 +1,15 @@
 /*
  * C
  *
- * Copyright 2020-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2020-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
 /**
  * @file
- * @brief MicroEJ MicroVG library low level API: implementation over FreeType
+ * @brief MicroEJ MicroVG library low level API: stub implementation of LLVG_FONT_IMPL_xxx().
  * @author MicroEJ Developer Team
- * @version 6.0.1
+ * @version 7.0.1
  */
 
 #include "vg_configuration.h"

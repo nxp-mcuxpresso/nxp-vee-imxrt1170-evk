@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2020-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2020-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ MicroVG library low level API: implementation over FreeType
  * @author MicroEJ Developer Team
- * @version 6.0.1
+ * @version 7.0.1
  */
 
 #include "vg_configuration.h"
@@ -191,6 +191,67 @@ void VG_FREETYPE_initialize(void) {
 	}
 }
 
+// See the header file for the function documentation
+jfloat VG_FREETYPE_string_width(jchar *text, jint length, jint face_handle, jfloat size, jfloat letter_spacing) {
+	float scaled_width = 0.f;
+
+	if (size >= 0) {
+		FT_Face face = (FT_Face)face_handle;
+		float scale = GET_SCALE(size, face);
+
+		int nb_chars = 0;
+		long unscaled_width = 0;
+
+		// Layout variables
+		int glyph_index;  // current glyph index
+		int previous_glyph_index = 0; // previous glyph index for kerning
+
+		int advance_x;
+		int previous_advance_x;
+		int previous_offset_x;
+		int advance_y;
+		int offset_x;
+		int offset_y;
+
+		VG_HELPER_layout_configure(face_handle, text, length);
+
+		while (VG_HELPER_layout_load_glyph(&glyph_index, &advance_x, &advance_y, &offset_x, &offset_y)) {
+			// At that point the current glyph has been loaded by Freetype
+			if (0 == previous_glyph_index) {
+				// first glyph: remove the first blank line
+				if (0 != face->glyph->metrics.width) {
+					unscaled_width -= face->glyph->metrics.horiBearingX;
+				} else {
+					unscaled_width -= face->glyph->advance.x;
+				}
+			}
+
+			unscaled_width += advance_x;
+			previous_glyph_index = glyph_index;
+			nb_chars++;
+			// Last call to VG_HELPER_layout_load_glyph clear advance_x and offset_x.
+			// We need to keep them for last glyph measurement
+			previous_advance_x = advance_x;
+			previous_offset_x = offset_x;
+		}
+
+		// last glyph: remove the last blank line
+		if (0 != face->glyph->metrics.width) {
+			unscaled_width -= previous_advance_x;
+			unscaled_width += face->glyph->metrics.horiBearingX; // glyph's left blank line
+			unscaled_width += face->glyph->metrics.width; // glyph's width
+			unscaled_width += previous_offset_x; // glyph's offset_x
+		} else {
+			if (0 != unscaled_width) {
+				unscaled_width -= previous_advance_x;
+			}
+		}
+		scaled_width = ((scale * (float)unscaled_width) + (((float)nb_chars - 1) * letter_spacing));
+	}
+
+	return scaled_width;
+}
+
 // -----------------------------------------------------------------------------
 // LLVG_FONT_impl.h functions
 // -----------------------------------------------------------------------------
@@ -250,64 +311,8 @@ jfloat LLVG_FONT_IMPL_string_width(jchar *text, jint faceHandle, jfloat size, jf
 	if (LLVG_FONT_UNLOADED == faceHandle) {
 		ret = (jfloat)LLVG_RESOURCE_CLOSED;
 	} else {
-		FT_Face face = (FT_Face)faceHandle;
-		float scaled_width = 0.f;
-
-		if (size >= 0) {
-			float scale = GET_SCALE(size, face);
-
-			int nb_chars = 0;
-			long unscaled_width = 0;
-
-			// Layout variables
-			int glyph_index;  // current glyph index
-			int previous_glyph_index = 0; // previous glyph index for kerning
-
-			int advance_x;
-			int previous_advance_x;
-			int previous_offset_x;
-			int advance_y;
-			int offset_x;
-			int offset_y;
-
-			int length = (int)SNI_getArrayLength(text);
-			VG_HELPER_layout_configure(faceHandle, text, length);
-
-			while (VG_HELPER_layout_load_glyph(&glyph_index, &advance_x, &advance_y, &offset_x, &offset_y)) {
-				// At that point the current glyph has been loaded by Freetype
-				if (0 == previous_glyph_index) {
-					// first glyph: remove the first blank line
-					if (0 != face->glyph->metrics.width) {
-						unscaled_width -= face->glyph->metrics.horiBearingX;
-					} else {
-						unscaled_width -= face->glyph->advance.x;
-					}
-				}
-
-				unscaled_width += advance_x;
-				previous_glyph_index = glyph_index;
-				nb_chars++;
-				// Last call to VG_HELPER_layout_load_glyph clear advance_x and offset_x.
-				// We need to keep them for last glyph measurement
-				previous_advance_x = advance_x;
-				previous_offset_x = offset_x;
-			}
-
-			// last glyph: remove the last blank line
-			if (0 != face->glyph->metrics.width) {
-				unscaled_width -= previous_advance_x;
-				unscaled_width += face->glyph->metrics.horiBearingX; // glyph's left blank line
-				unscaled_width += face->glyph->metrics.width; // glyph's width
-				unscaled_width += previous_offset_x; // glyph's offset_x
-			} else {
-				if (0 != unscaled_width) {
-					unscaled_width -= previous_advance_x;
-				}
-			}
-			scaled_width = ((scale * (float)unscaled_width) + (((float)nb_chars - 1) * letterSpacing));
-		}
-
-		ret = scaled_width;
+		int length = (int)SNI_getArrayLength(text);
+		ret = VG_FREETYPE_string_width(text, length, faceHandle, size, letterSpacing);
 	}
 
 	LOG_MICROVG_FONT_END(stringWidth);
@@ -530,7 +535,7 @@ static void __register_font_description(void *resource, char *buffer, uint32_t b
 	(void)resource;
 	const char descEF[] = "Vector Font";
 	if (bufferLength >= sizeof(descEF)) {
-		memcpy(buffer, descEF, sizeof(descEF));
+		(void)memcpy(buffer, descEF, sizeof(descEF));
 	}
 }
 

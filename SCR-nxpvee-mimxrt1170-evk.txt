@@ -1,8 +1,8 @@
 Release Name: NXPVEE-MIMXRT1170-EVK
-Release Version: 3.0.0
-Date: March 2025
+Release Version: 3.1.0
+Date: September 2025
 Package License: LICENSE.txt
-Outgoing License: LA_OPT_NXP_Software_License v60 February 2025, Section 2.3 applies
+Outgoing License: LA_OPT_NXP_Software_License v63 May 2025, Section 2.3 applies
 
 SDK_Peripheral_Driver      Name: SDK Peripheral Driver
                            Version: 2.x.x
@@ -170,6 +170,8 @@ freertos-kernel            Name: FreeRTOS kernel
 
 FreeType                   Name: FreeType
                            Version: 2.11
+                           CVE:
+                             - https://nvd.nist.gov/vuln/detail/CVE-2025-27363
                            Outgoing License: FTL
                            License File: bsp/vee/thirdparty/freetype/FTL.TXT
                            Format: source code
@@ -356,6 +358,24 @@ MicroEJ EDC                Name: Embedded Device Configuration (EDC)
                            Origin: MicroEJ
                            Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/runtime.html?highlight=edc#embedded-device-configuration-edc
 
+MicroEJ Event Queue        Name: Event Queue
+                           Version: 2.1
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Event Queue API module.
+                           Location: transitive dependency of vee-port/build.gradle.kts
+                           Origin: MicroEJ
+                           Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/eventQueue.html
+
+MicroEJ Event Queue Pack   Name: Event Queue Pack
+                           Version: 2.1
+                           Outgoing License: MicroEJ SDK EULA
+                           License File: Licenses/MICROEJ_SDK_EULA.txt
+                           Description: Implementation of an asynchronous communication interface between the native world and the application world based on events.
+                           Location: dependency of vee-port/build.gradle.kts
+                           Origin: MicroEJ
+                           Url: https://docs.microej.com/en/latest/VEEPortingGuide/packEventQueue.html
+
 MicroEJ FRAMEWORK          Name: Frontpanel Framework Library
                            Version: 1.1.0
                            Outgoing License: MicroEJ SDK EULA
@@ -446,7 +466,7 @@ MicroEJ MicroUI Pack       Name: MicroUI Pack
                            Url: https://docs.microej.com/en/latest/VEEPortingGuide/ui.html
 
 MicroEJ MicroVG            Name: MicroVG
-                           Version: 1.6.0
+                           Version: 1.4
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: MicroVG API module.
@@ -455,7 +475,7 @@ MicroEJ MicroVG            Name: MicroVG
                            Url: https://docs.microej.com/en/latest/ApplicationDeveloperGuide/UI/MicroVG/index.html
 
 MicroEJ MicroVG Pack       Name: MicroVG
-                           Version: 1.6.0
+                           Version: 1.7.1
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: Vector drawing library
@@ -482,7 +502,7 @@ MicroEJ NET                Name: Networking
                            Url: https://docs.microej.com/en/latest/VEEPortingGuide/networkCoreEngine.html
 
 MicroEJ NET Pack           Name: MicroEJ Pack NET
-                           Version: 11.2.0
+                           Version: 12.0.0
                            Outgoing License: MicroEJ SDK EULA
                            License File: Licenses/MICROEJ_SDK_EULA.txt
                            Description: This pack contains the networking modules group: NET, SSL & Security.

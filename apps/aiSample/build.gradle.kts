@@ -10,7 +10,7 @@ microej {
 }
 
 dependencies {
-    implementation(libs.api.ai)
+    implementation(libs.api.microai)
     implementation(libs.api.drawing)
 
     implementation(libs.library.widget)

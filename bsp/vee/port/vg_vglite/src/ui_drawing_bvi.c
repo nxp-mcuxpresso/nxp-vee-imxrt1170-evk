@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -18,7 +18,7 @@
  * drawing function is specified by ui_drawing_bvi.c to target BufferedVectorImage buffer.
  *
  * @author MicroEJ Developer Team
- * @version 8.0.1
+ * @version 9.0.1
  * @see ui_drawing_vglite.c
  */
 

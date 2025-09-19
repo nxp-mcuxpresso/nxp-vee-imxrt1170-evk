@@ -9,7 +9,7 @@
  * @file
  * @brief LLKERNEL RAM implementation.
  * @author MicroEJ Development Team
- * @version 3.0.0
+ * @version 3.0.1
  */
 
 #include <stdlib.h>
@@ -168,6 +168,7 @@ void LLKERNEL_IMPL_freeFeature(int32_t handle) {
 			// Feature to remove is the first one in the installed features list.
 			first_installed_feature = remove_feature->next;
 			--nb_allocated_features;
+			KERNEL_FREE((void *)handle);
 		} else {
 			// Search feature in the installed features list and remove it
 			while (NULL != ptr_feature->next) {
